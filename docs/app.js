@@ -1,7 +1,8 @@
 // LBA 30-0 - prototipo frontend
 // Nessun backend: tutto gira in-browser leggendo data/dataset.json
 // Flusso: 5 squadre mostrate UNA ALLA VOLTA. Per ognuna scegli un giocatore
-// e lo assegni a uno slot ancora libero del quintetto. Scelta irrevocabile.
+// dalla lista, poi lo assegni cliccando uno dei 5 slot del quintetto (solo
+// quelli in cui può giocare sono cliccabili). Scelta irrevocabile.
 
 const ROLE_ALIASES = {
   playmaker: ["Playmaker", "Play/Guardia"],
@@ -11,6 +12,15 @@ const ROLE_ALIASES = {
 };
 
 const SLOT_LABELS = { playmaker: "Playmaker", centro: "Centro", wing: "Guardia/Ala" };
+
+// i 5 slot del quintetto: 1 Playmaker, 3 Guardia/Ala intercambiabili, 1 Centro
+const SLOT_DEFS = [
+  { id: "playmaker", type: "playmaker" },
+  { id: "wing1", type: "wing" },
+  { id: "wing2", type: "wing" },
+  { id: "wing3", type: "wing" },
+  { id: "centro", type: "centro" },
+];
 
 // colore identificativo per squadra (approssimativo, solo per riconoscibilità visiva)
 const TEAM_COLORS = {
@@ -37,9 +47,9 @@ const PEN_SCALE = 15;
 let ALL_TEAM_SEASONS = [];
 let currentDraw = []; // 5 team-season objects, in ordine di rivelazione
 let roundIndex = 0;
-let slotsOpen = { playmaker: 1, centro: 1, wing: 3 };
+let slots = []; // 5 slot: { id, type, pick: null | {player, teamSeason} }
 let wingTally = { guardia: 0, ala: 0 };
-let picks = []; // {teamSeason, player, slotType}
+let selected = null; // giocatore selezionato in attesa di uno slot: { player, teamSeason, legalIds }
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -87,42 +97,48 @@ function drawFive() {
 function startDraft() {
   currentDraw = drawFive();
   roundIndex = 0;
-  slotsOpen = { playmaker: 1, centro: 1, wing: 3 };
+  slots = SLOT_DEFS.map((d) => ({ ...d, pick: null }));
   wingTally = { guardia: 0, ala: 0 };
-  picks = [];
+  selected = null;
   $("#screen-home").hidden = true;
   $("#screen-result").hidden = true;
   $("#screen-draft").hidden = false;
   renderRound();
 }
 
-// Determina a quali slot puo' essere assegnato un giocatore, dato lo stato attuale
-function legalSlotsFor(player) {
+// Determina in quali slot (per id) puo' essere messo un giocatore, dato lo stato attuale
+function legalSlotIdsFor(player) {
   const role = player.role;
+  const openWingCount = slots.filter((s) => s.type === "wing" && !s.pick).length;
   const legal = [];
-  if (slotsOpen.playmaker > 0 && ROLE_ALIASES.playmaker.includes(role)) legal.push("playmaker");
-  if (slotsOpen.centro > 0 && ROLE_ALIASES.centro.includes(role)) legal.push("centro");
-  if (slotsOpen.wing > 0 && (ROLE_ALIASES.guardia.includes(role) || ROLE_ALIASES.ala.includes(role))) {
-    // se questo e' l'ultimo slot "ala/guardia" rimasto, il quintetto finale deve comunque
-    // avere almeno 1 guardia e 1 ala: blocco la scelta se la renderebbe impossibile
-    if (slotsOpen.wing === 1) {
-      const newGuardia = wingTally.guardia + (ROLE_ALIASES.guardia.includes(role) ? 1 : 0);
-      const newAla = wingTally.ala + (ROLE_ALIASES.ala.includes(role) ? 1 : 0);
-      if (newGuardia >= 1 && newAla >= 1) legal.push("wing");
-    } else {
-      legal.push("wing");
+  for (const s of slots) {
+    if (s.pick) continue;
+    if (s.type === "playmaker" && ROLE_ALIASES.playmaker.includes(role)) legal.push(s.id);
+    if (s.type === "centro" && ROLE_ALIASES.centro.includes(role)) legal.push(s.id);
+    if (s.type === "wing" && (ROLE_ALIASES.guardia.includes(role) || ROLE_ALIASES.ala.includes(role))) {
+      // se questo e' l'ultimo slot "ala/guardia" rimasto, il quintetto finale deve comunque
+      // avere almeno 1 guardia e 1 ala: blocco la scelta se la renderebbe impossibile
+      if (openWingCount === 1) {
+        const newGuardia = wingTally.guardia + (ROLE_ALIASES.guardia.includes(role) ? 1 : 0);
+        const newAla = wingTally.ala + (ROLE_ALIASES.ala.includes(role) ? 1 : 0);
+        if (newGuardia >= 1 && newAla >= 1) legal.push(s.id);
+      } else {
+        legal.push(s.id);
+      }
     }
   }
   return legal;
 }
 
-function assign(player, slotType, teamSeason) {
-  slotsOpen[slotType]--;
-  if (slotType === "wing") {
-    if (ROLE_ALIASES.guardia.includes(player.role)) wingTally.guardia++;
-    if (ROLE_ALIASES.ala.includes(player.role)) wingTally.ala++;
+function assignSelectedTo(slotId) {
+  if (!selected || !selected.legalIds.includes(slotId)) return;
+  const slot = slots.find((s) => s.id === slotId);
+  slot.pick = { player: selected.player, teamSeason: selected.teamSeason };
+  if (slot.type === "wing") {
+    if (ROLE_ALIASES.guardia.includes(selected.player.role)) wingTally.guardia++;
+    if (ROLE_ALIASES.ala.includes(selected.player.role)) wingTally.ala++;
   }
-  picks.push({ teamSeason, player, slotType });
+  selected = null;
   roundIndex++;
   if (roundIndex >= 5) {
     showResult();
@@ -133,46 +149,41 @@ function assign(player, slotType, teamSeason) {
 
 function renderSlotsPanel() {
   const panel = $("#slots-panel");
-  const rows = [];
-  rows.push(["playmaker", "Playmaker", slotsOpen.playmaker]);
-  rows.push(["centro", "Centro", slotsOpen.centro]);
-  rows.push(["wing", "Guardia/Ala", slotsOpen.wing]);
   panel.innerHTML =
-    `<h3>Slot quintetto</h3>` +
-    rows
-      .map(([key, label, remaining]) => {
-        const cls = remaining === 0 ? "done" : "open";
-        const text = key === "wing" ? `${label}: ${remaining} liberi` : `${label}: ${remaining === 0 ? "assegnato" : "libero"}`;
-        return `<div class="slot-row ${cls}">${text}</div>`;
+    `<h3>Quintetto</h3>` +
+    slots
+      .map((s) => {
+        if (s.pick) {
+          return `<div class="slot-box filled" style="--team-color:${s.pick.teamSeason.color}">
+            <div class="slot-label">${SLOT_LABELS[s.type]}</div>
+            <div class="slot-player">${s.pick.player.name} ${s.pick.player.surname}</div>
+          </div>`;
+        }
+        let cls = "slot-box empty";
+        let clickable = false;
+        if (selected) {
+          if (selected.legalIds.includes(s.id)) {
+            cls += " legal";
+            clickable = true;
+          } else {
+            cls += " illegal";
+          }
+        }
+        return `<div class="${cls}" data-slot-id="${s.id}">
+          <div class="slot-label">${SLOT_LABELS[s.type]}</div>
+          <div class="slot-status">${clickable ? "Metti qui" : "Libero"}</div>
+        </div>`;
       })
       .join("");
-}
 
-function renderPicksPanel() {
-  const panel = $("#picks-panel");
-  if (picks.length === 0) {
-    panel.innerHTML = `<h3>Scelte finora</h3><div style="color:var(--muted);font-size:0.82rem;">Nessuna ancora</div>`;
-    return;
-  }
-  panel.innerHTML =
-    `<h3>Scelte finora</h3>` +
-    picks
-      .map(
-        (pk) => `<div class="pick-row">
-          <div class="team-dot" style="--team-color:${pk.teamSeason.color}"></div>
-          <div>
-            <div class="pick-slot">${SLOT_LABELS[pk.slotType]}</div>
-            <div class="pick-name">${pk.player.name} ${pk.player.surname}</div>
-          </div>
-        </div>`
-      )
-      .join("");
+  panel.querySelectorAll(".slot-box.legal").forEach((el) => {
+    el.addEventListener("click", () => assignSelectedTo(el.dataset.slotId));
+  });
 }
 
 function renderRound() {
   renderSlotsPanel();
-  renderPicksPanel();
-  $("#round-progress").textContent = `Squadra ${roundIndex + 1} di 5`;
+  $("#round-progress").textContent = `Squadra ${roundIndex + 1} di 5${selected ? " · scegli dove giocherà " + selected.player.name + " " + selected.player.surname : ""}`;
 
   const ts = currentDraw[roundIndex];
   const card = $("#round-card");
@@ -188,47 +199,43 @@ function renderRound() {
         <div class="team-card-year">${ts.teamNameAtTime} · ${ts.year}</div>
       </div>
     </div>
+    <div class="player-list-header">
+      <div></div>
+      <div class="player-stats-header">
+        <div class="stat-col">P</div>
+        <div class="stat-col">R</div>
+        <div class="stat-col">A</div>
+      </div>
+    </div>
     <div class="player-list" id="round-player-list"></div>
   `;
 
   const list = $("#round-player-list");
   sortedPlayers.forEach((p) => {
-    const legal = legalSlotsFor(p);
+    const legalIds = legalSlotIdsFor(p);
+    const isSelected = !!(selected && selected.player === p);
     const row = document.createElement("div");
-    row.className = "player-row" + (legal.length === 0 ? " disabled" : "");
+    row.className = "player-row" + (legalIds.length === 0 ? " disabled" : "") + (isSelected ? " selected" : "");
+    const reb = Number(p.off_rebound_avg || 0) + Number(p.def_rebound_avg || 0);
     row.innerHTML = `
       <div>
         <div class="player-name">${p.name} ${p.surname}</div>
         <div class="player-role">${p.role}</div>
       </div>
-      <div class="player-stats">${p.points_avg.toFixed(1)}p ${(p.off_rebound_avg + p.def_rebound_avg).toFixed(1)}r ${p.assists_avg.toFixed(1)}a</div>
+      <div class="player-stats">
+        <div class="stat-col">${p.points_avg.toFixed(1)}</div>
+        <div class="stat-col">${reb.toFixed(1)}</div>
+        <div class="stat-col">${p.assists_avg.toFixed(1)}</div>
+      </div>
     `;
-    if (legal.length > 0) {
-      row.addEventListener("click", () => onPlayerClick(p, legal, ts, row));
+    if (legalIds.length > 0) {
+      row.addEventListener("click", () => {
+        selected = isSelected ? null : { player: p, teamSeason: ts, legalIds };
+        renderRound();
+      });
     }
     list.appendChild(row);
   });
-}
-
-function onPlayerClick(player, legalSlots, teamSeason, rowEl) {
-  // rimuovi eventuali chooser gia' aperti su altre righe
-  document.querySelectorAll(".assign-chooser").forEach((el) => el.remove());
-
-  if (legalSlots.length === 1) {
-    assign(player, legalSlots[0], teamSeason);
-    return;
-  }
-  // ambiguo (es. Play/Guardia con sia Playmaker che Guardia/Ala ancora liberi): chiedi conferma
-  const chooser = document.createElement("div");
-  chooser.className = "assign-chooser";
-  chooser.innerHTML =
-    legalSlots.map((s) => `<button data-slot="${s}">Usa come ${SLOT_LABELS[s]}</button>`).join("") +
-    `<button class="cancel">Annulla</button>`;
-  chooser.querySelectorAll("button[data-slot]").forEach((btn) => {
-    btn.addEventListener("click", () => assign(player, btn.dataset.slot, teamSeason));
-  });
-  chooser.querySelector(".cancel").addEventListener("click", () => chooser.remove());
-  rowEl.insertAdjacentElement("afterend", chooser);
 }
 
 function evaluateLineup(chosen) {
@@ -259,7 +266,8 @@ const CAT_LABELS = { points: "Punti", rebounds: "Rimbalzi", assists: "Assist", s
 const SLOT_DISPLAY_ORDER = { playmaker: 0, centro: 1, wing: 2 };
 
 function showResult() {
-  const chosen = picks.map((pk) => pk.player);
+  const orderedSlots = [...slots].sort((a, b) => SLOT_DISPLAY_ORDER[a.type] - SLOT_DISPLAY_ORDER[b.type]);
+  const chosen = orderedSlots.map((s) => s.pick.player);
   const result = evaluateLineup(chosen);
 
   $("#screen-draft").hidden = true;
@@ -270,7 +278,6 @@ function showResult() {
   $("#result-record").textContent = `${wins}-${losses}`;
   $("#result-sub").textContent = `Rating squadra: ${result.teamRating.toFixed(1)}`;
 
-  const orderedPicks = [...picks].sort((a, b) => SLOT_DISPLAY_ORDER[a.slotType] - SLOT_DISPLAY_ORDER[b.slotType]);
   const lineupEl = $("#result-lineup");
   lineupEl.innerHTML =
     `<div class="lineup-row lineup-header">
@@ -285,9 +292,10 @@ function showResult() {
         <div class="stat-col">B</div>
       </div>
     </div>` +
-    orderedPicks
-      .map((pk) => {
-        const roleLabel = pk.slotType === "wing" ? pk.player.role : SLOT_LABELS[pk.slotType];
+    orderedSlots
+      .map((s) => {
+        const pk = s.pick;
+        const roleLabel = s.type === "wing" ? pk.player.role : SLOT_LABELS[s.type];
         const p = pk.player;
         const reb = Number(p.off_rebound_avg || 0) + Number(p.def_rebound_avg || 0);
         return `<div class="lineup-row">

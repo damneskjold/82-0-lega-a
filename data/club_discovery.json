@@ -1,0 +1,567 @@
+{
+  "virtus_bologna": [
+    {
+      "club_id": 6,
+      "names": [
+        "Buckler Bologna",
+        "Canadian Solar BO",
+        "Canadian Solar Bologna",
+        "Granarolo Bologna",
+        "Kinder Bologna",
+        "Knorr Bologna",
+        "La Fortezza Bologna",
+        "Obiettivo Lavoro Bologna",
+        "Oknoplast Bologna",
+        "Segafredo Virtus Bologna",
+        "VidiVici Bologna",
+        "Virtus Bologna",
+        "Virtus Olidata Bologna",
+        "Virtus Segafredo Bologna"
+      ],
+      "years_present": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025,
+        2026
+      ]
+    },
+    {
+      "club_id": 5,
+      "names": [
+        "Climamio Bologna",
+        "Filodoro Bologna",
+        "Fortitudo Kigili Bologna",
+        "Fortitudo Lavoropiù Bologna",
+        "GMAC Bologna",
+        "Paf Bologna",
+        "Pompea Fortitudo Bologna",
+        "Skipper Bologna",
+        "Teamsystem Bologna",
+        "Upim Bologna"
+      ],
+      "years_present": [
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2019,
+        2020,
+        2021
+      ]
+    }
+  ],
+  "olimpia_milano": [
+    {
+      "club_id": 28,
+      "names": [
+        "Adecco Milano",
+        "Armani Jeans Milano",
+        "Armani Olimpia Milano",
+        "A|X Armani Exchange Milano",
+        "Breil Milano",
+        "EA7 Armani Milano",
+        "EA7 Emporio Armani Milano",
+        "Philips Milano",
+        "Pippo Milano",
+        "Recoaro Milano",
+        "Sony Milano",
+        "Stefanel Milano"
+      ],
+      "years_present": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025,
+        2026
+      ]
+    },
+    {
+      "club_id": 27,
+      "names": [
+        "Teorematour Milano"
+      ],
+      "years_present": [
+        1995
+      ]
+    }
+  ],
+  "canturina": [
+    {
+      "club_id": 12,
+      "names": [
+        "Acqua S.Bernardo Cantù",
+        "Acqua Vitasnella Cantù",
+        "Bennet Cantù",
+        "Canturina Cantù",
+        "Lenovo Cantù",
+        "MIA-Red October Cantù",
+        "NGC Cantu'",
+        "NGC Medical Cantu'",
+        "Oregon Scientific Cantu'",
+        "Poliform Cantu'",
+        "Polti Cantu'",
+        "Red October Cantù",
+        "S. Clear Cantu'",
+        "S.Bernardo-Cinelandia Cantù",
+        "Tisettanta Cantu'",
+        "Vertical Vision Cantu'"
+      ],
+      "years_present": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2025,
+        2026
+      ]
+    }
+  ],
+  "treviso": [
+    {
+      "club_id": 56,
+      "names": [
+        "Benetton Treviso"
+      ],
+      "years_present": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011
+      ]
+    },
+    {
+      "club_id": 107,
+      "names": [
+        "De'Longhi Treviso",
+        "NutriBullet Treviso Basket",
+        "Nutribullet Treviso Basket"
+      ],
+      "years_present": [
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025,
+        2026
+      ]
+    }
+  ],
+  "varese": [
+    {
+      "club_id": 60,
+      "names": [
+        "A. Ranger Varese",
+        "Cagiva Varese",
+        "Casti Group Varese",
+        "Cimberio Varese",
+        "Metis Varese",
+        "Openjobmetis Varese",
+        "Pall. Varese",
+        "Varese Roosters",
+        "Whirlpool Varese"
+      ],
+      "years_present": [
+        1990,
+        1991,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025,
+        2026
+      ]
+    }
+  ],
+  "siena": [
+    {
+      "club_id": 51,
+      "names": [
+        "Comerson Siena",
+        "Cx Orologi Siena",
+        "Ducato Siena",
+        "Fontanafredda Siena",
+        "Montepaschi Siena",
+        "Ticino Assicurazioni Siena"
+      ],
+      "years_present": [
+        1991,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013
+      ]
+    }
+  ],
+  "venezia": [
+    {
+      "club_id": 61,
+      "names": [
+        "Acqua Lora Venezia",
+        "Scaini Venezia",
+        "Umana Reyer Venezia",
+        "Umana Venezia"
+      ],
+      "years_present": [
+        1992,
+        1993,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025,
+        2026
+      ]
+    }
+  ],
+  "trieste": [
+    {
+      "club_id": 55,
+      "names": [
+        "Acegas Trieste",
+        "Coop Nordest Trieste",
+        "Genertel Trieste",
+        "Illycaffe' Trieste",
+        "Stefanel Trieste",
+        "Telit Trieste"
+      ],
+      "years_present": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003
+      ]
+    },
+    {
+      "club_id": 106,
+      "names": [
+        "Allianz Pallacanestro Trieste",
+        "Alma Trieste",
+        "Pallacanestro Trieste"
+      ],
+      "years_present": [
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2024,
+        2025,
+        2026
+      ]
+    }
+  ],
+  "brescia": [
+    {
+      "club_id": 8,
+      "names": [
+        "Germani Basket Brescia",
+        "Germani Brescia"
+      ],
+      "years_present": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ]
+    }
+  ],
+  "pesaro": [
+    {
+      "club_id": 37,
+      "names": [
+        "Carpegna Prosciutto Basket Pesaro",
+        "Carpegna Prosciutto Pesaro",
+        "Consultinvest Pesaro",
+        "Scavolini Banca Marche Pesaro",
+        "Scavolini Pesaro",
+        "Scavolini Siviglia Pesaro",
+        "Scavolini Spar Pesaro",
+        "VL Pallacanestro Pesaro",
+        "VL Pesaro",
+        "Victoria Libertas Pesaro"
+      ],
+      "years_present": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+      ]
+    }
+  ],
+  "roma": [
+    {
+      "club_id": 48,
+      "names": [
+        "Acea Roma",
+        "Adr Roma",
+        "Burghy Roma",
+        "Calze Pompea Roma",
+        "Il Messaggero Roma",
+        "Lottomatica Roma",
+        "Nuova Tirrena Roma",
+        "Telemarket Roma",
+        "Teorematour Roma",
+        "Virtus Roma",
+        "Würth Roma"
+      ],
+      "years_present": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2019
+      ]
+    },
+    {
+      "club_id": 246,
+      "names": [
+        "BC Roma SPQR"
+      ],
+      "years_present": [
+        2026
+      ]
+    },
+    {
+      "club_id": 247,
+      "names": [
+        "Maxima Roma"
+      ],
+      "years_present": [
+        2026
+      ]
+    }
+  ]
+}

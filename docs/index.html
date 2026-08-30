@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LBA 30-0</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <header class="topbar">
+    <div class="logo">LBA <span class="accent">30-0</span></div>
+    <div class="subtitle">Costruisci il quintetto perfetto della storia della Serie A</div>
+  </header>
+
+  <section id="screen-home" class="screen">
+    <div class="home-box">
+      <p>Ti verranno proposte <strong>5 squadre, una alla volta</strong>, ciascuna in un'annata diversa
+      della sua storia. Per ognuna scegli un giocatore <strong>e</strong> il ruolo in cui giocherà nel
+      tuo quintetto: una volta deciso, non si torna indietro. Il quintetto finale deve avere 1 Playmaker,
+      1 Centro, e tre giocatori tra Guardie e Ali (2+1 o 1+2) — decidilo bene, non sai quali squadre
+      arriveranno dopo.</p>
+      <button id="btn-start" class="btn-primary">Genera sfida</button>
+    </div>
+  </section>
+
+  <section id="screen-draft" class="screen" hidden>
+    <div class="draft-layout">
+      <aside class="slots-panel" id="slots-panel"></aside>
+
+      <div class="round-main">
+        <div class="round-progress" id="round-progress"></div>
+        <div class="team-card team-card-big" id="round-card"></div>
+      </div>
+
+      <aside class="picks-panel" id="picks-panel"></aside>
+    </div>
+  </section>
+
+  <section id="screen-result" class="screen" hidden>
+    <div class="result-box">
+      <div class="result-record" id="result-record">0-0</div>
+      <div class="result-sub" id="result-sub"></div>
+
+      <div class="result-lineup" id="result-lineup"></div>
+
+      <div class="result-breakdown" id="result-breakdown"></div>
+
+      <div class="result-note" id="result-note"></div>
+
+      <button id="btn-again" class="btn-primary">Nuova sfida</button>
+    </div>
+  </section>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>

@@ -272,17 +272,41 @@ function showResult() {
 
   const orderedPicks = [...picks].sort((a, b) => SLOT_DISPLAY_ORDER[a.slotType] - SLOT_DISPLAY_ORDER[b.slotType]);
   const lineupEl = $("#result-lineup");
-  lineupEl.innerHTML = orderedPicks
-    .map((pk) => {
-      const roleLabel = pk.slotType === "wing" ? pk.player.role : SLOT_LABELS[pk.slotType];
-      return `<div class="lineup-row">
-        <div class="team-dot" style="--team-color:${pk.teamSeason.color}"></div>
-        <div class="role-tag">${roleLabel}</div>
-        <div class="who">${pk.player.name} ${pk.player.surname}</div>
-        <div class="from">${pk.teamSeason.teamNameAtTime} ${pk.teamSeason.year}</div>
-      </div>`;
-    })
-    .join("");
+  lineupEl.innerHTML =
+    `<div class="lineup-row lineup-header">
+      <div class="team-dot" style="background:transparent"></div>
+      <div class="role-tag"></div>
+      <div class="who"></div>
+      <div class="who-stats">
+        <div class="stat-col">P</div>
+        <div class="stat-col">R</div>
+        <div class="stat-col">A</div>
+        <div class="stat-col">S</div>
+        <div class="stat-col">B</div>
+      </div>
+    </div>` +
+    orderedPicks
+      .map((pk) => {
+        const roleLabel = pk.slotType === "wing" ? pk.player.role : SLOT_LABELS[pk.slotType];
+        const p = pk.player;
+        const reb = Number(p.off_rebound_avg || 0) + Number(p.def_rebound_avg || 0);
+        return `<div class="lineup-row">
+          <div class="team-dot" style="--team-color:${pk.teamSeason.color}"></div>
+          <div class="role-tag">${roleLabel}</div>
+          <div class="who">
+            <div class="who-name">${p.name} ${p.surname}</div>
+            <div class="who-from">${pk.teamSeason.teamNameAtTime} ${pk.teamSeason.year}</div>
+          </div>
+          <div class="who-stats">
+            <div class="stat-col">${p.points_avg.toFixed(1)}</div>
+            <div class="stat-col">${reb.toFixed(1)}</div>
+            <div class="stat-col">${p.assists_avg.toFixed(1)}</div>
+            <div class="stat-col">${p.steals_avg.toFixed(1)}</div>
+            <div class="stat-col">${p.blocks_avg.toFixed(1)}</div>
+          </div>
+        </div>`;
+      })
+      .join("");
 
   const breakdownEl = $("#result-breakdown");
   breakdownEl.innerHTML = Object.keys(result.cats)

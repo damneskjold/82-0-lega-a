@@ -310,7 +310,7 @@ body {
 
 /* RESULT */
 .result-box {
-  max-width: 640px;
+  max-width: 720px;
   margin: 20px auto;
   text-align: center;
 }
@@ -343,17 +343,44 @@ body {
   align-items: center;
   gap: 10px;
   font-size: 0.9rem;
-  padding: 4px 0;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
 }
+.lineup-row:last-child { border-bottom: none; }
 .lineup-row .team-dot { flex-shrink: 0; }
 .lineup-row .role-tag {
   color: var(--accent);
   font-weight: 700;
   width: 90px;
   flex-shrink: 0;
+  font-size: 0.82rem;
 }
-.lineup-row .who { flex: 1; }
-.lineup-row .from { color: var(--muted); font-size: 0.8rem; }
+.lineup-row .who { flex: 1; min-width: 0; }
+.lineup-row .who-name { font-weight: 600; }
+.lineup-row .who-from { color: var(--muted); font-size: 0.78rem; }
+
+.lineup-row .who-stats {
+  display: flex;
+  gap: 14px;
+  flex-shrink: 0;
+}
+.lineup-row .stat-col {
+  width: 30px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.lineup-header {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 2px;
+}
+.lineup-header .stat-col {
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  font-weight: 700;
+}
 
 .result-breakdown {
   display: grid;

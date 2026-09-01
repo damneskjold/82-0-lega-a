@@ -212,9 +212,14 @@ function renderRound() {
     <div class="player-list" id="round-player-list"></div>
   `;
 
+  // un giocatore puo' comparire nelle rose di squadre diverse (es. chi ha
+  // cambiato squadra): una volta scelto non e' piu' selezionabile altrove
+  const pickedIds = new Set(slots.filter((s) => s.pick).map((s) => s.pick.player.player_id));
+
   const list = $("#round-player-list");
   sortedPlayers.forEach((p) => {
-    const legalIds = legalSlotIdsFor(p);
+    const alreadyPicked = pickedIds.has(p.player_id);
+    const legalIds = alreadyPicked ? [] : legalSlotIdsFor(p);
     const isSelected = !!(selected && selected.player === p);
     const row = document.createElement("div");
     row.className = "player-row" + (legalIds.length === 0 ? " disabled" : "") + (isSelected ? " selected" : "");
@@ -222,7 +227,7 @@ function renderRound() {
     row.innerHTML = `
       <div>
         <div class="player-name">${p.name} ${p.surname}</div>
-        <div class="player-role">${p.role}</div>
+        <div class="player-role">${alreadyPicked ? "Già nel tuo quintetto" : p.role}</div>
       </div>
       <div class="player-stats">
         <div class="stat-col">${p.points_avg.toFixed(1)}</div>

@@ -207,19 +207,6 @@ body {
   .slot-box.filled { border-left: 1px solid var(--border); border-top: 3px solid var(--team-color, var(--accent)); }
 }
 
-/* mobile: schermata risultato, statistiche su riga propria a piena larghezza */
-@media (max-width: 860px) {
-  .lineup-row {
-    flex-wrap: wrap;
-    row-gap: 8px;
-  }
-  .lineup-row .who-stats {
-    flex-basis: 100%;
-    justify-content: space-between;
-    gap: 0;
-  }
-}
-
 /* progresso round */
 .round-progress {
   text-align: center;
@@ -484,6 +471,44 @@ body {
   font-size: 0.6rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+}
+
+/* mobile: schermata risultato, riga compatta (avatar+nome+stats sulla stessa riga) */
+@media (max-width: 860px) {
+  .lineup-row {
+    gap: 8px;
+  }
+  .who-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 0.75rem;
+  }
+  .avatar-role {
+    font-size: 0.5rem;
+    padding: 0 3px;
+    bottom: -6px;
+  }
+  .lineup-row .who {
+    overflow: hidden;
+  }
+  .lineup-row .who-name,
+  .lineup-row .who-from {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .lineup-row .who-stats {
+    gap: 6px;
+  }
+  .who-stats .stat-col {
+    min-width: 22px;
+  }
+  .who-stats .stat-val {
+    font-size: 0.82rem;
+  }
+  .who-stats .stat-lbl {
+    font-size: 0.54rem;
+  }
 }
 
 .result-breakdown {

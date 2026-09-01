@@ -263,7 +263,6 @@ function evaluateLineup(chosen) {
 }
 
 const CAT_LABELS = { points: "Punti", rebounds: "Rimbalzi", assists: "Assist", steals: "Recuperate", blocks: "Stoppate" };
-const SLOT_DISPLAY_ORDER = { playmaker: 0, centro: 1, wing: 2 };
 
 // livello qualitativo della squadra, in stile "voto + nome tier" (vedi 82-0)
 const TIERS = [
@@ -285,9 +284,10 @@ function initialsFor(player) {
 }
 
 let lastShareText = "";
+let lastShareData = null;
 
 function showResult() {
-  const orderedSlots = [...slots].sort((a, b) => SLOT_DISPLAY_ORDER[a.type] - SLOT_DISPLAY_ORDER[b.type]);
+  const orderedSlots = [...slots].sort((a, b) => a.rank - b.rank); // ordine quintetto base: PM, G, AP, AG, C
   const chosen = orderedSlots.map((s) => s.pick.player);
   const result = evaluateLineup(chosen);
 
@@ -334,6 +334,29 @@ function showResult() {
       .map((s) => `${s.short} ${s.pick.player.name} ${s.pick.player.surname} (${s.pick.teamSeason.teamNameAtTime} ${s.pick.teamSeason.year})`)
       .join("\n");
 
+  lastShareData = {
+    wins,
+    losses,
+    tier,
+    rating: result.teamRating,
+    totals: result.cats,
+    players: orderedSlots.map((s) => {
+      const p = s.pick.player;
+      return {
+        initials: initialsFor(p),
+        color: s.pick.teamSeason.color,
+        role: s.short,
+        name: `${p.name} ${p.surname}`,
+        team: `${s.pick.teamSeason.teamNameAtTime} · ${s.pick.teamSeason.year}`,
+        points: Number(p.points_avg || 0),
+        reb: Number(p.off_rebound_avg || 0) + Number(p.def_rebound_avg || 0),
+        ast: Number(p.assists_avg || 0),
+        stl: Number(p.steals_avg || 0),
+        blk: Number(p.blocks_avg || 0),
+      };
+    }),
+  };
+
   const breakdownEl = $("#result-breakdown");
   breakdownEl.innerHTML = Object.keys(result.cats)
     .map((k) => {
@@ -359,7 +382,224 @@ function resetToHome() {
   $("#screen-home").hidden = false;
 }
 
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function truncateToWidth(ctx, text, maxWidth) {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  let t = text;
+  while (t.length > 1 && ctx.measureText(t + "…").width > maxWidth) t = t.slice(0, -1);
+  return t + "…";
+}
+
+// disegna la card risultato su un <canvas> per la condivisione come immagine
+function renderShareCard(data) {
+  const CARD_W = 900;
+  const ROW_H = 130;
+  const LIST_PAD = 24;
+  const HERO_H = 230;
+  const TOTALS_H = 90;
+  const listH = data.players.length * ROW_H + LIST_PAD * 2;
+  const CARD_H = 210 + HERO_H + 24 + listH + 20 + TOTALS_H + 60;
+
+  const C = {
+    bg: "#0f141b", panel: "#171e28", border: "#2a3444",
+    text: "#e7ecf2", muted: "#8a96a8", accent: "#d97706",
+  };
+  const FONT = "-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif";
+
+  const canvas = document.createElement("canvas");
+  const scale = 2;
+  canvas.width = CARD_W * scale;
+  canvas.height = CARD_H * scale;
+  const ctx = canvas.getContext("2d");
+  ctx.scale(scale, scale);
+
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0, 0, CARD_W, CARD_H);
+
+  let y = 30;
+  ctx.textAlign = "center";
+  ctx.font = `800 42px ${FONT}`;
+  const w1 = ctx.measureText("LBA ").width;
+  const w2 = ctx.measureText("30-0").width;
+  ctx.textAlign = "left";
+  ctx.fillStyle = C.text;
+  ctx.fillText("LBA ", CARD_W / 2 - (w1 + w2) / 2, y + 42);
+  ctx.fillStyle = C.accent;
+  ctx.fillText("30-0", CARD_W / 2 - (w1 + w2) / 2 + w1, y + 42);
+  y += 70;
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = C.muted;
+  ctx.font = `400 20px ${FONT}`;
+  ctx.fillText("Il quintetto perfetto della storia della Serie A", CARD_W / 2, y);
+  y += 40;
+
+  const heroY = y;
+  ctx.strokeStyle = C.accent;
+  ctx.lineWidth = 2;
+  roundRectPath(ctx, 30, heroY, CARD_W - 60, HERO_H, 16);
+  ctx.stroke();
+
+  let hy = heroY + 50;
+  ctx.fillStyle = C.muted;
+  ctx.font = `700 16px ${FONT}`;
+  ctx.fillText("RECORD PROIETTATO", CARD_W / 2, hy);
+  hy += 80;
+  ctx.fillStyle = C.text;
+  ctx.font = `800 90px ${FONT}`;
+  ctx.fillText(`${data.wins}-${data.losses}`, CARD_W / 2, hy);
+  hy += 45;
+  {
+    const badgeSize = 26;
+    const gap = 8;
+    const labelText = `${data.tier.label} · Rating ${data.rating.toFixed(1)}`;
+    ctx.font = `600 20px ${FONT}`;
+    const labelWidth = ctx.measureText(labelText).width;
+    const tx = CARD_W / 2 - (badgeSize + gap + labelWidth) / 2;
+
+    ctx.fillStyle = data.tier.color;
+    roundRectPath(ctx, tx, hy - badgeSize + 5, badgeSize, badgeSize, 6);
+    ctx.fill();
+    ctx.fillStyle = "#0b0f14";
+    ctx.font = `800 15px ${FONT}`;
+    ctx.textAlign = "center";
+    ctx.fillText(data.tier.letter, tx + badgeSize / 2, hy - 5);
+
+    ctx.textAlign = "left";
+    ctx.fillStyle = C.muted;
+    ctx.font = `600 20px ${FONT}`;
+    ctx.fillText(labelText, tx + badgeSize + gap, hy);
+  }
+
+  y = heroY + HERO_H + 24;
+
+  const listY = y;
+  ctx.fillStyle = C.panel;
+  ctx.strokeStyle = C.border;
+  ctx.lineWidth = 1;
+  roundRectPath(ctx, 30, listY, CARD_W - 60, listH, 14);
+  ctx.fill();
+  ctx.stroke();
+
+  let ry = listY + LIST_PAD;
+  data.players.forEach((p, i) => {
+    const rowY = ry;
+    ctx.fillStyle = p.color || C.accent;
+    roundRectPath(ctx, 54, rowY + 14, 70, 70, 10);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `800 26px ${FONT}`;
+    ctx.textAlign = "center";
+    ctx.fillText(p.initials, 54 + 35, rowY + 14 + 44);
+
+    ctx.fillStyle = C.bg;
+    ctx.strokeStyle = C.border;
+    roundRectPath(ctx, 54 + 12, rowY + 14 + 58, 46, 20, 5);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = C.accent;
+    ctx.font = `700 13px ${FONT}`;
+    ctx.fillText(p.role, 54 + 35, rowY + 14 + 72);
+
+    ctx.textAlign = "left";
+    ctx.fillStyle = C.text;
+    ctx.font = `700 24px ${FONT}`;
+    ctx.fillText(truncateToWidth(ctx, p.name, 250), 150, rowY + 44);
+    ctx.fillStyle = C.muted;
+    ctx.font = `400 17px ${FONT}`;
+    ctx.fillText(truncateToWidth(ctx, p.team, 250), 150, rowY + 70);
+
+    const stats = [["P", p.points], ["R", p.reb], ["A", p.ast], ["S", p.stl], ["B", p.blk]];
+    const statsRight = CARD_W - 54;
+    const colW = 62;
+    stats.forEach((s, si) => {
+      const cx = statsRight - (stats.length - 1 - si) * colW;
+      ctx.textAlign = "center";
+      ctx.fillStyle = C.text;
+      ctx.font = `700 22px ${FONT}`;
+      ctx.fillText(s[1].toFixed(1), cx, rowY + 38);
+      ctx.fillStyle = C.muted;
+      ctx.font = `700 12px ${FONT}`;
+      ctx.fillText(s[0], cx, rowY + 58);
+    });
+
+    if (i < data.players.length - 1) {
+      ctx.strokeStyle = C.border;
+      ctx.beginPath();
+      ctx.moveTo(54, rowY + ROW_H - 8);
+      ctx.lineTo(CARD_W - 54, rowY + ROW_H - 8);
+      ctx.stroke();
+    }
+    ry += ROW_H;
+  });
+
+  y = listY + listH + 20;
+
+  ctx.textAlign = "center";
+  const totalCols = [
+    ["points", "PUNTI"], ["rebounds", "RIMBALZI"], ["assists", "ASSIST"], ["steals", "RECUPERATE"], ["blocks", "STOPPATE"],
+  ];
+  const colW2 = (CARD_W - 60) / totalCols.length;
+  totalCols.forEach(([k, lbl], i) => {
+    const cx = 30 + colW2 * i + colW2 / 2;
+    ctx.fillStyle = C.text;
+    ctx.font = `700 26px ${FONT}`;
+    ctx.fillText(data.totals[k].toFixed(1), cx, y + 30);
+    ctx.fillStyle = C.muted;
+    ctx.font = `700 13px ${FONT}`;
+    ctx.fillText(lbl, cx, y + 52);
+  });
+  y += TOTALS_H;
+
+  ctx.fillStyle = C.muted;
+  ctx.font = `400 15px ${FONT}`;
+  ctx.fillText("Costruisci il tuo quintetto su LBA 30-0", CARD_W / 2, y + 20);
+
+  return canvas;
+}
+
 async function shareResult() {
+  let blob = null;
+  if (lastShareData) {
+    try {
+      const canvas = renderShareCard(lastShareData);
+      blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+    } catch (e) {
+      blob = null; // se il canvas fallisce per qualche motivo, si scende ai fallback testuali sotto
+    }
+  }
+
+  if (blob) {
+    const file = new File([blob], "lba-30-0.png", { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: "LBA 30-0", text: lastShareText });
+        return;
+      } catch (e) {
+        return; // utente ha annullato la condivisione nativa
+      }
+    }
+    // niente condivisione file supportata: scarica l'immagine
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "lba-30-0.png";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    return;
+  }
+
   if (navigator.share) {
     try {
       await navigator.share({ title: "LBA 30-0", text: lastShareText });

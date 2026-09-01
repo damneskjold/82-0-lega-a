@@ -238,6 +238,38 @@ TEAMS = {
             # punti/partita) - resta eligible=False, non indovinato
         },
     },
+    "pistoia": {
+        # due club_id per la stessa citta': rifondazione dopo un buco
+        # lungo (anni 2000 del tutto assenti), stesso pattern di Treviso
+        "club_ids": [39, 102],
+        "display_name": "Pistoia",
+        "role_overrides_by_name": {
+            ("Stephen", "Howard"): "Ala",                # 206cm, small forward NBA (Wikipedia)
+            ("Marty", "Embry"): "Ala/Centro",            # 206cm, forward/centro, draft NBA 1986 Utah Jazz (Basketball-Reference)
+            ("Walter", "De Raffaele"): "Playmaker",      # playmaker, poi celebre allenatore (Wikipedia)
+            ("Fabio", "Spagnoli"): "Guardia/Ala",        # guardia/ala, ottimo tiro da 3 (Wikipedia)
+            ("Eugenio", "Capone"): "Centro",             # 211cm, centro (Wikipedia)
+            ("Carlo", "Della Valle"): "Playmaker",       # playmaker, padre di Amedeo Della Valle (Wikipedia)
+            ("Mark", "Campanaro"): "Guardia",            # 191cm, shooting guard (Wikidata/Proballers)
+            ("Furio", "De Monaco"): "Ala/Centro",        # 208cm, power forward/centro (Wikipedia/Lega Nazionale Pallacanestro)
+            ("Matteo", "Lanza"): "Guardia",              # guardia (Wikipedia)
+            ("Tod", "Murphy"): "Ala/Centro",             # gia' risolto per Virtus Roma, stesso giocatore
+            # Stefano Maguolo, Alessandro Piperno, Giuseppe Valerio, Clivo
+            # Massimo Righi, Leandro Gros: nessuna fonte trovata (tutti fra
+            # 4.6 e 10.4 min/partita, marginali) - restano eligible=False,
+            # non indovinati
+        },
+    },
+    "sassari": {
+        "club_id": 52,
+        "display_name": "Dinamo Sassari",
+        "role_overrides_by_name": {},
+    },
+    "trento": {
+        "club_id": 104,
+        "display_name": "Aquila Basket Trento",
+        "role_overrides_by_name": {},
+    },
 }
 
 STAT_FIELDS = [

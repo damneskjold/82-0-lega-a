@@ -99,10 +99,14 @@ Montecatini, Rimini, Imola, Fabriano, Rieti, Ferrara, Napoli (identità
 - **Batch 2 fatto**: Napoli (2/4: 00/20 — squadra nuova, stub vuoto,
   solo carte-decade), Pallacanestro Trieste (2/4: 90/20), Mens Sana
   Siena (2/4: 90/00). Aggiunto anche il colore Napoli in `TEAM_COLORS`.
-- **Prossimo batch, ordine deciso dall'utente**: Pistoia+Sassari+Trento
-  (2/4), poi Avellino+Reggio Calabria+Cremona (2/4), poi Brindisi (2/4)
-  + Livorno+Udine+Brescia+Caserta (1/4), poi Biella+Verona+Teramo+
-  Roseto+Tortona+Scafati (1/4) — 17 squadre rimanenti
+- **Batch 3 fatto**: Pistoia (2/4: 90/10 — squadra nuova, due club_id
+  39+102 per una rifondazione), Dinamo Sassari (2/4: 10/20, squadra
+  nuova), Aquila Basket Trento (2/4: 10/20, squadra nuova). Aggiunti i
+  3 colori in `TEAM_COLORS`.
+- **Prossimo batch, ordine deciso dall'utente**: Avellino+Reggio
+  Calabria+Cremona (2/4), poi Brindisi (2/4) + Livorno+Udine+Brescia+
+  Caserta (1/4), poi Biella+Verona+Teramo+Roseto+Tortona+Scafati (1/4) —
+  14 squadre rimanenti
 
 Nota tecnica: `scrape_decade_sample.py` scarta automaticamente una
 decade con troppe poche stagioni disponibili invece di generare comunque

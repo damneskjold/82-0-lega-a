@@ -45,6 +45,9 @@ const TEAM_COLORS = {
   reggio_emilia: "#8d0801",
   fortitudo_bologna: "#118ab2",
   napoli: "#00a8e8",
+  pistoia: "#ffb703",
+  sassari: "#2b2d42",
+  trento: "#06a77d",
 };
 
 // Formula tarata a mano sugli esempi discussi con l'utente

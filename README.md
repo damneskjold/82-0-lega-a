@@ -93,24 +93,16 @@ modo (`season.year ?? season.decade`):
   decade, aggregate (`decade`, `year_range`, `seasons_included`) — è il
   modello giusto, quello di 82-0
 
-Situazione oggi (13 squadre nel roster):
+Situazione oggi: **16 squadre** con almeno una carta-decade (Bologna,
+Milano, Varese, Pesaro a 4/4; Cantù, Roma, Treviso, Reggio Emilia a 3/4;
+Venezia, Fortitudo Bologna, Napoli, Trieste, Siena a 2/4), più altre
+squadre ancora solo a carte-stagione campione. Le squadre nuove (senza
+storia di carte-stagione: Reggio Emilia, Fortitudo Bologna, Napoli) sono
+aggiunte come stub vuoto in `data/dataset.json` prima di lanciare lo
+script decade, e hanno solo carte-decade.
 
-```
-virtus_bologna  5 stagioni + 4 decadi = 9     venezia         2 decadi = 2
-olimpia_milano  5 stagioni + 4 decadi = 9     siena           2
-varese          5 stagioni + 4 decadi = 9     trieste         2
-pesaro          5 stagioni + 4 decadi = 9     brescia         2
-canturina       5 stagioni + 3 decadi = 8      reggio_emilia   3 decadi = 3
-roma            2 stagioni + 3 decadi = 5     fortitudo_bologna 2 decadi = 2
-treviso         4 stagioni + 3 decadi = 7
-```
-
-Bologna, Milano, Varese e Pesaro hanno tutte e 4 le decadi; Cantù, Roma,
-Treviso e Reggio Emilia ne hanno 3 ciascuna (Roma niente anni 2020,
-franchigia ferma dal 2020; Treviso niente anni 2010, solo 3 stagioni;
-Reggio Emilia niente anni 2000, solo 3 stagioni); Venezia e Fortitudo
-Bologna ne hanno 2. Reggio Emilia e Fortitudo sono squadre nuove
-aggiunte solo con carte-decade, nessuna carta-stagione campione.
+Stato dettagliato, copertura per decade di ogni squadra (fatte e da
+fare) e ordine dei prossimi batch: `data/decade_coverage_research.md`.
 (negli anni 2020 ha giocato solo 2 stagioni, sotto anche la soglia ridotta —
 vedi sotto). Le altre 6 squadre restano solo a carte-stagione: finché non
 sono convertite il pool di pesca è **sbilanciato** e le prove di gioco non
@@ -321,10 +313,7 @@ data/
 
 1. Rimuovere le forzature TEMP dal draw e mergiare su `main` (il sito
    pubblico è indietro rispetto al lavoro fatto)
-2. Completare le squadre con le carte-decade — fatte Bologna, Milano,
-   Varese, Cantù, Pesaro; migliori candidate successive: Roma (già nel
-   roster, club_id noto, 3/4 decadi) e Reggio Emilia (squadra nuova,
-   tuttora attiva, richiede discovery del club_id) — vedi
+2. Completare le squadre con le carte-decade — stato e prossimi batch in
    `data/decade_coverage_research.md`
 3. Ritarare **insieme** penalità, `MID` e `K`, a roster chiuso
 4. Sigle squadra stile 82-0 (MIL/NAP/VBO/FBO/ROM/UDI). Nota: VBO+FBO

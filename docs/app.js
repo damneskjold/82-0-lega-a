@@ -44,6 +44,7 @@ const TEAM_COLORS = {
   roma: "#9d4edd",
   reggio_emilia: "#8d0801",
   fortitudo_bologna: "#118ab2",
+  napoli: "#00a8e8",
 };
 
 // Formula tarata a mano sugli esempi discussi con l'utente

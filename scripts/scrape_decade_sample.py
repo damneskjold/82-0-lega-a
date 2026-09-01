@@ -114,9 +114,7 @@ TEAMS = {
             ("Lloyd", "Daniels"): "Guardia/Ala",          # 201cm, shooting guard/small forward NBA (Wikipedia)
             ("Todd", "Day"): "Guardia",                   # 198cm, shooting guard NBA (Wikipedia)
             ("Troy", "Truvillion"): "Play/Guardia",       # 191cm, point guard/shooting guard (Proballers)
-            # Andrea Pistilli: nessuna fonte trovata (profilo legabasket vuoto,
-            # proballers non accessibile, nessuna pagina stagione Wikipedia per
-            # Pesaro 1996-97) - resta eligible=False, non indovinato
+            ("Andrea", "Pistilli"): "Guardia",            # trovato dall'utente
         },
     },
     "roma": {
@@ -139,10 +137,11 @@ TEAMS = {
             ("Paolo", "Calbini"): "Playmaker",             # gia' risolto per Pesaro, stesso giocatore
             ("Tod", "Murphy"): "Ala/Centro",               # 206cm, center/forward NBA (Wikipedia)
             ("Ed", "Stokes"): "Centro",                    # 213cm, centro NBA (Wikipedia)
-            # Giovanni Focardi, Francesco Mazzoni, Giovanni Sabbia, Andrea
-            # Negro: nessuna fonte trovata (profili legabasket vuoti,
-            # proballers non accessibile, nessuna pagina Wikipedia dedicata)
-            # - restano eligible=False, non indovinati
+            ("Francesco", "Mazzoni"): "Ala/Centro",        # 201cm (6'7"), trovato dall'utente
+            ("Giovanni", "Sabbia"): "Ala",                 # small forward, trovato dall'utente
+            # Giovanni Focardi, Andrea Negro: nessuna fonte trovata (profili
+            # legabasket vuoti, proballers non accessibile, nessuna pagina
+            # Wikipedia dedicata) - restano eligible=False, non indovinati
         },
     },
     "treviso": {
@@ -193,6 +192,50 @@ TEAMS = {
             # Domenico Zecca: nessuna fonte trovata come giocatore (solo
             # come team manager in anni recenti) - resta eligible=False,
             # non indovinato
+        },
+    },
+    "napoli": {
+        "club_id": 42,
+        "display_name": "Napoli",
+        "role_overrides_by_name": {},
+    },
+    "trieste": {
+        # due club_id per la stessa citta': rifondazione dopo un buco
+        # lungo (stesso trattamento gia' usato per Treviso)
+        "club_ids": [55, 106],
+        "display_name": "Pallacanestro Trieste",
+        "role_overrides_by_name": {
+            ("Lemone", "Lampley"): "Centro",             # 211cm, centro NBA draft 1986 (Wikipedia)
+            ("Jevon", "Crudup"): "Ala",                  # 206cm, forward NBA draft 1994 (Wikipedia)
+            ("Simone", "Gironi"): "Ala/Centro",          # ala grande/centro (Wikipedia)
+            ("Francesco", "Gori"): "Guardia",            # 195cm, guardia tiratrice, cresciuto nel vivaio Trieste (proballers/legapallacanestro)
+            ("Delme", "Herriman"): "Ala",                # power forward britannico, giocava dall'1 al 4 (Wikipedia)
+            ("Albert", "English"): "Guardia",            # gia' risolto per Virtus Roma, stesso giocatore
+            ("Giuseppe", "Calavita"): "Centro",          # gia' risolto per Pallacanestro Varese, stesso giocatore
+            ("Giovanni", "Sabbia"): "Ala",               # gia' risolto per Virtus Roma, stesso giocatore
+            ("Andrea", "Gianolla"): "Guardia",           # gia' risolto per Pallacanestro Cantu', stesso giocatore
+        },
+    },
+    "siena": {
+        "club_id": 51,
+        "display_name": "Mens Sana Siena",
+        "role_overrides_by_name": {
+            ("Lemone", "Lampley"): "Centro",             # gia' risolto per Trieste, stesso giocatore
+            ("Maurizio", "Lasi"): "Playmaker",           # playmaker, 18 anni in Serie A (Wikipedia)
+            ("Marco", "Solfrini"): "Ala",                # small forward, argento olimpico 1980 (Wikipedia)
+            ("Letterio", "Visigalli"): "Guardia",        # 194cm, guardia (basketsiena.it)
+            ("Sherron", "Mills"): "Ala",                 # 203cm, power forward NBA draft 1993 (Wikipedia)
+            ("Lucius", "Davis"): "Ala",                  # 201cm, forward (Wikipedia)
+            ("Keith", "Gray"): "Guardia",                # 188cm, guard NBA draft 1985 (Wikipedia)
+            ("Gerard", "King"): "Ala",                   # 206cm, small forward (Wikipedia)
+            ("Andrea", "Gianolla"): "Guardia",           # gia' risolto per Pallacanestro Cantu', stesso giocatore
+            ("Giampiero", "Savio"): "Ala",               # gia' risolto per Virtus Bologna, stesso giocatore
+            ("Massimo", "Iacopini"): "Guardia",          # gia' risolto per Treviso, stesso giocatore
+            ("Marco", "Mian"): "Playmaker",              # gia' risolto per Treviso, stesso giocatore
+            ("Andrea", "Pistilli"): "Guardia",           # gia' risolto per Pesaro, stesso giocatore
+            ("Roberto", "Guerrini"): "Guardia",          # gia' risolto per Virtus Roma, stesso giocatore
+            # Pierluigi Portesani: nessuna fonte trovata (12 partite, 2.2
+            # punti/partita) - resta eligible=False, non indovinato
         },
     },
 }

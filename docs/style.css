@@ -207,6 +207,29 @@ body {
   .slot-box.filled { border-left: 1px solid var(--border); border-top: 3px solid var(--team-color, var(--accent)); }
 }
 
+/* mobile: schermata risultato, riga giocatore impilata invece che schiacciata in una riga sola */
+@media (max-width: 860px) {
+  .lineup-row {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+  .lineup-row .role-tag {
+    width: auto;
+  }
+  .lineup-row .who {
+    flex-basis: 100%;
+    order: 3;
+  }
+  .lineup-row .who-stats {
+    flex-basis: 100%;
+    order: 4;
+    justify-content: space-between;
+    gap: 0;
+  }
+  .lineup-header .who { display: none; }
+  .lineup-header .who-stats { flex-basis: auto; margin-left: auto; }
+}
+
 /* progresso round */
 .round-progress {
   text-align: center;

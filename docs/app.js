@@ -4,22 +4,29 @@
 // dalla lista, poi lo assegni cliccando uno dei 5 slot del quintetto (solo
 // quelli in cui può giocare sono cliccabili). Scelta irrevocabile.
 
-const ROLE_ALIASES = {
-  playmaker: ["Playmaker", "Play/Guardia"],
-  centro: ["Centro", "Ala/Centro"],
-  guardia: ["Guardia", "Play/Guardia", "Guardia/Ala"],
-  ala: ["Ala", "Guardia/Ala", "Ala/Centro"],
+// posizione numerica (1=playmaker ... 5=centro): ogni ruolo dei dati copre uno o
+// due rank adiacenti. Un giocatore puo' scivolare al massimo di una posizione
+// (es. Guardia/Ala copre Guardia e Ala Piccola, ma mai Centro o Playmaker).
+// "Ala" pura copre sia Ala Piccola che Ala Grande perche' i dati di legabasket
+// non distinguono le due (nessuna stima da altezza fatta per questo, solo per i
+// ruoli mancanti come gia' documentato).
+const ROLE_RANKS = {
+  "Playmaker": [1],
+  "Play/Guardia": [1, 2],
+  "Guardia": [2],
+  "Guardia/Ala": [2, 3],
+  "Ala": [3, 4],
+  "Ala/Centro": [4, 5],
+  "Centro": [5],
 };
 
-// i 5 slot del quintetto: 1 Playmaker, 3 Guardia/Ala intercambiabili (etichettati
-// come Guardia/Ala Piccola/Ala Grande solo per leggibilità, restano intercambiabili
-// tra loro), 1 Centro
+// i 5 slot del quintetto, ciascuno con la propria posizione (rank) specifica
 const SLOT_DEFS = [
-  { id: "playmaker", type: "playmaker", label: "Playmaker", short: "PM" },
-  { id: "wing1", type: "wing", label: "Guardia", short: "G" },
-  { id: "wing2", type: "wing", label: "Ala Piccola", short: "AP" },
-  { id: "wing3", type: "wing", label: "Ala Grande", short: "AG" },
-  { id: "centro", type: "centro", label: "Centro", short: "C" },
+  { id: "playmaker", type: "playmaker", label: "Playmaker", short: "PM", rank: 1 },
+  { id: "wing1", type: "wing", label: "Guardia", short: "G", rank: 2 },
+  { id: "wing2", type: "wing", label: "Ala Piccola", short: "AP", rank: 3 },
+  { id: "wing3", type: "wing", label: "Ala Grande", short: "AG", rank: 4 },
+  { id: "centro", type: "centro", label: "Centro", short: "C", rank: 5 },
 ];
 
 // colore identificativo per squadra (approssimativo, solo per riconoscibilità visiva)
@@ -47,8 +54,7 @@ const PEN_SCALE = 15;
 let ALL_TEAM_SEASONS = [];
 let currentDraw = []; // 5 team-season objects, in ordine di rivelazione
 let roundIndex = 0;
-let slots = []; // 5 slot: { id, type, pick: null | {player, teamSeason} }
-let wingTally = { guardia: 0, ala: 0 };
+let slots = []; // 5 slot: { id, type, rank, pick: null | {player, teamSeason} }
 let selected = null; // giocatore selezionato in attesa di uno slot: { player, teamSeason, legalIds }
 
 const $ = (sel) => document.querySelector(sel);
@@ -107,7 +113,6 @@ function startDraft() {
   currentDraw = drawFive();
   roundIndex = 0;
   slots = SLOT_DEFS.map((d) => ({ ...d, pick: null }));
-  wingTally = { guardia: 0, ala: 0 };
   selected = null;
   $("#screen-home").hidden = true;
   $("#screen-result").hidden = true;
@@ -115,26 +120,15 @@ function startDraft() {
   renderRound();
 }
 
-// Determina in quali slot (per id) puo' essere messo un giocatore, dato lo stato attuale
+// Determina in quali slot (per id) puo' essere messo un giocatore, dato lo stato attuale.
+// Ogni slot ha un rank fisso (1=playmaker...5=centro); il ruolo del giocatore copre uno o
+// due rank adiacenti (ROLE_RANKS) - legale solo se il rank dello slot e' tra quelli coperti.
 function legalSlotIdsFor(player) {
-  const role = player.role;
-  const openWingCount = slots.filter((s) => s.type === "wing" && !s.pick).length;
+  const ranks = ROLE_RANKS[player.role] || [];
   const legal = [];
   for (const s of slots) {
     if (s.pick) continue;
-    if (s.type === "playmaker" && ROLE_ALIASES.playmaker.includes(role)) legal.push(s.id);
-    if (s.type === "centro" && ROLE_ALIASES.centro.includes(role)) legal.push(s.id);
-    if (s.type === "wing" && (ROLE_ALIASES.guardia.includes(role) || ROLE_ALIASES.ala.includes(role))) {
-      // se questo e' l'ultimo slot "ala/guardia" rimasto, il quintetto finale deve comunque
-      // avere almeno 1 guardia e 1 ala: blocco la scelta se la renderebbe impossibile
-      if (openWingCount === 1) {
-        const newGuardia = wingTally.guardia + (ROLE_ALIASES.guardia.includes(role) ? 1 : 0);
-        const newAla = wingTally.ala + (ROLE_ALIASES.ala.includes(role) ? 1 : 0);
-        if (newGuardia >= 1 && newAla >= 1) legal.push(s.id);
-      } else {
-        legal.push(s.id);
-      }
-    }
+    if (ranks.includes(s.rank)) legal.push(s.id);
   }
   return legal;
 }
@@ -143,10 +137,6 @@ function assignSelectedTo(slotId) {
   if (!selected || !selected.legalIds.includes(slotId)) return;
   const slot = slots.find((s) => s.id === slotId);
   slot.pick = { player: selected.player, teamSeason: selected.teamSeason };
-  if (slot.type === "wing") {
-    if (ROLE_ALIASES.guardia.includes(selected.player.role)) wingTally.guardia++;
-    if (ROLE_ALIASES.ala.includes(selected.player.role)) wingTally.ala++;
-  }
   selected = null;
   roundIndex++;
   if (roundIndex >= 5) {

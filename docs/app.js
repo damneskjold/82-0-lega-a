@@ -265,6 +265,27 @@ function evaluateLineup(chosen) {
 const CAT_LABELS = { points: "Punti", rebounds: "Rimbalzi", assists: "Assist", steals: "Recuperate", blocks: "Stoppate" };
 const SLOT_DISPLAY_ORDER = { playmaker: 0, centro: 1, wing: 2 };
 
+// livello qualitativo della squadra, in stile "voto + nome tier" (vedi 82-0)
+const TIERS = [
+  { min: 27, letter: "S", label: "Corazzata", color: "#f59e0b" },
+  { min: 23, letter: "A", label: "Pretendente scudetto", color: "#4ade80" },
+  { min: 18, letter: "B", label: "Squadra da playoff", color: "#60a5fa" },
+  { min: 13, letter: "C", label: "Salvezza tranquilla", color: "#a78bfa" },
+  { min: 8, letter: "D", label: "Zona playout", color: "#fb923c" },
+  { min: 0, letter: "E", label: "Ultima in classifica", color: "#f87171" },
+];
+function tierFor(wins) {
+  return TIERS.find((t) => wins >= t.min) || TIERS[TIERS.length - 1];
+}
+
+function initialsFor(player) {
+  const a = (player.name || "?")[0] || "?";
+  const b = (player.surname || "?")[0] || "?";
+  return (a + b).toUpperCase();
+}
+
+let lastShareText = "";
+
 function showResult() {
   const orderedSlots = [...slots].sort((a, b) => SLOT_DISPLAY_ORDER[a.type] - SLOT_DISPLAY_ORDER[b.type]);
   const chosen = orderedSlots.map((s) => s.pick.player);
@@ -276,45 +297,42 @@ function showResult() {
   const wins = result.winsFinal;
   const losses = 30 - wins;
   $("#result-record").textContent = `${wins}-${losses}`;
-  $("#result-sub").textContent = `Rating squadra: ${result.teamRating.toFixed(1)}`;
+
+  const tier = tierFor(wins);
+  $("#result-tier").innerHTML =
+    `<span class="tier-badge" style="--tier-color:${tier.color}">${tier.letter}</span> ${tier.label} · Rating ${result.teamRating.toFixed(1)}`;
 
   const lineupEl = $("#result-lineup");
-  lineupEl.innerHTML =
-    `<div class="lineup-row lineup-header">
-      <div class="team-dot" style="background:transparent"></div>
-      <div class="role-tag"></div>
-      <div class="who"></div>
-      <div class="who-stats">
-        <div class="stat-col">P</div>
-        <div class="stat-col">R</div>
-        <div class="stat-col">A</div>
-        <div class="stat-col">S</div>
-        <div class="stat-col">B</div>
-      </div>
-    </div>` +
+  lineupEl.innerHTML = orderedSlots
+    .map((s) => {
+      const pk = s.pick;
+      const p = pk.player;
+      const reb = Number(p.off_rebound_avg || 0) + Number(p.def_rebound_avg || 0);
+      return `<div class="lineup-row">
+        <div class="who-avatar" style="--team-color:${pk.teamSeason.color}">
+          <span class="avatar-initials">${initialsFor(p)}</span>
+          <span class="avatar-role">${s.short}</span>
+        </div>
+        <div class="who">
+          <div class="who-name">${p.name} ${p.surname}</div>
+          <div class="who-from">${pk.teamSeason.teamNameAtTime} · ${pk.teamSeason.year}</div>
+        </div>
+        <div class="who-stats">
+          <div class="stat-col"><span class="stat-val">${p.points_avg.toFixed(1)}</span><span class="stat-lbl">P</span></div>
+          <div class="stat-col"><span class="stat-val">${reb.toFixed(1)}</span><span class="stat-lbl">R</span></div>
+          <div class="stat-col"><span class="stat-val">${p.assists_avg.toFixed(1)}</span><span class="stat-lbl">A</span></div>
+          <div class="stat-col"><span class="stat-val">${p.steals_avg.toFixed(1)}</span><span class="stat-lbl">S</span></div>
+          <div class="stat-col"><span class="stat-val">${p.blocks_avg.toFixed(1)}</span><span class="stat-lbl">B</span></div>
+        </div>
+      </div>`;
+    })
+    .join("");
+
+  lastShareText =
+    `LBA 30-0 — ${wins}-${losses} (${tier.letter}, ${tier.label})\n` +
     orderedSlots
-      .map((s) => {
-        const pk = s.pick;
-        const roleLabel = s.type === "wing" ? pk.player.role : s.label;
-        const p = pk.player;
-        const reb = Number(p.off_rebound_avg || 0) + Number(p.def_rebound_avg || 0);
-        return `<div class="lineup-row">
-          <div class="team-dot" style="--team-color:${pk.teamSeason.color}"></div>
-          <div class="role-tag">${roleLabel}</div>
-          <div class="who">
-            <div class="who-name">${p.name} ${p.surname}</div>
-            <div class="who-from">${pk.teamSeason.teamNameAtTime} ${pk.teamSeason.year}</div>
-          </div>
-          <div class="who-stats">
-            <div class="stat-col">${p.points_avg.toFixed(1)}</div>
-            <div class="stat-col">${reb.toFixed(1)}</div>
-            <div class="stat-col">${p.assists_avg.toFixed(1)}</div>
-            <div class="stat-col">${p.steals_avg.toFixed(1)}</div>
-            <div class="stat-col">${p.blocks_avg.toFixed(1)}</div>
-          </div>
-        </div>`;
-      })
-      .join("");
+      .map((s) => `${s.short} ${s.pick.player.name} ${s.pick.player.surname} (${s.pick.teamSeason.teamNameAtTime} ${s.pick.teamSeason.year})`)
+      .join("\n");
 
   const breakdownEl = $("#result-breakdown");
   breakdownEl.innerHTML = Object.keys(result.cats)
@@ -341,8 +359,26 @@ function resetToHome() {
   $("#screen-home").hidden = false;
 }
 
+async function shareResult() {
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: "LBA 30-0", text: lastShareText });
+      return;
+    } catch (e) {
+      return; // utente ha annullato la condivisione nativa
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(lastShareText);
+    alert("Quintetto copiato negli appunti!");
+  } catch (e) {
+    alert(lastShareText);
+  }
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
   await loadData();
   $("#btn-start").addEventListener("click", startDraft);
   $("#btn-again").addEventListener("click", resetToHome);
+  $("#btn-share").addEventListener("click", shareResult);
 });

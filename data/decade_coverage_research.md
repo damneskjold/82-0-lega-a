@@ -86,16 +86,16 @@ Montecatini, Rimini, Imola, Fabriano, Rieti, Ferrara, Napoli (identità
 - **Fatte**: Virtus Bologna (4/4), Olimpia Milano (4/4), Pallacanestro
   Varese (4/4), Victoria Libertas Pesaro (4/4), Pallacanestro Cantù
   (3/4: 90/00/10, anni 2020 scartata — solo 2 stagioni, sotto anche la
-  soglia ridotta)
-- **Migliori candidate successive, già nel roster** (club_id noto,
-  nessuna discovery necessaria): Roma (3/4, ferma dal 2020 quindi niente
-  carta anni 2020), Treviso (3/4, richiede unire i due `club_id` 56+107
-  come già fa `scrape_dataset.py` per le carte-stagione)
-- **Migliori candidate nuove** (squadra non ancora nel roster, richiede
-  discovery del club_id — già noto da questa ricerca comunque, vedi sopra):
-  Reggio Emilia (3/4, tuttora attiva), Fortitudo Bologna (2/4, completa il
-  "derby" con Virtus per le sigle stile 82-0 VBO/FBO), Venezia (2/4, già
-  nel roster con carte-stagione)
+  soglia ridotta), Virtus Roma (3/4: 90/00/10, anni 2020 scartata — 0
+  stagioni, franchigia ferma dal 2020), Benetton/De'Longhi Treviso (3/4:
+  90/00/20, anni 2010 scartata — solo 3 stagioni sommando i due `club_id`
+  56+107)
+- **Prossimo batch, ordine deciso dall'utente**: Reggio Emilia (3/4) +
+  Venezia (2/4) + Fortitudo Bologna (2/4), poi Napoli+Trieste+Siena (2/4
+  ciascuna), poi Pistoia+Sassari+Trento (2/4), poi Avellino+Reggio
+  Calabria+Cremona (2/4), poi Brindisi (2/4) + Livorno+Udine+Brescia+
+  Caserta (1/4), poi Biella+Verona+Teramo+Roseto+Tortona+Scafati (1/4) —
+  23 squadre in tutto, tutte le rimanenti dalla tabella
 
 Nota tecnica: `scrape_decade_sample.py` scarta automaticamente una
 decade con troppe poche stagioni disponibili invece di generare comunque

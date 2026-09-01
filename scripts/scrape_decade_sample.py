@@ -119,6 +119,51 @@ TEAMS = {
             # Pesaro 1996-97) - resta eligible=False, non indovinato
         },
     },
+    "roma": {
+        "club_id": 48,
+        "display_name": "Virtus Roma",
+        "role_overrides_by_name": {
+            ("Michael", "Cooper"): "Guardia/Ala",          # ex Lakers, ala difensiva SG/SF NBA (Wikipedia/Wikidata)
+            ("Davide", "Croce"): "Centro",                 # centro (Wikipedia)
+            ("Tiziano", "Lorenzon"): "Ala/Centro",         # 203cm, "ala-pivot", inventore del ruolo n.4 con tiro da 3 (Wikipedia)
+            ("Roberto", "Premier"): "Guardia/Ala",         # shooting guard/small forward (Wikipedia)
+            ("Alessandro", "Fantozzi"): "Playmaker",       # 189cm, playmaker (Wikipedia)
+            ("Ricky", "Mahorn"): "Ala/Centro",             # 208cm, power forward/centro NBA, "Bad Boys" Pistons (Wikipedia)
+            ("Ben", "Coleman"): "Ala",                     # 206cm, power forward NBA (Wikipedia)
+            ("Albert", "English"): "Guardia",              # A.J. English, 190cm, shooting guard NBA (Wikidata)
+            ("Marco", "Lamperti"): "Guardia",              # guardia (Wikipedia)
+            ("Andrade", "Israel"): "Centro",               # centro brasiliano, nazionale olimpica (Wikipedia)
+            ("Roberto", "Guerrini"): "Guardia",            # 193cm, guardia, Mens Sana Siena (basketsiena.it)
+            ("Roberto", "Cavallari"): "Centro",            # gia' risolto per Virtus Bologna, stesso giocatore
+            ("Tullio", "De Piccoli"): "Ala/Centro",        # gia' risolto per Virtus Bologna, stesso giocatore
+            ("Paolo", "Calbini"): "Playmaker",             # gia' risolto per Pesaro, stesso giocatore
+            ("Tod", "Murphy"): "Ala/Centro",               # 206cm, center/forward NBA (Wikipedia)
+            ("Ed", "Stokes"): "Centro",                    # 213cm, centro NBA (Wikipedia)
+            # Giovanni Focardi, Francesco Mazzoni, Giovanni Sabbia, Andrea
+            # Negro: nessuna fonte trovata (profili legabasket vuoti,
+            # proballers non accessibile, nessuna pagina Wikipedia dedicata)
+            # - restano eligible=False, non indovinati
+        },
+    },
+    "treviso": {
+        # due club_id per la stessa citta': rifondazione dopo un buco lungo
+        # (stesso trattamento gia' usato per le carte-stagione in
+        # scrape_dataset.py, TEAMS["treviso"]["club_ids"])
+        "club_ids": [56, 107],
+        "display_name": "Benetton/De'Longhi Treviso",
+        "role_overrides_by_name": {
+            ("Pietro", "Generali"): "Centro",              # 205cm, centro (Wikipedia)
+            ("Massimo", "Iacopini"): "Guardia",            # guardia tiratrice, capocannoniere storico Treviso (Wikipedia)
+            ("Marco", "Mian"): "Playmaker",                # playmaker (Wikipedia)
+            ("Paolo", "Vazzoler"): "Ala",                  # small forward, soprannome "piranha" (Wikipedia)
+            ("Fabio", "Morrone"): "Ala",                   # 198cm, ala (Wikipedia)
+            ("Nino", "Pellacani"): "Centro",               # 208cm, centro (Wikipedia)
+            ("Andrea", "Gracis"): "Playmaker",             # gia' risolto per Pesaro, stesso giocatore
+            ("Orlando", "Woolridge"): "Ala/Centro",        # gia' risolto per Virtus Bologna, stesso giocatore
+            ("Winston", "Garland"): "Playmaker",           # 188cm, point guard NBA (Wikipedia)
+            ("Laurent", "Sciarra"): "Playmaker",           # 195cm, point guard francese (Wikipedia)
+        },
+    },
 }
 
 STAT_FIELDS = [
@@ -146,7 +191,7 @@ SHOT_PAIRS = {
 }
 
 
-def build_decade(club_id: int, display_name: str, role_overrides_by_name: dict,
+def build_decade(club_ids: list, display_name: str, role_overrides_by_name: dict,
                   label: str, year_start: int, year_end: int) -> dict:
     print(f"\n=== {display_name} - {label} ({year_start}-{year_end}) ===")
     acc = {}  # player_id -> dict con sums, meta
@@ -154,7 +199,7 @@ def build_decade(club_id: int, display_name: str, role_overrides_by_name: dict,
 
     for year in range(year_start, year_end + 1):
         teams = get_teams_for_year(year)
-        match = next((t for t in teams if t["club_id"] == club_id), None)
+        match = next((t for t in teams if t["club_id"] in club_ids), None)
         if not match:
             print(f"  {year}: nessuna squadra (buco)")
             continue
@@ -302,8 +347,9 @@ def main():
             print(f"[{team_key}] non trovato in dataset.json, salto (va aggiunto manualmente prima)")
             continue
 
+        club_ids = cfg["club_ids"] if "club_ids" in cfg else [cfg["club_id"]]
         all_decade_objs = [
-            build_decade(cfg["club_id"], cfg["display_name"], cfg["role_overrides_by_name"], label, y0, y1)
+            build_decade(club_ids, cfg["display_name"], cfg["role_overrides_by_name"], label, y0, y1)
             for label, y0, y1 in DECADES
         ]
         decade_objs = [d for d in all_decade_objs if len(d["seasons_included"]) >= min_seasons_for(d["decade"])]

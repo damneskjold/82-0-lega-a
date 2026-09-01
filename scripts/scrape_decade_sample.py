@@ -164,6 +164,37 @@ TEAMS = {
             ("Laurent", "Sciarra"): "Playmaker",           # 195cm, point guard francese (Wikipedia)
         },
     },
+    "reggio_emilia": {
+        "club_id": 44,
+        "display_name": "Pallacanestro Reggiana",
+        "role_overrides_by_name": {
+            ("Georgi", "Glouchkov"): "Ala/Centro",      # 203cm, power forward/centro, primo giocatore dell'est nella storia NBA (Wikipedia)
+            ("Marco", "Lamperti"): "Guardia",           # gia' risolto per Virtus Roma, stesso giocatore
+            ("Giorgio", "Ottaviani"): "Ala",            # ala piccola (Wikipedia stagioni Reggiana)
+            ("Angelo", "Reale"): "Centro",              # centro (Wikipedia)
+            ("Luca", "Vicinelli"): "Ala",               # ala grande (Wikipedia)
+            ("Danko", "Cvjeticanin"): "Guardia",        # 198cm, shooting guard croato (Wikipedia)
+            ("Piero", "Montecchi"): "Play/Guardia",     # gia' risolto per Olimpia Milano, stesso giocatore
+            # Gianluca Carra, Renzo Filoia: nessuna fonte trovata (profili
+            # legabasket vuoti, nessuna pagina Wikipedia dedicata) - restano
+            # eligible=False, non indovinati
+        },
+    },
+    "venezia": {
+        "club_id": 61,
+        "display_name": "Reyer Venezia",
+        "role_overrides_by_name": {},
+    },
+    "fortitudo_bologna": {
+        "club_id": 5,
+        "display_name": "Fortitudo Bologna",
+        "role_overrides_by_name": {
+            ("Stefano", "Pezzin"): "Ala/Centro",        # "ala-pivot" massiccio e combattivo (Wikipedia)
+            # Domenico Zecca: nessuna fonte trovata come giocatore (solo
+            # come team manager in anni recenti) - resta eligible=False,
+            # non indovinato
+        },
+    },
 }
 
 STAT_FIELDS = [

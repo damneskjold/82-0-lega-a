@@ -90,12 +90,17 @@ Montecatini, Rimini, Imola, Fabriano, Rieti, Ferrara, Napoli (identità
   stagioni, franchigia ferma dal 2020), Benetton/De'Longhi Treviso (3/4:
   90/00/20, anni 2010 scartata — solo 3 stagioni sommando i due `club_id`
   56+107)
-- **Prossimo batch, ordine deciso dall'utente**: Reggio Emilia (3/4) +
-  Venezia (2/4) + Fortitudo Bologna (2/4), poi Napoli+Trieste+Siena (2/4
-  ciascuna), poi Pistoia+Sassari+Trento (2/4), poi Avellino+Reggio
+- **Batch 1 fatto**: Reggio Emilia (3/4: 90/10/20, anni 2000 scartata —
+  solo 3 stagioni), Reyer Venezia (2/4: 10/20), Fortitudo Bologna (2/4:
+  90/00). Reggio Emilia e Fortitudo erano squadre nuove, aggiunte come
+  stub vuoto in `data/dataset.json` prima di lanciare lo script decade
+  (Fortitudo non ha carte-stagione, solo decade). Aggiunti anche i
+  colori in `TEAM_COLORS` (`docs/app.js`).
+- **Prossimo batch, ordine deciso dall'utente**: Napoli+Trieste+Siena
+  (2/4 ciascuna), poi Pistoia+Sassari+Trento (2/4), poi Avellino+Reggio
   Calabria+Cremona (2/4), poi Brindisi (2/4) + Livorno+Udine+Brescia+
   Caserta (1/4), poi Biella+Verona+Teramo+Roseto+Tortona+Scafati (1/4) —
-  23 squadre in tutto, tutte le rimanenti dalla tabella
+  20 squadre rimanenti
 
 Nota tecnica: `scrape_decade_sample.py` scarta automaticamente una
 decade con troppe poche stagioni disponibili invece di generare comunque

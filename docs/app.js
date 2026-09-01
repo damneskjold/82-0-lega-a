@@ -42,6 +42,8 @@ const TEAM_COLORS = {
   brescia: "#0466c8",
   pesaro: "#003566",
   roma: "#9d4edd",
+  reggio_emilia: "#8d0801",
+  fortitudo_bologna: "#118ab2",
 };
 
 // Formula tarata a mano sugli esempi discussi con l'utente

@@ -93,21 +93,24 @@ modo (`season.year ?? season.decade`):
   decade, aggregate (`decade`, `year_range`, `seasons_included`) — è il
   modello giusto, quello di 82-0
 
-Situazione oggi (11 squadre nel roster):
+Situazione oggi (13 squadre nel roster):
 
 ```
-virtus_bologna  5 stagioni + 4 decadi = 9     venezia   3
-olimpia_milano  5 stagioni + 4 decadi = 9     siena     2
-varese          5 stagioni + 4 decadi = 9     trieste   2
-pesaro          5 stagioni + 4 decadi = 9     brescia   2
-canturina       5 stagioni + 3 decadi = 8
-roma            2 stagioni + 3 decadi = 5
+virtus_bologna  5 stagioni + 4 decadi = 9     venezia         2 decadi = 2
+olimpia_milano  5 stagioni + 4 decadi = 9     siena           2
+varese          5 stagioni + 4 decadi = 9     trieste         2
+pesaro          5 stagioni + 4 decadi = 9     brescia         2
+canturina       5 stagioni + 3 decadi = 8      reggio_emilia   3 decadi = 3
+roma            2 stagioni + 3 decadi = 5     fortitudo_bologna 2 decadi = 2
 treviso         4 stagioni + 3 decadi = 7
 ```
 
-Bologna, Milano, Varese e Pesaro hanno tutte e 4 le decadi; Cantù, Roma
-e Treviso ne hanno 3 ciascuna (Roma niente anni 2020, franchigia ferma
-dal 2020; Treviso niente anni 2010, solo 3 stagioni)
+Bologna, Milano, Varese e Pesaro hanno tutte e 4 le decadi; Cantù, Roma,
+Treviso e Reggio Emilia ne hanno 3 ciascuna (Roma niente anni 2020,
+franchigia ferma dal 2020; Treviso niente anni 2010, solo 3 stagioni;
+Reggio Emilia niente anni 2000, solo 3 stagioni); Venezia e Fortitudo
+Bologna ne hanno 2. Reggio Emilia e Fortitudo sono squadre nuove
+aggiunte solo con carte-decade, nessuna carta-stagione campione.
 (negli anni 2020 ha giocato solo 2 stagioni, sotto anche la soglia ridotta —
 vedi sotto). Le altre 6 squadre restano solo a carte-stagione: finché non
 sono convertite il pool di pesca è **sbilanciato** e le prove di gioco non

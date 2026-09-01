@@ -62,6 +62,18 @@ TEAMS = {
             ("Tullio", "De Piccoli"): "Ala/Centro",     # 202cm, ala/centro (Wikipedia)
         },
     },
+    "varese": {
+        "club_id": 60,
+        "display_name": "Pallacanestro Varese",
+        "role_overrides_by_name": {
+            ("Giuseppe", "Calavita"): "Centro",        # 211cm, centro (Wikipedia)
+            ("Massimo", "Ferraiuolo"): "Playmaker",     # ex playmaker, dirigente Varese dal 2010 (Wikipedia)
+            ("Riccardo", "Caneva"): "Ala",              # ala, storico giocatore Varese (Wikipedia)
+            ("Reggie", "Theus"): "Play/Guardia",        # 198cm, shooting guard/point guard NBA (Wikipedia)
+            ("Eddie Lee", "Wilkins"): "Ala/Centro",     # 208cm, power forward/center NBA (Wikipedia, Basketball-Reference)
+            ("Richard", "Petruska"): "Ala/Centro",      # 208cm, power forward/center (EuroLeague profile)
+        },
+    },
 }
 
 STAT_FIELDS = [

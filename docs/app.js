@@ -63,7 +63,7 @@ async function loadData() {
       flat.push({
         teamKey: team.key,
         displayName: team.display_name,
-        year: season.year,
+        year: season.year ?? season.decade,
         teamNameAtTime: season.team_name_at_time,
         color: TEAM_COLORS[team.key] || "#d97706",
         players: season.players.filter((p) => p.eligible),

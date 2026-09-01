@@ -39,7 +39,12 @@ DECADES = [
 # alcuna fonte di ruolo nei dati legabasket (roster ne' fallback carriera).
 # Popolato dopo aver visto l'elenco "SENZA RUOLO" stampato da questo script.
 MANUAL_ROLE_OVERRIDES = {
-    # player_id: "Ruolo",
+    3641: "Centro",       # Cozell McQueen - center/power forward (Wikipedia)
+    3824: "Play/Guardia", # Piero Montecchi - play-guard, playmaker di ruolo (Wikipedia/Olimpia Milano)
+    5810: "Ala",          # Jay Vincent - 6'7" forward (Wikipedia)
+    4779: "Ala/Centro",   # Johnny Rogers - 6'10" power forward (Wikipedia)
+    5411: "Centro",       # Zan Tabak - center (Wikipedia/Basketball-Reference)
+    4919: "Centro",       # Mathias Sahlstrom - 6'8" center (FIBA)
 }
 
 STAT_FIELDS = [

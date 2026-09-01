@@ -36,6 +36,10 @@ DECADES = [
     ("anni 2020", 2020, 2025),  # decade parziale, in corso
 ]
 
+# criterio di ammissione di una squadra a una decade (vedi README): sotto
+# questa soglia la carta non rispecchia una decade vera, e' scartata
+MIN_SEASONS_PER_DECADE = 5
+
 # Squadre da processare in questo giro. team_key deve corrispondere alla
 # chiave gia' usata in data/dataset.json (stessa convenzione di
 # scrape_dataset.py: TEAMS li'). role_overrides_by_name: ruoli trovati
@@ -72,6 +76,39 @@ TEAMS = {
             ("Reggie", "Theus"): "Play/Guardia",        # 198cm, shooting guard/point guard NBA (Wikipedia)
             ("Eddie Lee", "Wilkins"): "Ala/Centro",     # 208cm, power forward/center NBA (Wikipedia, Basketball-Reference)
             ("Richard", "Petruska"): "Ala/Centro",      # 208cm, power forward/center (EuroLeague profile)
+        },
+    },
+    "canturina": {
+        "club_id": 12,
+        "display_name": "Pallacanestro Cantù",
+        "role_overrides_by_name": {
+            ("Silvano", "Dal Seno"): "Ala",              # 200cm, ala (Wikipedia)
+            ("Andrea", "Gianolla"): "Guardia",            # 198cm, guardia (Wikipedia)
+            ("Angelo", "Gilardi"): "Centro",              # 207cm, pivot cresciuto nel settore giovanile Cantù (Wikipedia)
+            ("Adrian", "Caldwell"): "Ala/Centro",         # 203cm, power forward/centro sottodimensionato NBA (Wikipedia)
+            ("Luigi", "Corvo"): "Playmaker",              # ruolo "P" nella rosa Cantù 1992-93 (Wikipedia stagione)
+            ("Michael", "Curry"): "Guardia/Ala",          # 196cm, shooting guard/small forward NBA (Wikipedia)
+            ("Piero", "Montecchi"): "Play/Guardia",       # 194cm, play-guardia (Wikipedia)
+            ("John", "Ebeling"): "Centro",                # 203cm, centro (Wikidata)
+        },
+    },
+    "pesaro": {
+        "club_id": 37,
+        "display_name": "Victoria Libertas Pesaro",
+        "role_overrides_by_name": {
+            ("Darwin", "Cook"): "Play/Guardia",           # 191cm, point guard/shooting guard NBA (Basketball-Reference)
+            ("Andrea", "Gracis"): "Playmaker",            # playmaker storico di Pesaro (Wikipedia)
+            ("Giovanni", "Grattoni"): "Guardia",          # 196cm, guardia (Wikipedia)
+            ("Domenico", "Zampolini"): "Ala",             # ~198cm, ala piccola, bandiera Pesaro (Wikipedia)
+            ("Paolo", "Calbini"): "Playmaker",            # 183cm, playmaker (Wikipedia)
+            ("Haywoode", "Workman"): "Playmaker",         # 188cm, point guard NBA (Wikipedia)
+            ("Dean", "Garrett"): "Centro",                # 211cm, centro NBA (Wikipedia)
+            ("Lloyd", "Daniels"): "Guardia/Ala",          # 201cm, shooting guard/small forward NBA (Wikipedia)
+            ("Todd", "Day"): "Guardia",                   # 198cm, shooting guard NBA (Wikipedia)
+            ("Troy", "Truvillion"): "Play/Guardia",       # 191cm, point guard/shooting guard (Proballers)
+            # Andrea Pistilli: nessuna fonte trovata (profilo legabasket vuoto,
+            # proballers non accessibile, nessuna pagina stagione Wikipedia per
+            # Pesaro 1996-97) - resta eligible=False, non indovinato
         },
     },
 }
@@ -257,10 +294,12 @@ def main():
             print(f"[{team_key}] non trovato in dataset.json, salto (va aggiunto manualmente prima)")
             continue
 
-        decade_objs = [
+        all_decade_objs = [
             build_decade(cfg["club_id"], cfg["display_name"], cfg["role_overrides_by_name"], label, y0, y1)
             for label, y0, y1 in DECADES
         ]
+        decade_objs = [d for d in all_decade_objs if len(d["seasons_included"]) >= MIN_SEASONS_PER_DECADE]
+        skipped = [d for d in all_decade_objs if len(d["seasons_included"]) < MIN_SEASONS_PER_DECADE]
 
         # idempotente: sostituisce le carte-decade con la stessa etichetta invece di duplicarle
         existing_by_label = {s["decade"]: i for i, s in enumerate(team["seasons"]) if "decade" in s}
@@ -269,12 +308,22 @@ def main():
                 team["seasons"][existing_by_label[d["decade"]]] = d
             else:
                 team["seasons"].append(d)
+        # rimuove eventuali carte gia' presenti che in questo run non
+        # raggiungono piu' la soglia (solo fra le decadi processate qui);
+        # indici in ordine decrescente per non invalidarsi a vicenda
+        skip_indices = sorted((existing_by_label[d["decade"]] for d in skipped if d["decade"] in existing_by_label), reverse=True)
+        for idx in skip_indices:
+            del team["seasons"][idx]
 
         print(f"\n[{team_key}] {len(decade_objs)} carte-decade pronte:")
         for d in decade_objs:
             n_elig = sum(1 for p in d["players"] if p["eligible"])
             print(f"  {d['decade']}: {len(d['players'])} giocatori ({n_elig} eligible), "
                   f"lineup_complete={d['lineup_complete']}, stagioni={d['seasons_included']}")
+        if skipped:
+            print(f"  scartate (sotto soglia {MIN_SEASONS_PER_DECADE} stagioni):")
+            for d in skipped:
+                print(f"  {d['decade']}: solo {len(d['seasons_included'])} stagioni {d['seasons_included']}")
 
     dataset_path.write_text(json.dumps(dataset, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nFatto. Dataset aggiornato: {dataset_path}")

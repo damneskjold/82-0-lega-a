@@ -11,15 +11,15 @@ const ROLE_ALIASES = {
   ala: ["Ala", "Guardia/Ala", "Ala/Centro"],
 };
 
-const SLOT_LABELS = { playmaker: "Playmaker", centro: "Centro", wing: "Guardia/Ala" };
-
-// i 5 slot del quintetto: 1 Playmaker, 3 Guardia/Ala intercambiabili, 1 Centro
+// i 5 slot del quintetto: 1 Playmaker, 3 Guardia/Ala intercambiabili (etichettati
+// come Guardia/Ala Piccola/Ala Grande solo per leggibilità, restano intercambiabili
+// tra loro), 1 Centro
 const SLOT_DEFS = [
-  { id: "playmaker", type: "playmaker" },
-  { id: "wing1", type: "wing" },
-  { id: "wing2", type: "wing" },
-  { id: "wing3", type: "wing" },
-  { id: "centro", type: "centro" },
+  { id: "playmaker", type: "playmaker", label: "Playmaker", short: "PM" },
+  { id: "wing1", type: "wing", label: "Guardia", short: "G" },
+  { id: "wing2", type: "wing", label: "Ala Piccola", short: "AP" },
+  { id: "wing3", type: "wing", label: "Ala Grande", short: "AG" },
+  { id: "centro", type: "centro", label: "Centro", short: "C" },
 ];
 
 // colore identificativo per squadra (approssimativo, solo per riconoscibilità visiva)
@@ -162,9 +162,10 @@ function renderSlotsPanel() {
     `<h3>Quintetto</h3>` +
     slots
       .map((s) => {
+        const labelHtml = `<span class="lbl-full">${s.label}</span><span class="lbl-short">${s.short}</span>`;
         if (s.pick) {
           return `<div class="slot-box filled" style="--team-color:${s.pick.teamSeason.color}">
-            <div class="slot-label">${SLOT_LABELS[s.type]}</div>
+            <div class="slot-label">${labelHtml}</div>
             <div class="slot-player">${s.pick.player.name} ${s.pick.player.surname}</div>
           </div>`;
         }
@@ -179,7 +180,7 @@ function renderSlotsPanel() {
           }
         }
         return `<div class="${cls}" data-slot-id="${s.id}">
-          <div class="slot-label">${SLOT_LABELS[s.type]}</div>
+          <div class="slot-label">${labelHtml}</div>
           <div class="slot-status">${clickable ? "Metti qui" : "Libero"}</div>
         </div>`;
       })
@@ -304,7 +305,7 @@ function showResult() {
     orderedSlots
       .map((s) => {
         const pk = s.pick;
-        const roleLabel = s.type === "wing" ? pk.player.role : SLOT_LABELS[s.type];
+        const roleLabel = s.type === "wing" ? pk.player.role : s.label;
         const p = pk.player;
         const reb = Number(p.off_rebound_avg || 0) + Number(p.def_rebound_avg || 0);
         return `<div class="lineup-row">

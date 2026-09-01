@@ -145,6 +145,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+.slot-box .lbl-short { display: none; }
 .slot-box .slot-status,
 .slot-box .slot-player {
   margin-top: 3px;
@@ -191,11 +192,11 @@ body {
     text-align: center;
   }
   .slot-box .slot-label {
-    font-size: 0.56rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 0.7rem;
+    font-weight: 700;
   }
+  .slot-box .lbl-full { display: none; }
+  .slot-box .lbl-short { display: inline; }
   .slot-box .slot-status,
   .slot-box .slot-player {
     font-size: 0.66rem;

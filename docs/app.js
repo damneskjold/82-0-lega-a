@@ -78,6 +78,15 @@ function drawFive() {
   const shuffled = [...ALL_TEAM_SEASONS].sort(() => Math.random() - 0.5);
   const five = [];
   const usedKeys = new Set();
+
+  // TEMP: forza Olimpia nel draw per prova utente, rimuovere dopo il test
+  const olimpiaOptions = shuffled.filter((ts) => ts.teamKey === "olimpia_milano");
+  if (olimpiaOptions.length > 0) {
+    const forced = olimpiaOptions[Math.floor(Math.random() * olimpiaOptions.length)];
+    five.push(forced);
+    usedKeys.add(forced.teamKey);
+  }
+
   for (const ts of shuffled) {
     if (five.length >= 5) break;
     if (usedKeys.has(ts.teamKey)) continue;

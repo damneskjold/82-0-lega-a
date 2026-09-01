@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 """
-Prototipo: carte "decade" (stile 82-0) per Olimpia Milano.
+Carte "decade" (stile 82-0), aggregate su tutte le stagioni disponibili
+di una squadra in una decade, con media pesata per partite giocate.
 
 A differenza di scrape_dataset.py (che pesca 5 anni campione, una
-stagione = una carta), qui per ogni decade si aggregano TUTTE le
-stagioni disponibili di una squadra in quella decade, con media pesata
-per partite giocate. Vedi il piano in
+stagione = una carta), qui per ogni decade in DECADES si aggregano TUTTE
+le stagioni disponibili di ciascuna squadra in TEAMS. Vedi il piano in
 /root/.claude/plans/sbagliato-qui-il-squishy-sunset.md per il contesto.
 
 Riusa le funzioni di rete/estrazione da scrape_dataset.py (stessa
 cache su disco, stessa pausa 1s, stesso user-agent).
+
+Idempotente: se una carta-decade per una squadra esiste gia' nel
+dataset (stesso team_key + stessa etichetta decade), viene sostituita
+invece che duplicata.
 """
 import json
 from pathlib import Path
@@ -25,9 +29,6 @@ from scrape_dataset import (
     check_lineup_complete,
 )
 
-CLUB_ID = 28  # Olimpia Milano, unico club_id (nessuna rifondazione da gestire)
-DISPLAY_NAME = "Olimpia Milano"
-
 DECADES = [
     ("anni '90", 1990, 1999),
     ("anni 2000", 2000, 2009),
@@ -35,16 +36,32 @@ DECADES = [
     ("anni 2020", 2020, 2025),  # decade parziale, in corso
 ]
 
-# Ruoli trovati manualmente via ricerca web per giocatori "eligible" senza
-# alcuna fonte di ruolo nei dati legabasket (roster ne' fallback carriera).
-# Popolato dopo aver visto l'elenco "SENZA RUOLO" stampato da questo script.
-MANUAL_ROLE_OVERRIDES = {
-    3641: "Centro",       # Cozell McQueen - center/power forward (Wikipedia)
-    3824: "Play/Guardia", # Piero Montecchi - play-guard, playmaker di ruolo (Wikipedia/Olimpia Milano)
-    5810: "Ala",          # Jay Vincent - 6'7" forward (Wikipedia)
-    4779: "Ala/Centro",   # Johnny Rogers - 6'10" power forward (Wikipedia)
-    5411: "Centro",       # Zan Tabak - center (Wikipedia/Basketball-Reference)
-    4919: "Centro",       # Mathias Sahlstrom - 6'8" center (FIBA)
+# Squadre da processare in questo giro. team_key deve corrispondere alla
+# chiave gia' usata in data/dataset.json (stessa convenzione di
+# scrape_dataset.py: TEAMS li'). role_overrides_by_name: ruoli trovati
+# manualmente via ricerca web per giocatori "eligible" senza alcuna fonte
+# di ruolo nei dati legabasket (roster ne' fallback carriera) - risolti
+# per nome invece che per player_id perche' l'id lo scopriamo solo alla
+# prima esecuzione (vedi elenco "SENZA RUOLO" stampato).
+TEAMS = {
+    "virtus_bologna": {
+        "club_id": 6,
+        "display_name": "Virtus Bologna",
+        "role_overrides_by_name": {
+            ("Bill", "Wennington"): "Centro",        # 7'0", 3 titoli NBA coi Bulls come centro di riserva
+            ("Clemon", "Johnson"): "Centro",          # 6'10", centro, campione NBA 1983 coi 76ers
+            ("Orlando", "Woolridge"): "Ala/Centro",   # 6'9", ala forte/ala-centro
+            ("Jurij", "Zdovc"): "Playmaker",           # playmaker sloveno, poi CT nazionale
+            ("Russ", "Schoene"): "Ala",                # ala, draft NBA 1982
+            ("Vittorio", "Gallinari"): "Ala/Centro",  # ala forte/centro, padre di Danilo Gallinari
+            ("Branislav", "Prelevic"): "Guardia",      # guardia serba
+            ("Kostas", "Patavoukas"): "Play/Guardia",  # playmaker/guardia greco
+            ("Emilio", "Marcheselli"): "Playmaker",    # playmaker, quarto assistman all-time Olimpia (era li' prima)
+            ("Roberto", "Cavallari"): "Centro",        # 205cm, centro (Wikidata/Virtuspedia)
+            ("Giampiero", "Savio"): "Ala",              # 195cm, ala (Wikipedia)
+            ("Tullio", "De Piccoli"): "Ala/Centro",     # 202cm, ala/centro (Wikipedia)
+        },
+    },
 }
 
 STAT_FIELDS = [
@@ -72,15 +89,15 @@ SHOT_PAIRS = {
 }
 
 
-def build_decade(label: str, year_start: int, year_end: int) -> dict:
-    print(f"\n=== {label} ({year_start}-{year_end}) ===")
-    # accumulator per player_id
+def build_decade(club_id: int, display_name: str, role_overrides_by_name: dict,
+                  label: str, year_start: int, year_end: int) -> dict:
+    print(f"\n=== {display_name} - {label} ({year_start}-{year_end}) ===")
     acc = {}  # player_id -> dict con sums, meta
     seasons_included = []
 
     for year in range(year_start, year_end + 1):
         teams = get_teams_for_year(year)
-        match = next((t for t in teams if t["club_id"] == CLUB_ID), None)
+        match = next((t for t in teams if t["club_id"] == club_id), None)
         if not match:
             print(f"  {year}: nessuna squadra (buco)")
             continue
@@ -148,6 +165,13 @@ def build_decade(label: str, year_start: int, year_end: int) -> dict:
                 if h:
                     a["height"] = h
 
+    # override manuali risolti per nome (l'id lo scopriamo solo ora)
+    role_overrides_by_pid = {}
+    for pid, a in acc.items():
+        key = (a["name"], a["surname"])
+        if key in role_overrides_by_name:
+            role_overrides_by_pid[pid] = role_overrides_by_name[key]
+
     players_out = []
     missing_role = []
     for pid, a in acc.items():
@@ -155,18 +179,22 @@ def build_decade(label: str, year_start: int, year_end: int) -> dict:
         eligible = games >= MIN_PRESENCES
         role = a["role"]
         role_source = a["role_source"]
+
         if not role:
-            if pid in MANUAL_ROLE_OVERRIDES:
-                role = MANUAL_ROLE_OVERRIDES[pid]
+            if pid in role_overrides_by_pid:
+                role = role_overrides_by_pid[pid]
                 role_source = "wikipedia_lookup"
             elif a["height"]:
                 role = estimate_role_from_height(a["height"])
                 role_source = "estimated_height"
             else:
-                role = "Ala"
-                role_source = "estimated_height"
-            if eligible and pid not in MANUAL_ROLE_OVERRIDES:
-                missing_role.append(a)
+                # nessuna fonte di ruolo ne' altezza: non si indovina, il
+                # giocatore resta nel dataset ma non selezionabile in gioco
+                role = None
+                role_source = None
+                if eligible:
+                    missing_role.append(a)
+                eligible = False
 
         rec = {
             "player_id": pid,
@@ -188,7 +216,7 @@ def build_decade(label: str, year_start: int, year_end: int) -> dict:
         players_out.append(rec)
 
     if missing_role:
-        print(f"  SENZA RUOLO (eligible, nessuna fonte) — {len(missing_role)}:")
+        print(f"  SENZA RUOLO (eligible altrimenti, ora non selezionabile) — {len(missing_role)}:")
         for a in missing_role:
             games = a["games_total"]
             pts = a["stat_sums"]["points_avg"] / games if games else 0
@@ -201,26 +229,43 @@ def build_decade(label: str, year_start: int, year_end: int) -> dict:
         "decade": label,
         "year_range": [year_start, year_end],
         "seasons_included": seasons_included,
-        "team_name_at_time": DISPLAY_NAME,
+        "team_name_at_time": display_name,
         "lineup_complete": lineup_complete,
         "players": players_out,
     }
 
 
 def main():
-    decade_objs = [build_decade(label, y0, y1) for label, y0, y1 in DECADES]
-
     dataset_path = ROOT / "data" / "dataset.json"
     dataset = json.loads(dataset_path.read_text(encoding="utf-8"))
-    team = next(t for t in dataset["teams"] if t["key"] == "olimpia_milano")
-    team["seasons"].extend(decade_objs)
-    dataset_path.write_text(json.dumps(dataset, indent=2, ensure_ascii=False), encoding="utf-8")
 
-    print(f"\nFatto. {len(decade_objs)} carte-decade aggiunte a olimpia_milano in {dataset_path}")
-    for d in decade_objs:
-        n_elig = sum(1 for p in d["players"] if p["eligible"])
-        print(f"  {d['decade']}: {len(d['players'])} giocatori ({n_elig} eligible), "
-              f"lineup_complete={d['lineup_complete']}, stagioni={d['seasons_included']}")
+    for team_key, cfg in TEAMS.items():
+        team = next((t for t in dataset["teams"] if t["key"] == team_key), None)
+        if team is None:
+            print(f"[{team_key}] non trovato in dataset.json, salto (va aggiunto manualmente prima)")
+            continue
+
+        decade_objs = [
+            build_decade(cfg["club_id"], cfg["display_name"], cfg["role_overrides_by_name"], label, y0, y1)
+            for label, y0, y1 in DECADES
+        ]
+
+        # idempotente: sostituisce le carte-decade con la stessa etichetta invece di duplicarle
+        existing_by_label = {s["decade"]: i for i, s in enumerate(team["seasons"]) if "decade" in s}
+        for d in decade_objs:
+            if d["decade"] in existing_by_label:
+                team["seasons"][existing_by_label[d["decade"]]] = d
+            else:
+                team["seasons"].append(d)
+
+        print(f"\n[{team_key}] {len(decade_objs)} carte-decade pronte:")
+        for d in decade_objs:
+            n_elig = sum(1 for p in d["players"] if p["eligible"])
+            print(f"  {d['decade']}: {len(d['players'])} giocatori ({n_elig} eligible), "
+                  f"lineup_complete={d['lineup_complete']}, stagioni={d['seasons_included']}")
+
+    dataset_path.write_text(json.dumps(dataset, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(f"\nFatto. Dataset aggiornato: {dataset_path}")
 
 
 if __name__ == "__main__":

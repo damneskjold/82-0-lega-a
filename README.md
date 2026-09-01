@@ -5,19 +5,55 @@ App statica, nessun backend. Sito pubblicato su GitHub Pages: https://damneskjol
 
 ## Come funziona il gioco
 
-Il giocatore riceve **5 squadre-stagione, una alla volta** (mai tutte insieme).
-Per ciascuna sceglie un giocatore **e** decide subito a quale ruolo del
+Il giocatore riceve **5 carte-squadra, una alla volta** (mai tutte insieme).
+Per ciascuna sceglie un giocatore **e** decide subito a quale slot del
 quintetto finale lo assegna — la scelta è irrevocabile prima di vedere la
-squadra successiva (è la difficoltà centrale di 82-0: non sai cosa arriverà
+carta successiva (è la difficoltà centrale di 82-0: non sai cosa arriverà
 dopo, rischi di "bruciare" uno slot).
 
-Il quintetto finale deve avere **esattamente**:
-- 1 Playmaker
-- 1 Centro
-- 3 giocatori tra Guardia e Ala, con split 2+1 o 1+2 (mai 3+0)
+I 5 slot sono fissi e visibili per tutto il draft, nell'ordine del quintetto
+base italiano:
+
+| slot | sigla | rank |
+|------|-------|------|
+| Playmaker   | PM | 1 |
+| Guardia     | G  | 2 |
+| Ala Piccola | AP | 3 |
+| Ala Grande  | AG | 4 |
+| Centro      | C  | 5 |
 
 Il motore calcola un record proiettato su **30 partite** (girone di andata e
-ritorno a 16 squadre, non 82 come in NBA).
+ritorno a 16 squadre, non 82 come in NBA), con un tier finale (da E "ultima
+in classifica" a S "corazzata") e il dettaglio statistico dei 5 scelti.
+Il risultato è condivisibile come **immagine PNG** generata su canvas
+(Web Share API con file, fallback su download e su condivisione testuale).
+
+### Legalità dei ruoli (sistema a rank)
+
+Ogni slot ha un rank fisso 1-5; ogni ruolo copre **uno o due rank adiacenti**
+(`ROLE_RANKS` in `docs/app.js`):
+
+```
+Playmaker     -> 1
+Play/Guardia  -> 1, 2
+Guardia       -> 2
+Guardia/Ala   -> 2, 3
+Ala           -> 3, 4
+Ala/Centro    -> 4, 5
+Centro        -> 5
+```
+
+Un giocatore è cliccabile solo se almeno uno slot del suo rank è ancora
+libero, e cliccandolo si illuminano solo gli slot legali. Questo impedisce
+le assurdità del vecchio schema "3 posti mobili Guardia/Ala" — un Centro non
+può più finire nello slot Guardia.
+
+### Un giocatore, una volta sola
+
+Un giocatore che ha cambiato squadra compare nelle rose di più carte. Una
+volta schierato, la sua riga diventa non selezionabile nelle carte
+successive, con l'etichetta "Già nel tuo quintetto" al posto del ruolo
+(controllo per `player_id`, in `renderRound()`).
 
 ## Fonte dati e vincoli
 
@@ -25,47 +61,105 @@ ritorno a 16 squadre, non 82 come in NBA).
   ispezionando il traffico di rete del sito — vedi `scripts/`)
 - Uso consentito per scopo personale/non commerciale (Termini e Condizioni
   legabasket.it) — questo è un progetto hobbistico
+- **Politica di scraping rispettosa** (da mantenere in ogni script nuovo):
+  una richiesta alla volta, **mai in parallelo**, pausa di 1 secondo fra le
+  richieste, un solo user-agent dichiarato e non rotante con email di
+  contatto, cache su disco in `data/raw_cache/` per non richiedere due volte
+  la stessa cosa
 - **Non usare Basketball-Reference.com**: i loro ToS vietano scraping e la
   costruzione di strumenti con i loro dati
 - I dati legabasket.it non sono "certificati" (dichiarazione loro stessi):
   possibili piccole imprecisioni, accettabile per un gioco
 
+Attenzione a un tranello dell'API: il parametro `year` è l'anno di **inizio**
+stagione (`year=2025` → stagione 2025-26).
+
+### Limite storico verificato
+
+L'API espone squadre e rose fino al 1975, ma **non esiste alcuna statistica
+individuale prima della stagione 1987-88** (verificato su due club, con un
+confine netto fra 1986 e 1987). Questo esclude gli anni 60/70/primi 80 —
+si può giocare solo dagli anni 90 in poi. La copertura dei ruoli negli anni
+90 è ~55-70% nelle prime stagioni e 100% dal 1997-98 (media 81%).
+
 ## Scope dati attuale
 
-11 squadre storiche italiane, stagioni campione **2005, 2010, 2015, 2020, 2025**
-(una ogni 5 anni; il dataset copriva anche 1990/1995/2000 ma sono stati
-tolti perché i giocatori di quell'epoca sono troppo poco riconoscibili per
-la maggior parte dei giocatori del gioco).
+Il dataset contiene **due tipi di carta**, che il frontend tratta allo stesso
+modo (`season.year ?? season.decade`):
 
-Squadre (chiave interna → nome): `virtus_bologna`, `olimpia_milano`,
-`canturina` (Cantù), `treviso`, `varese`, `siena`, `venezia`, `trieste`,
-`brescia`, `pesaro`, `roma`. Alcune non coprono tutte e 5 le stagioni per
-buchi reali nella loro storia in Serie A (fallimenti/rifondazioni — es.
-Roma non ha dati dopo il 2010, Brescia solo da 2020).
+- **carte-stagione**: una singola annata (`year`), modello originale, anni
+  campione 2005/2010/2015/2020/2025 — 38 carte
+- **carte-decade**: tutte le stagioni disponibili di una squadra in una
+  decade, aggregate (`decade`, `year_range`, `seasons_included`) — 8 carte,
+  è il modello giusto, quello di 82-0
 
-Per ogni squadra-stagione si scaricano: rosa completa (`get-team-roster`)
-e statistiche di **Regular Season** (non playoff/coppe — l'API le mescola
-di default, va filtrato esplicitamente per `championship_name`) per ogni
-giocatore (`get-player-stats`). Un giocatore è "eleggibile" se ha giocato
-almeno 10 partite quella stagione con quella squadra.
+Situazione oggi (11 squadre, 46 carte):
 
-### Ruoli
+```
+virtus_bologna  5 stagioni + 4 decadi = 9     venezia   3
+olimpia_milano  5 stagioni + 4 decadi = 9     pesaro    3
+canturina       5                             siena     2
+varese          5                             trieste   2
+treviso         4                             brescia   2
+                                              roma      2
+```
+
+Solo Milano e Bologna hanno le carte-decade: sono il prototipo. Finché le
+altre squadre non sono convertite il pool di pesca è **sbilanciato** e le
+prove di gioco non sono rappresentative.
+
+### Aggregazione per decade
+
+Come in 82-0, la carta rappresenta la squadra *in quella decade*, non una
+singola annata. Per ogni statistica:
+
+```
+media_decade = Σ(stat_stagione × partite_stagione) / Σ(partite_stagione)
+```
+
+Media **pesata per partite giocate**, non media semplice delle medie di
+stagione. Un giocatore è eleggibile se ha giocato **almeno 10 partite in
+totale nella decade con quella squadra** (non 10 in una singola stagione).
+
+Effetto collaterale da tenere a mente: le medie di decade smussano i picchi
+(l'annata eccezionale si annacqua su 10 anni), quindi la distribuzione dei
+rating è diversa da quella su cui sono tarati `MID` e `K`.
+
+### Decadi e nomi delle squadre
+
+Decadi previste: **anni '90, 2000, 2010, 2020** (quest'ultima parziale,
+1990-2025). Criterio di ammissione di una squadra a una decade: almeno 5
+stagioni in Serie A in quella decade.
+
+Convenzione sui nomi: le squadre si chiamano **col solo nome della città**,
+tranne dove la città ha avuto due club distinti in Serie A — Milano (Olimpia
+vs Milano 1958), Bologna (Virtus vs Fortitudo), Roma (Virtus/Banco vs Stella
+Azzurra). Treviso, Napoli e Livorno sono trattate come identità continue
+nonostante fallimenti e rifondazioni.
+
+## Ruoli
 
 legabasket classifica i giocatori in 4 categorie core (Playmaker, Guardia,
-Ala, Centro) più alcuni tag ibridi (Guardia/Ala, Play/Guardia, Ala/Centro)
-che contano come jolly per entrambi i ruoli che affiancano. Non c'è una
-5a categoria pulita tipo "power forward" — per questo il quintetto usa lo
-schema 1 Playmaker + 1 Centro + 3 mobili Guardia/Ala (rispecchia lo schema
-reale PG/SG/SF/PF/C, dove SG e PF nel basket italiano vengono spesso
-etichettati genericamente Guardia/Ala).
+Ala, Centro) più i tag ibridi Play/Guardia, Guardia/Ala, Ala/Centro. Non
+esiste una 5a categoria pulita tipo "power forward": è il sistema a rank
+sopra a coprire i 5 slot, dando ad "Ala" i rank 3 e 4.
 
-Fallback quando il ruolo manca nei dati sorgente (raro dal 2005 in poi):
-1. ruolo della rosa di quella stagione specifica
-2. ruolo "di carriera" del giocatore (`player_role_description`)
-3. stima grezza da altezza (soglie in `scripts/scrape_dataset.py`)
+Ordine di risoluzione del ruolo:
+1. ruolo nella rosa di quella stagione (`roster`) — 840 su 865 eleggibili
+2. ruolo "di carriera" del giocatore (`fallback_career`)
+3. override manuale trovato via ricerca web (`wikipedia_lookup`) —
+   `role_overrides_by_name` in `scrape_decade_sample.py`, con la fonte
+   annotata in un commento accanto a ogni nome
+4. stima grezza da altezza (`estimated_height`)
 
-Ogni giocatore ha un campo `role_source` che dice quale livello è stato
-usato — utile per capire quanto fidarsi del dato.
+**Regola ferma: il ruolo non si inventa mai.** Se non c'è nessuna fonte e
+manca anche l'altezza, il giocatore viene marcato `eligible: false` — meglio
+un giocatore in meno che uno mostrato come selezionabile con un ruolo
+sbagliato. Lo script stampa a fine run l'elenco "SENZA RUOLO" da risolvere
+a mano.
+
+Ogni giocatore porta un campo `role_source` che dice quale livello è stato
+usato.
 
 ## Motore di calcolo
 
@@ -79,58 +173,118 @@ wins_raw    = 30 / (1 + e^(-K * (team_rating - MID)))
 ```
 
 - `MID = 44.7`: rating di una squadra "media" (5 giocatori-tipo) → 15/30 vittorie
-- `K = 0.04925`: calibrato in modo che il **miglior quintetto teoricamente
-  possibile nel dataset attuale** (127.5 di rating — il miglior giocatore
-  per ruolo su tutte le stagioni disponibili) arrivi esattamente a
-  **30/30**. Se si amplia il dataset (più squadre/stagioni), questo tetto
-  teorico cambia e K andrebbe ricalcolato.
+- `K = 0.04925`: calibrato in modo che il miglior quintetto teoricamente
+  possibile **nel dataset di allora** (127.5 di rating) arrivasse esattamente
+  a 30/30
 
 **Penalità sbilanciamento**: si sommano 5 categorie base (punti, rimbalzi,
 assist, palle recuperate, stoppate) sui 5 giocatori, si confrontano con la
 media di lega (`REF_TEAM` in `app.js`), e se la categoria più debole scende
-sotto il 50% della media si applica una penalità (`PEN_SCALE = 15`,
-proporzionale a quanto si è sotto soglia). Tarata a mano insieme all'utente
-su esempi concreti (vedi cronologia decisioni sotto).
+sotto il 50% della media (`PEN_THRESH`) si applica una penalità
+(`PEN_SCALE = 15`, proporzionale a quanto si è sotto soglia).
 
-Tutte le costanti sono duplicate in `docs/app.js` (frontend, la copia che
-conta per il gioco pubblicato) — se si ritara la formula, aggiornare lì.
+⚠️ **Da ritarare.** `MID`, `K` e le penalità sono tarati sul vecchio modello
+a stagioni singole e su un dataset più piccolo. Vanno ricalibrati **insieme**,
+non separatamente, e solo dopo che il roster finale di squadre è chiuso.
+
+Tutte le costanti vivono in `docs/app.js` (frontend, la copia che conta per
+il gioco pubblicato).
 
 ## Come rigenerare il dataset
+
+Carte-stagione (modello originale):
 
 ```bash
 cd scripts
 python3 scrape_dataset.py
 ```
 
-Scarica (con pausa di 1s tra le richieste, rispettosa verso legabasket.it,
-mai in parallelo) rosa + statistiche per ogni squadra-stagione in
-`TARGET_YEARS`, con cache su disco in `data/raw_cache/` (non versionata,
-in `.gitignore`) — se rilanciato, riusa la cache invece di richiamare
-l'API. Cambiare `TARGET_YEARS` o `TEAMS` in cima al file per estendere lo
-scope. Dopo aver rigenerato `data/dataset.json`, copiarlo anche in
-`docs/data/dataset.json` (il frontend legge da lì).
+Carte-decade (modello attuale, da preferire per le squadre nuove):
+
+```bash
+cd scripts
+python3 scrape_decade_sample.py
+```
+
+Il secondo riusa rete, cache e parsing del primo, e lavora sulle squadre
+elencate in `TEAMS` in cima al file (con i loro `club_id` e gli eventuali
+override di ruolo). È **idempotente**: se una carta-decade per quella
+squadra esiste già, la sostituisce invece di appenderla — una versione
+precedente non lo era e ha duplicato i dati.
+
+Dopo aver rigenerato `data/dataset.json`, **copiarlo a mano** in
+`docs/data/dataset.json` (il frontend legge da lì):
+
+```bash
+cp data/dataset.json docs/data/dataset.json
+```
 
 `scripts/discover_clubs.py` è lo script (già eseguito, risultato in
 `data/club_discovery.json`) usato per mappare i nomi storici delle
 squadre (cambiano sponsor/nome quasi ogni stagione) al loro `club_id`
 stabile su legabasket.it — serve solo se si aggiungono nuove squadre.
 
+### Schema dataset
+
+```jsonc
+{
+  "generated_at": "...", "min_presences_threshold": 10,
+  "teams": [{
+    "key": "virtus_bologna", "display_name": "Virtus Bologna",
+    "seasons": [
+      // carta-stagione
+      { "year": 2015, "team_id": ..., "team_name_at_time": "...",
+        "lineup_complete": true, "players": [...] },
+      // carta-decade
+      { "decade": "anni '90", "year_range": [1990, 1999],
+        "seasons_included": [1990, 1991, ...],
+        "team_name_at_time": "Virtus Bologna",
+        "lineup_complete": true, "players": [...] }
+    ]
+  }]
+}
+```
+
+Un giocatore ha `player_id`, `name`, `surname`, `height`, `role`,
+`role_source`, `games_total`, `eligible`, `rating_lega`, `rating_oer` e le
+medie (`points_avg`, `def_rebound_avg`, `assists_avg`, percentuali di tiro,
+ecc.). Solo statistiche di **Regular Season**: l'API mescola playoff e coppe
+di default, va filtrato esplicitamente per `championship_name`.
+
 ## Decisioni prese finora (per chi riprende il progetto)
 
 - Niente foto/loghi: solo un colore identificativo per squadra
   (approssimativo, non ricerca storica accurata — vedi `TEAM_COLORS` in
-  `app.js`, correggere se qualcuno nota un colore palesemente sbagliato)
+  `app.js`)
 - Giocatori ordinati per PPG (punti a partita), non per rating, nelle
   liste di scelta
-- Il draft è sequenziale con validazione live: un giocatore è cliccabile
-  solo se esiste ancora almeno uno slot compatibile col suo ruolo: la UI
-  blocca scelte che renderebbero impossibile completare il quintetto
-  (es. l'ultimo slot Guardia/Ala libero, se prenderlo sforerebbe il vincolo
-  2+1/1+2, non è selezionabile)
-- Non serve un controllo di "risolvibilità" incrociato tra le 5 squadre:
-  ogni squadra-stagione nel dataset garantisce già di per sé almeno un
-  giocatore eleggibile per ciascuno dei 4 ruoli core (verificato in fase
-  di generazione dataset, campo `lineup_complete`)
+- Draft sequenziale con validazione live: la UI blocca a monte le scelte
+  illegali invece di segnalare l'errore dopo
+- Non serve un controllo di "risolvibilità" incrociato fra le 5 carte: ogni
+  carta garantisce già di per sé di poter coprire tutti e 5 gli slot (campo
+  `lineup_complete`, verificato in fase di generazione)
+- Mobile: pannello del quintetto sticky in fondo allo schermo e righe
+  risultato compatte su una sola riga. Nota per chi tocca il CSS: le
+  `@media` query vanno messe **dopo** le regole base che sovrascrivono, a
+  parità di specificità — altrimenti vince la regola base e la correzione
+  mobile non fa niente (errore commesso due volte)
+
+## Debito noto
+
+- **2 forzature TEMP** attive in `drawFive()` (Olimpia e Bologna sempre nel
+  draw, per le prove utente): da rimuovere prima del merge su `main`
+- `check_lineup_complete()` in `scrape_dataset.py` usa ancora il vecchio
+  `ROLE_ALIASES` ("1 PM + 1 C + 3 mobili"), non i rank del frontend: oggi
+  nessuna carta è incoerente (tutte e 46 coprono i 5 rank), ma è un
+  controllo che non controlla più la cosa giusta
+- `http_get_json()` cattura gli `HTTPError` e **cacha `{}`**: una chiamata
+  fallita diventa silenziosamente "giocatore senza statistiche". È successo
+  3 volte con dei 500 transitori; per ora l'unico rimedio è cancellare il
+  file di cache specifico e rilanciare. Servirebbe un contatore di
+  fallimenti con riepilogo a fine run, e non cachare gli errori
+- **Nessun test versionato**: gli script Playwright usati per le verifiche
+  (composizione quintetto, legalità rank, doppioni, overflow mobile) vivono
+  in `/tmp` e spariscono
 
 ## Struttura repo
 
@@ -139,19 +293,27 @@ docs/           sito pubblicato (GitHub Pages serve da qui)
   index.html
   style.css
   app.js
-  data/dataset.json    copia del dataset usata dal frontend
+  data/dataset.json         copia del dataset usata dal frontend
 scripts/
-  discover_clubs.py    mappatura squadra -> club_id nel tempo
-  scrape_dataset.py    scraping + generazione dataset.json
+  discover_clubs.py         mappatura squadra -> club_id nel tempo
+  scrape_dataset.py         scraping + carte-stagione
+  scrape_decade_sample.py   carte-decade aggregate (idempotente)
 data/
-  dataset.json         dataset generato (sorgente di verità)
-  club_discovery.json  output di discover_clubs.py
-  raw_cache/           cache risposte API grezze (non versionata)
+  dataset.json              dataset generato (sorgente di verità)
+  club_discovery.json       output di discover_clubs.py
+  raw_cache/                cache risposte API grezze (non versionata)
 ```
 
-## Idee non ancora implementate
+## Da fare
 
-- Tasto "condividi risultato"
-- Verifica/correzione manuale dei colori squadra
-- Eventualmente ampliare lo scope (più squadre o più stagioni) — occhio a
-  ricalibrare `K` nella formula se cambia il tetto massimo teorico
+1. Rimuovere le forzature TEMP dal draw e mergiare su `main` (il sito
+   pubblico è indietro rispetto al lavoro fatto)
+2. Completare le squadre con le carte-decade — Varese è la terza con
+   copertura 4/4 decadi, poi le altre qualificanti
+3. Ritarare **insieme** penalità, `MID` e `K`, a roster chiuso
+4. Sigle squadra stile 82-0 (MIL/NAP/VBO/FBO/ROM/UDI). Nota: VBO+FBO
+   implica aggiungere anche la Fortitudo, oggi non nel dataset
+5. Ruoli multipli adiacenti in base all'altezza (arricchire `ROLE_RANKS`
+   invece del rank fisso per etichetta)
+6. Verifica/correzione manuale dei colori squadra
+```

@@ -37,8 +37,16 @@ DECADES = [
 ]
 
 # criterio di ammissione di una squadra a una decade (vedi README): sotto
-# questa soglia la carta non rispecchia una decade vera, e' scartata
+# questa soglia la carta non rispecchia una decade vera, e' scartata.
+# Per "anni 2020" la soglia e' piu' bassa perche' la decade e' ancora a
+# meta' (solo 6 stagioni disponibili al massimo, 2020-2025).
 MIN_SEASONS_PER_DECADE = 5
+MIN_SEASONS_DECADE_IN_CORSO = 3
+DECADE_IN_CORSO = "anni 2020"
+
+
+def min_seasons_for(label: str) -> int:
+    return MIN_SEASONS_DECADE_IN_CORSO if label == DECADE_IN_CORSO else MIN_SEASONS_PER_DECADE
 
 # Squadre da processare in questo giro. team_key deve corrispondere alla
 # chiave gia' usata in data/dataset.json (stessa convenzione di
@@ -298,8 +306,8 @@ def main():
             build_decade(cfg["club_id"], cfg["display_name"], cfg["role_overrides_by_name"], label, y0, y1)
             for label, y0, y1 in DECADES
         ]
-        decade_objs = [d for d in all_decade_objs if len(d["seasons_included"]) >= MIN_SEASONS_PER_DECADE]
-        skipped = [d for d in all_decade_objs if len(d["seasons_included"]) < MIN_SEASONS_PER_DECADE]
+        decade_objs = [d for d in all_decade_objs if len(d["seasons_included"]) >= min_seasons_for(d["decade"])]
+        skipped = [d for d in all_decade_objs if len(d["seasons_included"]) < min_seasons_for(d["decade"])]
 
         # idempotente: sostituisce le carte-decade con la stessa etichetta invece di duplicarle
         existing_by_label = {s["decade"]: i for i, s in enumerate(team["seasons"]) if "decade" in s}
@@ -321,9 +329,10 @@ def main():
             print(f"  {d['decade']}: {len(d['players'])} giocatori ({n_elig} eligible), "
                   f"lineup_complete={d['lineup_complete']}, stagioni={d['seasons_included']}")
         if skipped:
-            print(f"  scartate (sotto soglia {MIN_SEASONS_PER_DECADE} stagioni):")
+            print("  scartate (sotto soglia stagioni minime):")
             for d in skipped:
-                print(f"  {d['decade']}: solo {len(d['seasons_included'])} stagioni {d['seasons_included']}")
+                print(f"  {d['decade']}: solo {len(d['seasons_included'])} stagioni "
+                      f"(soglia {min_seasons_for(d['decade'])}) {d['seasons_included']}")
 
     dataset_path.write_text(json.dumps(dataset, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nFatto. Dataset aggiornato: {dataset_path}")

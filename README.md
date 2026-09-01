@@ -90,23 +90,26 @@ modo (`season.year ?? season.decade`):
 - **carte-stagione**: una singola annata (`year`), modello originale, anni
   campione 2005/2010/2015/2020/2025 — 38 carte
 - **carte-decade**: tutte le stagioni disponibili di una squadra in una
-  decade, aggregate (`decade`, `year_range`, `seasons_included`) — 8 carte,
-  è il modello giusto, quello di 82-0
+  decade, aggregate (`decade`, `year_range`, `seasons_included`) — è il
+  modello giusto, quello di 82-0
 
-Situazione oggi (11 squadre, 46 carte):
+Situazione oggi (11 squadre nel roster):
 
 ```
 virtus_bologna  5 stagioni + 4 decadi = 9     venezia   3
-olimpia_milano  5 stagioni + 4 decadi = 9     pesaro    3
-canturina       5                             siena     2
-varese          5                             trieste   2
-treviso         4                             brescia   2
-                                              roma      2
+olimpia_milano  5 stagioni + 4 decadi = 9     siena     2
+varese          5 stagioni + 4 decadi = 9     trieste   2
+pesaro          5 stagioni + 4 decadi = 9     brescia   2
+canturina       5 stagioni + 3 decadi = 8     roma      2
+treviso         4
 ```
 
-Solo Milano e Bologna hanno le carte-decade: sono il prototipo. Finché le
-altre squadre non sono convertite il pool di pesca è **sbilanciato** e le
-prove di gioco non sono rappresentative.
+Bologna, Milano, Varese e Pesaro hanno tutte e 4 le decadi; Cantù ne ha 3
+(negli anni 2020 ha giocato solo 2 stagioni, sotto anche la soglia ridotta —
+vedi sotto). Le altre 6 squadre restano solo a carte-stagione: finché non
+sono convertite il pool di pesca è **sbilanciato** e le prove di gioco non
+sono rappresentative. Vedi `data/decade_coverage_research.md` per la
+ricerca completa su quali altre squadre storiche qualificano.
 
 ### Aggregazione per decade
 
@@ -128,8 +131,12 @@ rating è diversa da quella su cui sono tarati `MID` e `K`.
 ### Decadi e nomi delle squadre
 
 Decadi previste: **anni '90, 2000, 2010, 2020** (quest'ultima parziale,
-1990-2025). Criterio di ammissione di una squadra a una decade: almeno 5
-stagioni in Serie A in quella decade.
+2020-2025, solo 6 stagioni possibili). Criterio di ammissione di una
+squadra a una decade: almeno 5 stagioni in Serie A in quella decade, **3
+per gli anni 2020** (soglia ridotta perché la decade è ancora a metà —
+`MIN_SEASONS_PER_DECADE` / `MIN_SEASONS_DECADE_IN_CORSO` in
+`scrape_decade_sample.py`). Sotto soglia la carta viene scartata invece
+di essere generata comunque sottile.
 
 Convenzione sui nomi: le squadre si chiamano **col solo nome della città**,
 tranne dove la città ha avuto due club distinti in Serie A — Milano (Olimpia
@@ -308,12 +315,14 @@ data/
 
 1. Rimuovere le forzature TEMP dal draw e mergiare su `main` (il sito
    pubblico è indietro rispetto al lavoro fatto)
-2. Completare le squadre con le carte-decade — Varese è la terza con
-   copertura 4/4 decadi, poi le altre qualificanti
+2. Completare le squadre con le carte-decade — fatte Bologna, Milano,
+   Varese, Cantù, Pesaro; migliori candidate successive: Roma (già nel
+   roster, club_id noto, 3/4 decadi) e Reggio Emilia (squadra nuova,
+   tuttora attiva, richiede discovery del club_id) — vedi
+   `data/decade_coverage_research.md`
 3. Ritarare **insieme** penalità, `MID` e `K`, a roster chiuso
 4. Sigle squadra stile 82-0 (MIL/NAP/VBO/FBO/ROM/UDI). Nota: VBO+FBO
    implica aggiungere anche la Fortitudo, oggi non nel dataset
 5. Ruoli multipli adiacenti in base all'altezza (arricchire `ROLE_RANKS`
    invece del rank fisso per etichetta)
 6. Verifica/correzione manuale dei colori squadra
-```

@@ -85,12 +85,14 @@ function drawFive() {
   const five = [];
   const usedKeys = new Set();
 
-  // TEMP: forza Olimpia nel draw per prova utente, rimuovere dopo il test
-  const olimpiaOptions = shuffled.filter((ts) => ts.teamKey === "olimpia_milano");
-  if (olimpiaOptions.length > 0) {
-    const forced = olimpiaOptions[Math.floor(Math.random() * olimpiaOptions.length)];
-    five.push(forced);
-    usedKeys.add(forced.teamKey);
+  // TEMP: forza Olimpia e Bologna nel draw per prova utente, rimuovere dopo il test
+  for (const forcedKey of ["olimpia_milano", "virtus_bologna"]) {
+    const options = shuffled.filter((ts) => ts.teamKey === forcedKey);
+    if (options.length > 0) {
+      const forced = options[Math.floor(Math.random() * options.length)];
+      five.push(forced);
+      usedKeys.add(forced.teamKey);
+    }
   }
 
   for (const ts of shuffled) {

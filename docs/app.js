@@ -104,23 +104,13 @@ function drawFive() {
   const five = [];
   const usedKeys = new Set();
 
-  // TEMP: forza Olimpia e Bologna nel draw per prova utente, rimuovere dopo il test
-  for (const forcedKey of ["olimpia_milano", "virtus_bologna"]) {
-    const options = shuffled.filter((ts) => ts.teamKey === forcedKey);
-    if (options.length > 0) {
-      const forced = options[Math.floor(Math.random() * options.length)];
-      five.push(forced);
-      usedKeys.add(forced.teamKey);
-    }
-  }
-
   for (const ts of shuffled) {
     if (five.length >= 5) break;
     if (usedKeys.has(ts.teamKey)) continue;
     five.push(ts);
     usedKeys.add(ts.teamKey);
   }
-  // se non bastano squadre diverse (non dovrebbe succedere con 11 squadre), completa senza il vincolo
+  // se non bastano squadre diverse (non dovrebbe succedere con 30 squadre), completa senza il vincolo
   if (five.length < 5) {
     for (const ts of shuffled) {
       if (five.length >= 5) break;

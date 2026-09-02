@@ -84,37 +84,41 @@ si può giocare solo dagli anni 90 in poi. La copertura dei ruoli negli anni
 
 ## Scope dati attuale
 
-Il dataset contiene **due tipi di carta**, che il frontend tratta allo stesso
-modo (`season.year ?? season.decade`):
+Il dataset serve **solo carte-decade** (`decade`, `year_range`,
+`seasons_included`): tutte le stagioni disponibili di una squadra in una
+decade, aggregate con media pesata — il modello giusto, quello di 82-0.
 
-- **carte-stagione**: una singola annata (`year`), modello originale, anni
-  campione 2005/2010/2015/2020/2025 — 38 carte
-- **carte-decade**: tutte le stagioni disponibili di una squadra in una
-  decade, aggregate (`decade`, `year_range`, `seasons_included`) — è il
-  modello giusto, quello di 82-0
+Il modello originale a stagione singola (`year`, anni campione
+2005/2010/2015/2020/2025 — 38 carte) è stato usato come prototipo nella
+prima parte del progetto e poi **rimosso** dal dataset spedito
+(`data/dataset.json` e `docs/data/dataset.json`): lo script che le
+generava (`scripts/scrape_dataset.py`) resta nel repo per riferimento
+ma non è più usato per popolare il gioco. Il frontend gestisce ancora
+genericamente `season.year ?? season.decade` (codice invariato, solo
+vestigiale ora che `year` non compare più nei dati).
 
 Situazione oggi: **completato**. Tutte le 30 squadre identificate dalla
 ricerca di copertura hanno almeno una carta-decade (Bologna, Milano,
 Varese, Pesaro a 4/4; Cantù, Roma, Treviso, Reggio Emilia a 3/4; le
 altre 22 a 1/4 o 2/4, a seconda di quante stagioni hanno effettivamente
-giocato in Serie A in ciascuna decade). Le squadre senza storia di
-carte-stagione (la maggioranza — quasi tutte tranne le 11 originali)
-sono state aggiunte come stub vuoto in `data/dataset.json` prima di
-lanciare lo script decade, e hanno solo carte-decade, non campione.
+giocato in Serie A in ciascuna decade). Le squadre nuove (senza storia
+di carte-stagione, la maggioranza) sono state aggiunte come stub vuoto
+in `data/dataset.json` prima di lanciare lo script decade.
 
 Stato dettagliato, copertura per decade di ogni squadra e cronologia
 dei batch: `data/decade_coverage_research.md`.
 
+Le 2 forzature TEMP in `drawFive()` (Milano+Bologna sempre nel draw,
+usate per le prove utente mentre il roster si popolava) sono state
+rimosse.
+
 **Debito noto legato al pool**: `drawFive()` pesca da un unico elenco
 piatto di tutte le carte (`ALL_TEAM_SEASONS`), senza pesare per
-squadra. Bologna/Milano/Varese/Pesaro (9 carte ciascuna) hanno quindi
-~9 volte più probabilità di uscire rispetto a una squadra con 1 sola
-carta (la maggioranza, ora che il roster è completo). Non risolto:
-andrebbe cambiato a pesca a due passaggi (prima la squadra, poi la
-carta al suo interno) per dare a ogni squadra pari probabilità — è
-collegato alla rimozione delle 2 forzature TEMP qui sotto, che esistono
-proprio perché con la pesca piatta le squadre rare non uscivano mai nei
-test.
+squadra. Bologna/Milano/Varese/Pesaro (4 carte-decade ciascuna) hanno
+quindi 4 volte più probabilità di uscire rispetto a una squadra con 1
+sola carta (la maggioranza, ora che il roster è completo). Non
+risolto: andrebbe cambiato a pesca a due passaggi (prima la squadra,
+poi la carta al suo interno) per dare a ogni squadra pari probabilità.
 
 ### Aggregazione per decade
 
@@ -308,20 +312,31 @@ docs/           sito pubblicato (GitHub Pages serve da qui)
   data/dataset.json         copia del dataset usata dal frontend
 scripts/
   discover_clubs.py         mappatura squadra -> club_id nel tempo
-  scrape_dataset.py         scraping + carte-stagione
-  scrape_decade_sample.py   carte-decade aggregate (idempotente)
+  scrape_dataset.py         scraping carte-stagione (prototipo, non più usato per il dataset spedito)
+  scrape_decade_sample.py   carte-decade aggregate (idempotente) - unica fonte del dataset spedito
 data/
   dataset.json              dataset generato (sorgente di verità)
   club_discovery.json       output di discover_clubs.py
   raw_cache/                cache risposte API grezze (non versionata)
+tests/
+  game_smoke_test.js        test di fumo Playwright (partita completa, no doppioni, legalità ruoli, 0 errori console)
+```
+
+## Come lanciare i test
+
+```bash
+python3 -m http.server 8899 --directory docs &
+node tests/game_smoke_test.js         # 20 partite di default
+node tests/game_smoke_test.js 60      # numero di partite a scelta
 ```
 
 ## Da fare
 
-1. Rimuovere le forzature TEMP dal draw e mergiare su `main` (il sito
-   pubblico è indietro rispetto al lavoro fatto). ~~Completare le
+1. ~~Rimuovere le forzature TEMP dal draw~~ — fatto. ~~Completare le
    squadre con le carte-decade~~ — fatto, tutte le 30 squadre della
-   ricerca sono nel dataset (`data/decade_coverage_research.md`)
+   ricerca sono nel dataset (`data/decade_coverage_research.md`).
+   Mergiare su `main` (il sito pubblico è indietro rispetto al lavoro
+   fatto)
 2. Pesca a due passaggi in `drawFive()` (prima la squadra, poi la carta
    al suo interno) invece della pesca piatta attuale che favorisce le
    squadre con più carte — vedi sopra

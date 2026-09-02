@@ -65,14 +65,17 @@ nostra), tutte sullo stesso motore (`startDraft(mode, decades)` in
 - **Classic**: tutte le decadi, statistiche in chiaro nel draft — il
   gioco di sempre.
 - **Scegli decade**: come Classic ma solo sulle decadi selezionate
-  (minimo 2, schermata `#screen-decades` prima del draft). `CEILING`/
-  `MID`/`K` si ricalcolano sul sottoinsieme (`recomputeCurve(pool, ...)`,
-  `pool` non è più sempre `ALL_TEAM_SEASONS`) — verificato che restano
-  sensati anche su una singola decade (14-17 squadre disponibili in
-  ognuna, mai sotto le 5 minime per un draft): essendo `MID_FRACTION`/
-  `PERFECTION_BAND` frazioni del tetto, la curva è proporzionalmente la
-  stessa qualunque sia la dimensione del pool, non "si sballa" restringendo
-  le decadi.
+  (minimo 2, schermata `#screen-decades` prima del draft, checkbox
+  sempre pulite alla riapertura — non si accumulano scelte precedenti).
+  `CEILING`/`MID`/`K` si ricalcolano sul sottoinsieme
+  (`recomputeCurve(pool, ...)`, `pool` non è più sempre
+  `ALL_TEAM_SEASONS`) — essendo `MID_FRACTION`/`PERFECTION_BAND` frazioni
+  del tetto, la curva è proporzionalmente la stessa qualunque sia la
+  dimensione del pool. **Verificate dal vivo tutte le 11 combinazioni
+  possibili** (le 6 coppie, le 4 triple, tutte e 4 insieme — non solo
+  qualcuna a campione): squadre disponibili sempre fra 21 e 30 (mai
+  sotto le 5 minime per un draft), curva sempre valida, 0 errori su una
+  partita completa per ciascuna.
 - **Blind**: come Classic ma senza statistiche nel draft (`blindMode`) e
   giocatori ordinati per cognome invece che per PPG — l'unico indizio è
   nome e ruolo, la valutazione del quintetto a fine partita resta

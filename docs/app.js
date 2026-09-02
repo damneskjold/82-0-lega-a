@@ -851,6 +851,10 @@ async function shareResult() {
 }
 
 function openDecadePicker() {
+  // sempre pulita all'apertura: altrimenti una scelta precedente resta
+  // spuntata e si accumula silenziosamente con quella nuova
+  document.querySelectorAll(".decade-check").forEach((el) => { el.checked = false; });
+  updateDecadeStartButton();
   $("#screen-home").hidden = true;
   $("#screen-decades").hidden = false;
 }

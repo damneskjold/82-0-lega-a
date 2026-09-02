@@ -207,19 +207,23 @@ wins_raw = 30                                            se team_rating >= PERFE
 wins_raw = 30 / (1 + e^(-K * (team_rating - MID)))       altrimenti
 ```
 
-- `MID = CEILING * MID_FRACTION` (`MID_FRACTION = 0.65`): rating che vale
+- `MID = CEILING * MID_FRACTION` (`MID_FRACTION = 0.55`): rating che vale
   15/30 vittorie. **Non** è più ancorato al "giocatore a caso per ruolo"
   (rating mediano, ~43 sul dataset attuale): a quel livello la sigmoide
   risultava già quasi satura per una selezione semplicemente attenta ai
   rating visibili (non ottimale, senza pianificare i turni), che da sola
   raggiunge in media ~104 di rating (~68% del tetto) — quindi quasi
   sempre 26+ vittorie anche senza cercare le squadre migliori, il
-  problema segnalato dall'utente dopo il primo retune. Spostando
-  l'ancoraggio a "una buona selezione ma non ottimale" (65% del tetto),
-  quello stesso sforzo onesto produce una mediana di ~18-19 vittorie
-  (playoff, non scudetto) — verificato simulando 3000 draft con
-  strategia "prendo sempre il rating più alto visibile": mediana 19,
-  p90 25, **1 sola volta su 3000 in tier S**
+  problema segnalato dall'utente dopo il primo retune. Un primo giro a
+  `0.65` si è rivelato **troppo severo nella direzione opposta**: quintetti
+  onesti (giocatori sui 15-24 punti a partita, rating 80-107) delle prime
+  partite reali giocate a roster completo finivano comunque in zona
+  retrocessione (5-25, 12-18). Ritarato a `0.55` dopo aver confrontato
+  quegli stessi rating reali sotto diverse `MID_FRACTION` — verificato
+  simulando 3000 draft con strategia "prendo sempre il rating più alto
+  visibile": mediana 24, p10 19, **9 volte su 3000 in tier S** (raro ma
+  non nullo, contro le 26+ vittorie quasi garantite di prima del primo
+  retune)
 - `PERFECTION_BAND = 0.97`: sopra il 97% del tetto teorico, sempre
   30-0 — un pugno di quintetti vicinissimi al meglio possibile, non un
   plateau che capita per caso vicino al tetto (comportamento naturale di

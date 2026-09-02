@@ -126,7 +126,11 @@ let CEILING = 0;
 // sempre 26+ vittorie. MID_FRACTION sposta l'ancoraggio a "una buona
 // selezione ma non ottimale", cosi' il .500 rappresenta uno sforzo
 // onesto e non il minimo sindacale.
-const MID_FRACTION = 0.65;
+// (0.65 era troppo severo: quintetti onesti da 80-100 di rating, con
+// giocatori sui 15-24 punti a partita, finivano comunque in zona
+// retrocessione - ritarato a 0.55 dopo il feedback sulle prime partite
+// reali giocate col roster completo.)
+const MID_FRACTION = 0.55;
 let MID = 0;
 // PERFECTION_BAND: sopra questa frazione del tetto, il risultato e'
 // sempre 30-0 - la "zona di perfezione" di un pugno di quintetti vicini

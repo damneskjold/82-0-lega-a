@@ -34,13 +34,21 @@ const HEIGHT_RANK_EXTENSION = {
 };
 
 // rank legali per un giocatore: quelli del suo ruolo, piu' l'eventuale rank
-// extra per altezza se extendByHeight e' true.
+// extra per altezza se extendByHeight e' true. Massimo 2 rank adiacenti,
+// come ogni altro ruolo/ibrido nel gioco: se la base ne ha gia' 2 (oggi
+// solo "Ala", che copre AP+AG), l'estensione SPOSTA la coppia verso
+// l'alto invece di allargarla a 3 - un'Ala estesa a Centro "diventa"
+// AG/C (perde AP), esattamente come l'ibrido ufficiale Ala/Centro non ha
+// mai AP. Playmaker/Guardia (base di 1 solo rank) restano un semplice
+// allargamento a 2, gia' cosi'.
 function ranksFor(player, extendByHeight) {
   const base = ROLE_RANKS[player.role] || [];
   if (!extendByHeight) return base;
   const ext = HEIGHT_RANK_EXTENSION[player.role];
   if (!ext || !player.height || player.height < ext.minHeight) return base;
-  return base.includes(ext.extraRank) ? base : [...base, ext.extraRank];
+  if (base.includes(ext.extraRank)) return base;
+  const combined = [...base, ext.extraRank].sort((a, b) => a - b);
+  return combined.length > 2 ? combined.slice(combined.length - 2) : combined;
 }
 
 // i 5 slot del quintetto, ciascuno con la propria posizione (rank) specifica

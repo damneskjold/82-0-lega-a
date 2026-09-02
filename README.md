@@ -192,12 +192,19 @@ ma senza nessun "Ala/Centro": impossibile mettere in campo un Centro
 decente se pesca solo carte con quel profilo, anche con giocatori alti
 quanto un centro vero. Un giocatore di ruolo **puro** (non già ibrido)
 alto abbastanza guadagna anche il rank adiacente superiore, come se
-legabasket stesso gli avesse dato un tag ibrido — solo +1 verso l'alto,
-mai in giù, mai sui ruoli già ibridi (niente giocatori a 3 rank, per ora
-— vedi backlog). **Non è un'opzione**: è così che gira il gioco spedito,
-non c'è un toggle in home — la logica "as is" (senza estensione) resta
-comunque richiamabile in codice (`ranksFor(player, false)`), non è stata
-cancellata, semplicemente non è quello che gira davvero.
+legabasket stesso gli avesse dato un tag ibrido. **Massimo 2 rank
+adiacenti**, come ogni altro ruolo/ibrido nel gioco — mai 3: "Ala" parte
+già da 2 rank (AP+AG), quindi la sua estensione a Centro non si
+*aggiunge* (diventerebbe AP/AG/C, mai visto altrove) ma *sposta* la
+coppia verso l'alto, perdendo AP — un'Ala estesa a Centro diventa
+indistinguibile da un'Ala/Centro ufficiale (AG/C), esattamente come ci
+si aspetterebbe da un giocatore che a quell'altezza è più "ala grande"
+che "ala piccola". Playmaker e Guardia (base di 1 solo rank) restano un
+semplice allargamento a 2, non serve spostare nulla. **Non è un'opzione**:
+è così che gira il gioco spedito, non c'è un toggle in home — la logica
+"as is" (senza estensione) resta comunque richiamabile in codice
+(`ranksFor(player, false)`), non è stata cancellata, semplicemente non è
+quello che gira davvero.
 
 ```
 Playmaker (rank 1) + altezza >= 192cm  -> anche Guardia (rank 2)
@@ -238,8 +245,8 @@ Playmaker esteso (o Play/Guardia) -> PM/G
 Guardia pura                      -> G
 Guardia estesa (o Guardia/Ala)    -> G/AP
 Ala normale (copre già AP e AG)   -> AP/AG
-Ala estesa a Centro               -> AP/AG/C
-Ala/Centro (ufficiale)            -> AG/C
+Ala estesa a Centro               -> AG/C  (perde AP, non si accumula)
+Ala/Centro (ufficiale)            -> AG/C  (identico all'estensione)
 Centro puro                       -> C
 ```
 

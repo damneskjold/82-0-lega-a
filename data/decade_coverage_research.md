@@ -103,10 +103,13 @@ Montecatini, Rimini, Imola, Fabriano, Rieti, Ferrara, Napoli (identità
   39+102 per una rifondazione), Dinamo Sassari (2/4: 10/20, squadra
   nuova), Aquila Basket Trento (2/4: 10/20, squadra nuova). Aggiunti i
   3 colori in `TEAM_COLORS`.
-- **Prossimo batch, ordine deciso dall'utente**: Avellino+Reggio
-  Calabria+Cremona (2/4), poi Brindisi (2/4) + Livorno+Udine+Brescia+
-  Caserta (1/4), poi Biella+Verona+Teramo+Roseto+Tortona+Scafati (1/4) —
-  14 squadre rimanenti
+- **Batch 4 fatto**: Scandone Avellino (2/4: 00/10, squadra nuova, 0
+  giocatori senza ruolo), Viola Reggio Calabria (2/4: 90/00, squadra
+  nuova), Vanoli Cremona (2/4: 10/20, squadra nuova, 0 giocatori senza
+  ruolo). Aggiunti i 3 colori in `TEAM_COLORS`.
+- **Prossimo batch, ordine deciso dall'utente**: Brindisi (2/4) +
+  Livorno+Udine+Brescia+Caserta (1/4), poi Biella+Verona+Teramo+Roseto+
+  Tortona+Scafati (1/4) — 11 squadre rimanenti
 
 Nota tecnica: `scrape_decade_sample.py` scarta automaticamente una
 decade con troppe poche stagioni disponibili invece di generare comunque

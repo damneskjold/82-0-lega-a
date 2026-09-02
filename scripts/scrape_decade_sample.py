@@ -270,6 +270,37 @@ TEAMS = {
         "display_name": "Aquila Basket Trento",
         "role_overrides_by_name": {},
     },
+    "avellino": {
+        "club_id": 1,
+        "display_name": "Scandone Avellino",
+        "role_overrides_by_name": {},
+    },
+    "reggio_calabria": {
+        "club_id": 43,
+        "display_name": "Viola Reggio Calabria",
+        "role_overrides_by_name": {
+            ("Dean", "Garrett"): "Centro",               # gia' risolto per Pesaro, stesso giocatore
+            ("Lucio", "Lagana'"): "Guardia",             # guardia, 227 presenze con Viola (Wikipedia)
+            ("Matteo", "Lanza"): "Guardia",              # gia' risolto per Pistoia, stesso giocatore
+            ("Giorgio", "Rifatti"): "Centro",            # argentino, segnalo' Manu Ginobili a Reggio Calabria (Wikipedia)
+            ("Michael", "Young"): "Guardia/Ala",         # 201cm, small forward/shooting guard NBA (Wikipedia)
+            ("Tiziano", "Lorenzon"): "Ala/Centro",       # gia' risolto per Virtus Roma, stesso giocatore
+            ("Alexander", "Volkov"): "Ala/Centro",       # 208cm, power forward/centro, draft NBA 1986 (Wikipedia)
+            ("Kevin", "Pritchard"): "Playmaker",         # point guard NBA, poi dirigente (Wikipedia)
+            ("Alessandro", "Fantozzi"): "Playmaker",     # gia' risolto per Virtus Roma, stesso giocatore
+            ("Randy", "White"): "Ala",                   # 203cm, power forward, draft NBA 1989 (Wikipedia)
+            ("Andrea", "Cattani"): "Playmaker",          # playmaker, esordio A1 a 16 anni (Wikipedia)
+            ("Paolo", "Prato"): "Centro",                # 204cm, centro (Wikipedia)
+            ("Rocco", "Famà"): "Playmaker",              # ex playmaker, 188cm (Eurobasket)
+            # Dirk Rassloff: nessuna fonte trovata (23 partite, 9.2 min/
+            # partita) - resta eligible=False, non indovinato
+        },
+    },
+    "cremona": {
+        "club_id": 100,
+        "display_name": "Vanoli Cremona",
+        "role_overrides_by_name": {},
+    },
 }
 
 STAT_FIELDS = [

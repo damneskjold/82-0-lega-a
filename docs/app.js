@@ -48,6 +48,9 @@ const TEAM_COLORS = {
   pistoia: "#ffb703",
   sassari: "#2b2d42",
   trento: "#06a77d",
+  avellino: "#588157",
+  reggio_calabria: "#6a4c93",
+  cremona: "#264653",
 };
 
 // Formula tarata a mano sugli esempi discussi con l'utente

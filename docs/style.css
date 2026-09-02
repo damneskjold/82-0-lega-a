@@ -310,12 +310,24 @@ body {
 }
 .player-row.disabled:hover { background: none; }
 
-.player-name { font-weight: 600; }
+.player-info {
+  min-width: 0;
+  overflow: hidden;
+}
+.player-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .player-role {
   color: var(--muted);
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .player-stats {
   display: flex;
@@ -328,6 +340,21 @@ body {
   font-variant-numeric: tabular-nums;
   color: var(--muted);
   font-size: 0.85rem;
+}
+
+/* con 5 colonne (P R A S B, come in 82-0) invece delle 3 originali
+   serve piu' spazio: sui mobile si restringono colonne/gap e si
+   affida il resto al troncamento di nome/ruolo sopra */
+@media (max-width: 860px) {
+  .player-stats-header,
+  .player-stats {
+    gap: 6px;
+  }
+  .player-stats-header .stat-col,
+  .player-stats .stat-col {
+    width: 22px;
+    font-size: 0.72rem;
+  }
 }
 
 .draft-footer {

@@ -262,6 +262,8 @@ function renderRound() {
         <div class="stat-col">P</div>
         <div class="stat-col">R</div>
         <div class="stat-col">A</div>
+        <div class="stat-col">S</div>
+        <div class="stat-col">B</div>
       </div>
     </div>
     <div class="player-list" id="round-player-list"></div>
@@ -280,7 +282,7 @@ function renderRound() {
     row.className = "player-row" + (legalIds.length === 0 ? " disabled" : "") + (isSelected ? " selected" : "");
     const reb = Number(p.off_rebound_avg || 0) + Number(p.def_rebound_avg || 0);
     row.innerHTML = `
-      <div>
+      <div class="player-info">
         <div class="player-name">${p.name} ${p.surname}</div>
         <div class="player-role">${alreadyPicked ? "Già nel tuo quintetto" : p.role}</div>
       </div>
@@ -288,6 +290,8 @@ function renderRound() {
         <div class="stat-col">${p.points_avg.toFixed(1)}</div>
         <div class="stat-col">${reb.toFixed(1)}</div>
         <div class="stat-col">${p.assists_avg.toFixed(1)}</div>
+        <div class="stat-col">${Number(p.steals_avg || 0).toFixed(1)}</div>
+        <div class="stat-col">${Number(p.blocks_avg || 0).toFixed(1)}</div>
       </div>
     `;
     if (legalIds.length > 0) {

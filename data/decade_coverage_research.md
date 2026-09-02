@@ -107,9 +107,18 @@ Montecatini, Rimini, Imola, Fabriano, Rieti, Ferrara, Napoli (identità
   giocatori senza ruolo), Viola Reggio Calabria (2/4: 90/00, squadra
   nuova), Vanoli Cremona (2/4: 10/20, squadra nuova, 0 giocatori senza
   ruolo). Aggiunti i 3 colori in `TEAM_COLORS`.
-- **Prossimo batch, ordine deciso dall'utente**: Brindisi (2/4) +
-  Livorno+Udine+Brescia+Caserta (1/4), poi Biella+Verona+Teramo+Roseto+
-  Tortona+Scafati (1/4) — 11 squadre rimanenti
+- **Fix**: Clivo Massimo Righi e Dirk Rassloff (Reggio Calabria/Pistoia,
+  batch 3-4) risolti a Centro dall'utente stesso.
+- **Batch 5 fatto**: Brindisi (2/4: 10/20, squadra nuova), Livorno (1/4:
+  00, squadra nuova — anni '90 scartata, solo 4 stagioni), Udine (1/4:
+  00, squadra nuova), Germani Brescia (1/4: 20), Juvecaserta (1/4: 10,
+  squadra nuova — anni '90 scartata, solo 4 stagioni). Tutti i
+  giocatori senza ruolo trovati in questo batch appartenevano a carte
+  poi scartate per sotto soglia (Livorno e Caserta anni '90) - zero
+  ricerca necessaria. Aggiunti i 4 colori mancanti in `TEAM_COLORS`.
+- **Prossimo batch, ordine deciso dall'utente**: Biella+Verona+Teramo+
+  Roseto+Tortona+Scafati (1/4 ciascuna) — 6 squadre rimanenti, ultimo
+  batch della lista
 
 Nota tecnica: `scrape_decade_sample.py` scarta automaticamente una
 decade con troppe poche stagioni disponibili invece di generare comunque

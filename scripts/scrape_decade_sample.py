@@ -254,10 +254,11 @@ TEAMS = {
             ("Furio", "De Monaco"): "Ala/Centro",        # 208cm, power forward/centro (Wikipedia/Lega Nazionale Pallacanestro)
             ("Matteo", "Lanza"): "Guardia",              # guardia (Wikipedia)
             ("Tod", "Murphy"): "Ala/Centro",             # gia' risolto per Virtus Roma, stesso giocatore
-            # Stefano Maguolo, Alessandro Piperno, Giuseppe Valerio, Clivo
-            # Massimo Righi, Leandro Gros: nessuna fonte trovata (tutti fra
-            # 4.6 e 10.4 min/partita, marginali) - restano eligible=False,
-            # non indovinati
+            ("Clivo Massimo", "Righi"): "Centro",        # trovato dall'utente
+            # Stefano Maguolo, Alessandro Piperno, Giuseppe Valerio,
+            # Leandro Gros: nessuna fonte trovata (tutti fra 4.6 e 10.4
+            # min/partita, marginali) - restano eligible=False, non
+            # indovinati
         },
     },
     "sassari": {
@@ -292,13 +293,40 @@ TEAMS = {
             ("Andrea", "Cattani"): "Playmaker",          # playmaker, esordio A1 a 16 anni (Wikipedia)
             ("Paolo", "Prato"): "Centro",                # 204cm, centro (Wikipedia)
             ("Rocco", "Famà"): "Playmaker",              # ex playmaker, 188cm (Eurobasket)
-            # Dirk Rassloff: nessuna fonte trovata (23 partite, 9.2 min/
-            # partita) - resta eligible=False, non indovinato
+            ("Clivo Massimo", "Righi"): "Centro",        # trovato dall'utente
+            ("Dirk", "Rassloff"): "Centro",              # trovato dall'utente
         },
     },
     "cremona": {
         "club_id": 100,
         "display_name": "Vanoli Cremona",
+        "role_overrides_by_name": {},
+    },
+    "brindisi": {
+        "club_id": 82,
+        "display_name": "Brindisi",
+        "role_overrides_by_name": {},
+    },
+    "livorno": {
+        # due club_id per la stessa citta': rifondazione dopo un buco
+        # lungo, stesso pattern gia' usato per Treviso/Trieste/Pistoia
+        "club_ids": [22, 23],
+        "display_name": "Livorno",
+        "role_overrides_by_name": {},
+    },
+    "udine": {
+        "club_ids": [58, 57],
+        "display_name": "Udine",
+        "role_overrides_by_name": {},
+    },
+    "brescia": {
+        "club_id": 8,
+        "display_name": "Germani Brescia",
+        "role_overrides_by_name": {},
+    },
+    "caserta": {
+        "club_id": 10,
+        "display_name": "Juvecaserta",
         "role_overrides_by_name": {},
     },
 }

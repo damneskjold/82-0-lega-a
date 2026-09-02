@@ -51,6 +51,10 @@ const TEAM_COLORS = {
   avellino: "#588157",
   reggio_calabria: "#6a4c93",
   cremona: "#264653",
+  brindisi: "#2d6a4f",
+  livorno: "#457b9d",
+  udine: "#1d3557",
+  caserta: "#14213d",
 };
 
 // Formula tarata a mano sugli esempi discussi con l'utente

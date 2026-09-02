@@ -542,8 +542,18 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
     desktop~~ (`@media (min-width: 861px)`, ~14 giocatori visibili
     invece di ~8, mobile invariato), ~~checkbox decadi -> tile che si
     illuminano~~ (stessa griglia 2x2 su mobile e desktop, più
-    consistente della vecchia flex-wrap). Restano: header più snello
-    durante il draft, via l'etichetta "Metti qui" sugli slot
-    (pleonastico: lo slot si illumina già da solo)
+    consistente della vecchia flex-wrap), ~~bottoni delle 3 mode-tile
+    disallineati~~ (colpa delle descrizioni a numero di righe diverso;
+    fix strutturale con `margin-top: auto` — il bottone si ancora in
+    fondo alla tile da solo, non serve più calcolare min-height a
+    mano), ~~punti finali nei testi brevi delle tile~~ (tolti, sono
+    istruzioni non frasi), ~~emoji per le 3 modalità~~ (💯/🕰️/🙈 — non
+    in conflitto con "niente foto/loghi": quella regola riguarda le
+    squadre reali, non le icone di modalità), ~~click sul logo per
+    tornare in home~~ (con conferma se una sfida è in corso, altrimenti
+    diretto — prima non c'era modo di cambiare modalità a metà partita
+    senza finire le 5 squadre). Resta: header più snello durante il
+    draft, via l'etichetta "Metti qui" sugli slot (pleonastico: lo slot
+    si illumina già da solo)
 11. Verifica/check di giocatori, ruoli e squadre nel dataset (audit dei
     dati, non ancora iniziato)

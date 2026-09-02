@@ -10,7 +10,7 @@
 <div id="app">
 
   <header class="topbar">
-    <div class="logo">LBA <span class="accent">30-0</span></div>
+    <div class="logo" id="logo-home-link" role="button" tabindex="0">LBA <span class="accent">30-0</span></div>
     <div class="subtitle">Costruisci il quintetto perfetto della storia della Serie A</div>
   </header>
 
@@ -20,19 +20,22 @@
       senza tornare indietro.</p>
       <div class="mode-tiles">
         <div class="mode-tile">
+          <div class="mode-tile-icon">💯</div>
           <div class="mode-tile-title">Classic</div>
-          <div class="mode-tile-desc">Tutte le decadi, statistiche in chiaro.</div>
-          <button id="btn-mode-classic" class="btn-primary">Gioca Classic</button>
+          <div class="mode-tile-desc">Tutte le decadi, statistiche in chiaro</div>
+          <button id="btn-mode-classic" class="btn-primary">Gioca</button>
         </div>
         <div class="mode-tile">
+          <div class="mode-tile-icon">🕰️</div>
           <div class="mode-tile-title">Scegli decade</div>
-          <div class="mode-tile-desc">Solo le decadi che vuoi tu.</div>
-          <button id="btn-mode-decade-open" class="btn-primary">Gioca Scegli decade</button>
+          <div class="mode-tile-desc">Solo le decadi che vuoi tu</div>
+          <button id="btn-mode-decade-open" class="btn-primary">Gioca</button>
         </div>
         <div class="mode-tile">
+          <div class="mode-tile-icon">🙈</div>
           <div class="mode-tile-title">Blind</div>
-          <div class="mode-tile-desc">Niente statistiche: solo nome e ruolo.</div>
-          <button id="btn-mode-blind" class="btn-primary">Gioca Blind</button>
+          <div class="mode-tile-desc">Niente statistiche: solo nome e ruolo</div>
+          <button id="btn-mode-blind" class="btn-primary">Gioca</button>
         </div>
       </div>
     </div>
@@ -40,7 +43,7 @@
 
   <section id="screen-decades" class="screen" hidden>
     <div class="home-box">
-      <p class="home-intro">Scegli almeno 2 decadi.</p>
+      <p class="home-intro">Scegli almeno 2 decadi</p>
       <div class="decade-tiles">
         <button type="button" class="decade-tile" data-decade="'90s">'90s</button>
         <button type="button" class="decade-tile" data-decade="'00s">'00s</button>

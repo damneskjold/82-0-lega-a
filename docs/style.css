@@ -40,7 +40,9 @@ body {
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  cursor: pointer;
 }
+.logo:hover { filter: brightness(1.15); }
 
 .logo .accent { color: var(--accent); }
 
@@ -86,6 +88,11 @@ body {
   gap: 6px;
 }
 
+.mode-tile-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
 .mode-tile-title {
   font-weight: 700;
   font-size: 1.05rem;
@@ -96,13 +103,17 @@ body {
   font-size: 0.82rem;
   line-height: 1.4;
   margin-bottom: 10px;
-  min-height: 2.8em;
 }
 
+/* bottone ancorato in fondo alla tile: le 3 tile sono gia' alte uguali
+   (stretch di default in un grid item), ma le descrizioni vanno a capo
+   in modo diverso (2 righe vs 3) - senza questo i bottoni finiscono a
+   altezze diverse invece di allinearsi */
 .mode-tile .btn-primary {
   width: 100%;
   padding: 10px 8px;
   font-size: 0.88rem;
+  margin-top: auto;
 }
 
 .decade-tiles {

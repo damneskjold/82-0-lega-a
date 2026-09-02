@@ -623,6 +623,17 @@ function resetToHome() {
   $("#screen-home").hidden = false;
 }
 
+// click sul logo: torna alla home. Se una sfida e' in corso (schermata
+// draft visibile) chiede conferma prima, perche' altrimenti si perde -
+// senza questo, cambiare modalita' a meta' partita era impossibile senza
+// finire prima le 5 squadre.
+function goHomeWithConfirm() {
+  const draftInProgress = !$("#screen-draft").hidden;
+  if (draftInProgress && !confirm("Tornare alla home? La sfida in corso andrà persa.")) return;
+  $("#screen-decades").hidden = true;
+  resetToHome();
+}
+
 function roundRectPath(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -898,4 +909,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   $("#btn-replay").addEventListener("click", () => startDraft(lastMode, lastDecades));
   $("#btn-change-mode").addEventListener("click", resetToHome);
   $("#btn-share").addEventListener("click", shareResult);
+  $("#logo-home-link").addEventListener("click", goHomeWithConfirm);
+  $("#logo-home-link").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goHomeWithConfirm(); }
+  });
 });

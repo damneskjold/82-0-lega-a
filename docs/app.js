@@ -65,14 +65,14 @@ const TEAM_COLORS = {
 
 // sigle a 3 lettere stile 82-0 (no sponsor), definite insieme all'utente.
 // Bologna (VBO/FBO) e Reggio (REG/RCA) le due coppie a rischio collisione
-// per due club nella stessa citta'; Treviso/Trieste/Trento (TRV/TRI/TRE)
+// per due club nella stessa citta'; Treviso/Trieste/Trento (TVS/TRI/TNT)
 // il gruppo con le iniziali piu' simili.
 const TEAM_ABBR = {
   virtus_bologna: "VBO",
   olimpia_milano: "MIL",
   fortitudo_bologna: "FBO",
   canturina: "CAN",
-  treviso: "TRV",
+  treviso: "TVS",
   varese: "VAR",
   siena: "SIE",
   venezia: "VEN",
@@ -84,7 +84,7 @@ const TEAM_ABBR = {
   napoli: "NAP",
   pistoia: "PIS",
   sassari: "SAS",
-  trento: "TRE",
+  trento: "TNT",
   avellino: "AVE",
   reggio_calabria: "RCA",
   cremona: "CRE",

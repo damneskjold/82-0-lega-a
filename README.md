@@ -159,7 +159,7 @@ insieme all'utente) e la decade in formato compatto (`DECADE_LABELS`:
 `anni '90`→`'90s`, `anni 2000`→`'00s`, `anni 2010`→`'10s`, `anni
 2020`→`'20s`). Le sigle a rischio collisione, risolte esplicitamente:
 Bologna (VBO Virtus / FBO Fortitudo), Reggio (REG Emilia / RCA
-Calabria), il gruppo Treviso/Trieste/Trento (TRV/TRI/TRE).
+Calabria), il gruppo Treviso/Trieste/Trento (TVS/TRI/TNT).
 
 ## Ruoli
 

@@ -267,6 +267,7 @@ function computeK(threshold, mid, targetWins) {
 
 async function loadData() {
   const res = await fetch("data/dataset.json");
+  if (!res.ok) throw new Error(`HTTP ${res.status} nel caricare data/dataset.json`);
   const data = await res.json();
   const flat = [];
   for (const team of data.teams) {
@@ -910,7 +911,18 @@ function updateDecadeStartButton() {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
-  await loadData();
+  try {
+    await loadData();
+  } catch (e) {
+    // dataset.json non raggiungibile (rete, 404, hosting momentaneamente
+    // giu') - senza questo la pagina restava bianca e rotta in silenzio,
+    // senza dire perche'. "Riprova" ricarica la pagina da zero.
+    console.error("Caricamento dati fallito:", e);
+    $("#screen-home").hidden = true;
+    $("#screen-error").hidden = false;
+    $("#btn-retry-load").addEventListener("click", () => location.reload());
+    return;
+  }
   $("#btn-mode-classic").addEventListener("click", () => startDraft("classic"));
   $("#btn-mode-blind").addEventListener("click", () => startDraft("blind"));
   $("#btn-mode-decade-open").addEventListener("click", openDecadePicker);

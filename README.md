@@ -42,6 +42,12 @@ serve). **Layout a due colonne su desktop** — fatto: `.result-layout`
 grid a 1 colonna sotto 860px come sul draft, mobile resta impilato
 in verticale.
 
+**Se `data/dataset.json` non si carica** (rete assente, 404, hosting
+momentaneamente giù) l'app non resta più bianca in silenzio: mostra
+`#screen-error` con un messaggio e un bottone "Riprova" che ricarica la
+pagina (`loadData()` controlla `res.ok` e lancia, il chiamante in
+`DOMContentLoaded` la cattura).
+
 ### Legalità dei ruoli (sistema a rank)
 
 Ogni slot ha un rank fisso 1-5; ogni ruolo copre **uno o due rank adiacenti**
@@ -542,10 +548,21 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
    facendo uno screenshot ad ogni schermata chiave (draft, risultato,
    mobile/desktop), per scansione rapida di glitch grafici - oggi le
    verifiche visive restano manuali/ad-hoc. Glitch già segnalati
-   dall'utente su mobile stretto, da includere nel check quando parte:
-   - colonna "B" (stoppate) tagliata a destra, esce dal viewport
-   - l'ultima riga della lista giocatori finisce dietro il pannello
-     slot fisso in fondo allo schermo, invece di lasciarle spazio
+   dall'utente su mobile stretto:
+   - ~~colonna "B" (stoppate) tagliata a destra, esce dal viewport~~ —
+     fatto: causa reale era `grid-template-columns: 1fr` su
+     `.draft-layout`/`.result-layout`/`.mode-tiles` in mobile, senza il
+     `minmax(0, ...)` esplicito una colonna grid non si restringe mai
+     sotto la larghezza "naturale" del contenuto, quindi il
+     troncamento con ellissi già pronto su `.player-info` non scattava
+     mai. Verificato: 0 overflow orizzontale a 320px (iPhone SE, il
+     caso più stretto), stessa squadra (PES) dello screenshot originale
+   - ~~l'ultima riga della lista giocatori finisce dietro il pannello
+     slot fisso in fondo allo schermo~~ — verificato che era già
+     risolto, effetto collaterale dell'header più snello durante il
+     draft (fatto in un giro precedente): liberando spazio verticale
+     lì, la lista interna (`.player-list`, max-height fissa) non arriva
+     più a toccare il pannello nemmeno sui viewport più bassi testati
    - ~~proposta dell'utente: nome abbreviato a iniziale + cognome~~ —
      fatto (`shortName()`), ma **solo nel recap finale** (schermata
      risultato + condivisione PNG/testo): "R. Theus" invece di "Reggie

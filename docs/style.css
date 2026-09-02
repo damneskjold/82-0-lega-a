@@ -190,7 +190,13 @@ body {
 .slots-panel { order: 1; }
 
 @media (max-width: 860px) {
-  .draft-layout { grid-template-columns: 1fr; padding-bottom: 88px; }
+  /* minmax(0, 1fr), non 1fr da solo: senza il minimo esplicito a 0 la
+     colonna non si restringe mai sotto la larghezza "naturale" del suo
+     contenuto (nome + 5 colonne di statistiche), causando overflow
+     orizzontale sui telefoni piu' stretti (es. 320px, iPhone SE) anche
+     se .player-info avrebbe gia' il suo troncamento pronto - non
+     scattava mai perche' il contenitore non si restringeva */
+  .draft-layout { grid-template-columns: minmax(0, 1fr); padding-bottom: 88px; }
 }
 
 /* pannello quintetto: 5 slot, ognuno vuoto/selezionabile/occupato */
@@ -461,7 +467,8 @@ body {
 
 @media (max-width: 860px) {
   .result-layout {
-    grid-template-columns: 1fr;
+    /* minmax(0, 1fr), stesso motivo del draft: vedi .draft-layout */
+    grid-template-columns: minmax(0, 1fr);
     max-width: 520px;
   }
 }
@@ -682,7 +689,8 @@ body {
 
 @media (max-width: 540px) {
   .mode-tiles {
-    grid-template-columns: 1fr;
+    /* minmax(0, 1fr), stesso motivo del draft: vedi .draft-layout */
+    grid-template-columns: minmax(0, 1fr);
   }
   .mode-tile-desc {
     min-height: 0;

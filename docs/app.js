@@ -203,11 +203,13 @@ const PEN_SCALE = 15;
 // sbilanciati. Pesate al 25%, le altre 4 categorie al 100%.
 const PEN_WEIGHTS = { points: 1, rebounds: 1, assists: 1, steals: 1, blocks: 0.25 };
 
-let ALL_TEAM_SEASONS = [];
+let ALL_TEAM_SEASONS = []; // tutte le carte-decade, sempre intero
+let currentPool = []; // pool da cui pesca la partita in corso (= ALL_TEAM_SEASONS, o un sottoinsieme di decadi)
 let currentDraw = []; // 5 team-season objects, in ordine di rivelazione
 let roundIndex = 0;
 let slots = []; // 5 slot: { id, type, rank, pick: null | {player, teamSeason} }
 let selected = null; // giocatore selezionato in attesa di uno slot: { player, teamSeason, legalIds }
+let blindMode = false; // modalita' "Blind": statistiche nascoste, giocatori in ordine alfabetico
 // SEMPRE true nel gioco spedito: le regole "as is" (false) restano
 // raggiungibili in codice (computeCeiling/recomputeCurve/ranksFor
 // accettano tutte il parametro), ma non sono un'opzione per chi gioca -
@@ -218,14 +220,15 @@ let heightRulesEnabled = true;
 const $ = (sel) => document.querySelector(sel);
 
 // tetto teorico: il miglior rating_lega disponibile per ciascuno dei 5
-// rank, sommato. Va chiamata dopo aver popolato ALL_TEAM_SEASONS. Dipende
-// da extendByHeight perche' con i ruoli estesi un rank puo' avere un
-// candidato migliore (es. un'ala molto alta col rating piu' alto di ogni
-// centro puro) - il tetto va ricalcolato per lo stesso motivo per cui e'
-// dinamico sul roster: non deve sfasarsi rispetto alle regole attive.
-function computeCeiling(extendByHeight) {
+// rank, sommato, SUL POOL DATO (non sempre tutto ALL_TEAM_SEASONS - la
+// modalita' "Scegli decade" gioca su un sottoinsieme, e il tetto deve
+// riflettere solo cio' che e' davvero pescabile in quella partita).
+// Dipende da extendByHeight perche' con i ruoli estesi un rank puo'
+// avere un candidato migliore (es. un'ala molto alta col rating piu'
+// alto di ogni centro puro).
+function computeCeiling(pool, extendByHeight) {
   const bestByRank = {};
-  for (const ts of ALL_TEAM_SEASONS) {
+  for (const ts of pool) {
     for (const p of ts.players) {
       const ranks = ranksFor(p, extendByHeight);
       const rl = Number(p.rating_lega || 0);
@@ -237,11 +240,15 @@ function computeCeiling(extendByHeight) {
   return Object.values(bestByRank).reduce((a, b) => a + b, 0);
 }
 
-// ricalcola CEILING/PERFECTION_THRESHOLD/MID/K per le regole attive in
-// questo momento (chiamata dopo il caricamento dati con le regole di
-// default, e di nuovo ad ogni "Genera sfida" con lo stato scelto in home).
-function recomputeCurve(extendByHeight) {
-  CEILING = computeCeiling(extendByHeight);
+// ricalcola CEILING/PERFECTION_THRESHOLD/MID/K sul pool dato - chiamata
+// dopo il caricamento dati (pool = tutte le squadre) e di nuovo ad ogni
+// "Genera sfida" (pool = tutte le squadre, o solo le decadi scelte in
+// modalita' "Scegli decade"): MID_FRACTION/PERFECTION_BAND sono frazioni
+// del tetto, quindi la curva resta proporzionalmente la stessa qualunque
+// sia la dimensione del pool - verificato che non degenera su sottoinsiemi
+// piccoli (una singola decade, 14-17 squadre, da' comunque una K sensata).
+function recomputeCurve(pool, extendByHeight) {
+  CEILING = computeCeiling(pool, extendByHeight);
   PERFECTION_THRESHOLD = CEILING * PERFECTION_BAND;
   MID = CEILING * MID_FRACTION;
   K = computeK(PERFECTION_THRESHOLD, MID, 29.5);
@@ -271,12 +278,15 @@ async function loadData() {
     }
   }
   ALL_TEAM_SEASONS = flat;
-  recomputeCurve(heightRulesEnabled);
+  currentPool = flat;
+  recomputeCurve(currentPool, heightRulesEnabled);
 }
 
 function drawFive() {
-  // pesca 5 squadre-stagione distinte, evitando (quando possibile) di ripetere la stessa squadra due volte
-  const shuffled = [...ALL_TEAM_SEASONS].sort(() => Math.random() - 0.5);
+  // pesca 5 squadre-stagione distinte dal pool della partita in corso
+  // (tutte le squadre, o solo le decadi scelte in "Scegli decade"),
+  // evitando (quando possibile) di ripetere la stessa squadra due volte
+  const shuffled = [...currentPool].sort(() => Math.random() - 0.5);
   const five = [];
   const usedKeys = new Set();
 
@@ -296,12 +306,18 @@ function drawFive() {
   return five;
 }
 
-function startDraft() {
+// mode: "classic" | "decade" | "blind". decades: Set di decadeLabel
+// ("'90s" ecc.), richiesto solo per "decade".
+function startDraft(mode, decades) {
+  blindMode = mode === "blind";
+  currentPool = mode === "decade" ? ALL_TEAM_SEASONS.filter((ts) => decades.has(ts.decadeLabel)) : ALL_TEAM_SEASONS;
+  recomputeCurve(currentPool, heightRulesEnabled);
   currentDraw = drawFive();
   roundIndex = 0;
   slots = SLOT_DEFS.map((d) => ({ ...d, pick: null }));
   selected = null;
   $("#screen-home").hidden = true;
+  $("#screen-decades").hidden = true;
   $("#screen-result").hidden = true;
   $("#screen-draft").hidden = false;
   renderRound();
@@ -377,7 +393,11 @@ function renderRound() {
   const card = $("#round-card");
   card.style.setProperty("--team-color", ts.color);
 
-  const sortedPlayers = [...ts.players].sort((a, b) => b.points_avg - a.points_avg);
+  // Blind: niente indizi sulla qualita' del giocatore, ne' dall'ordine
+  // (alfabetico per cognome, non per PPG) ne' dalle statistiche (nascoste)
+  const sortedPlayers = blindMode
+    ? [...ts.players].sort((a, b) => a.surname.localeCompare(b.surname))
+    : [...ts.players].sort((a, b) => b.points_avg - a.points_avg);
 
   card.innerHTML = `
     <div class="team-card-head">
@@ -387,7 +407,10 @@ function renderRound() {
         <div class="team-card-year">${ts.decadeLabel}</div>
       </div>
     </div>
-    <div class="player-list-header">
+    ${
+      blindMode
+        ? ""
+        : `<div class="player-list-header">
       <div></div>
       <div class="player-stats-header">
         <div class="stat-col">P</div>
@@ -396,7 +419,8 @@ function renderRound() {
         <div class="stat-col">S</div>
         <div class="stat-col">B</div>
       </div>
-    </div>
+    </div>`
+    }
     <div class="player-list" id="round-player-list"></div>
   `;
 
@@ -417,13 +441,17 @@ function renderRound() {
         <div class="player-name">${p.name} ${p.surname}</div>
         <div class="player-role">${alreadyPicked ? "Già nel tuo quintetto" : roleSiglaFor(p)}</div>
       </div>
-      <div class="player-stats">
+      ${
+        blindMode
+          ? ""
+          : `<div class="player-stats">
         <div class="stat-col">${p.points_avg.toFixed(1)}</div>
         <div class="stat-col">${reb.toFixed(1)}</div>
         <div class="stat-col">${p.assists_avg.toFixed(1)}</div>
         <div class="stat-col">${Number(p.steals_avg || 0).toFixed(1)}</div>
         <div class="stat-col">${Number(p.blocks_avg || 0).toFixed(1)}</div>
-      </div>
+      </div>`
+      }
     `;
     if (legalIds.length > 0) {
       row.addEventListener("click", () => {
@@ -822,9 +850,35 @@ async function shareResult() {
   }
 }
 
+function openDecadePicker() {
+  $("#screen-home").hidden = true;
+  $("#screen-decades").hidden = false;
+}
+
+function closeDecadePicker() {
+  $("#screen-decades").hidden = true;
+  $("#screen-home").hidden = false;
+}
+
+// il bottone "Inizia" della modalita' "Scegli decade" resta disabilitato
+// finche' non sono selezionate almeno 2 decadi (vincolo esplicito: sotto
+// 2 non avrebbe senso rispetto a giocare Classic)
+function updateDecadeStartButton() {
+  const checked = document.querySelectorAll(".decade-check:checked").length;
+  $("#btn-decades-start").disabled = checked < 2;
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
   await loadData();
-  $("#btn-start").addEventListener("click", startDraft);
+  $("#btn-mode-classic").addEventListener("click", () => startDraft("classic"));
+  $("#btn-mode-blind").addEventListener("click", () => startDraft("blind"));
+  $("#btn-mode-decade-open").addEventListener("click", openDecadePicker);
+  $("#btn-decades-back").addEventListener("click", closeDecadePicker);
+  document.querySelectorAll(".decade-check").forEach((el) => el.addEventListener("change", updateDecadeStartButton));
+  $("#btn-decades-start").addEventListener("click", () => {
+    const decades = new Set([...document.querySelectorAll(".decade-check:checked")].map((el) => el.value));
+    startDraft("decade", decades);
+  });
   $("#btn-again").addEventListener("click", resetToHome);
   $("#btn-share").addEventListener("click", shareResult);
 });

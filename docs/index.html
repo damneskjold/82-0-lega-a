@@ -16,13 +16,39 @@
 
   <section id="screen-home" class="screen">
     <div class="home-box">
-      <p>Ti verranno proposte <strong>5 squadre, una alla volta</strong>, ciascuna in un'annata diversa
-      della sua storia. Per ognuna scegli un giocatore <strong>e</strong> lo slot in cui giocherà nel
-      tuo quintetto: una volta deciso, non si torna indietro. Il quintetto finale ha 5 posizioni
-      (Playmaker, Guardia, Ala Piccola, Ala Grande, Centro) — un giocatore può coprire solo la sua
-      posizione naturale o una adiacente, non tutte — decidilo bene, non sai quali squadre
-      arriveranno dopo.</p>
-      <button id="btn-start" class="btn-primary">Genera sfida</button>
+      <p class="home-intro">5 squadre, una alla volta: scegli un giocatore e lo slot in cui gioca,
+      senza tornare indietro.</p>
+      <div class="mode-tiles">
+        <div class="mode-tile">
+          <div class="mode-tile-title">Classic</div>
+          <div class="mode-tile-desc">Tutte le decadi, statistiche in chiaro.</div>
+          <button id="btn-mode-classic" class="btn-primary">Gioca Classic</button>
+        </div>
+        <div class="mode-tile">
+          <div class="mode-tile-title">Scegli decade</div>
+          <div class="mode-tile-desc">Solo le decadi che vuoi tu.</div>
+          <button id="btn-mode-decade-open" class="btn-primary">Gioca Scegli decade</button>
+        </div>
+        <div class="mode-tile">
+          <div class="mode-tile-title">Blind</div>
+          <div class="mode-tile-desc">Niente statistiche: solo nome e ruolo.</div>
+          <button id="btn-mode-blind" class="btn-primary">Gioca Blind</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-decades" class="screen" hidden>
+    <div class="home-box">
+      <p class="home-intro">Scegli almeno 2 decadi.</p>
+      <div class="decade-options">
+        <label><input type="checkbox" class="decade-check" value="'90s">'90s</label>
+        <label><input type="checkbox" class="decade-check" value="'00s">'00s</label>
+        <label><input type="checkbox" class="decade-check" value="'10s">'10s</label>
+        <label><input type="checkbox" class="decade-check" value="'20s">'20s</label>
+      </div>
+      <button id="btn-decades-start" class="btn-primary" disabled>Inizia</button>
+      <button id="btn-decades-back" class="btn-ghost">Indietro</button>
     </div>
   </section>
 

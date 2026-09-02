@@ -55,6 +55,29 @@ volta schierato, la sua riga diventa non selezionabile nelle carte
 successive, con l'etichetta "Già nel tuo quintetto" al posto del ruolo
 (controllo per `player_id`, in `renderRound()`).
 
+## Modalità di gioco
+
+Scelte in home con 3 tile (stile 82-0, che ha Classic/Hoop IQ/1v1 —
+qui non c'è multiplayer, quindi solo le prime due idee più una terza
+nostra), tutte sullo stesso motore (`startDraft(mode, decades)` in
+`app.js`):
+
+- **Classic**: tutte le decadi, statistiche in chiaro nel draft — il
+  gioco di sempre.
+- **Scegli decade**: come Classic ma solo sulle decadi selezionate
+  (minimo 2, schermata `#screen-decades` prima del draft). `CEILING`/
+  `MID`/`K` si ricalcolano sul sottoinsieme (`recomputeCurve(pool, ...)`,
+  `pool` non è più sempre `ALL_TEAM_SEASONS`) — verificato che restano
+  sensati anche su una singola decade (14-17 squadre disponibili in
+  ognuna, mai sotto le 5 minime per un draft): essendo `MID_FRACTION`/
+  `PERFECTION_BAND` frazioni del tetto, la curva è proporzionalmente la
+  stessa qualunque sia la dimensione del pool, non "si sballa" restringendo
+  le decadi.
+- **Blind**: come Classic ma senza statistiche nel draft (`blindMode`) e
+  giocatori ordinati per cognome invece che per PPG — l'unico indizio è
+  nome e ruolo, la valutazione del quintetto a fine partita resta
+  invariata (mostra tutto, solo la fase di scelta è "alla cieca").
+
 ## Fonte dati e vincoli
 
 - Fonte: API JSON pubbliche di legabasket.it (non documentate, scoperte
@@ -469,9 +492,12 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
    ricerca sono nel dataset (`data/decade_coverage_research.md`).
    ~~Mergiare su `main`~~ — fatto, il sito pubblico
    (https://damneskjold.github.io/82-0-lega-a/) è allineato
-2. Pesca a due passaggi in `drawFive()` (prima la squadra, poi la carta
-   al suo interno) invece della pesca piatta attuale che favorisce le
-   squadre con più carte — vedi sopra
+2. Pesca a due passaggi in `drawFive()` — **in standby**: verificato che
+   il problema è reale (simulato 200.000 draw, Virtus Bologna/4 carte
+   compare nel 47.5% delle partite contro il 16.67% atteso se equo,
+   Udine/1 carta solo nel 7.3%), ma l'utente preferisce così com'è per
+   ora — potrebbe diventare una personalizzazione facoltativa in futuro,
+   non un fix da fare comunque
 3. ~~Ritarare insieme penalità, `MID` e `K`~~ — fatto: curva a due
    tratti con `CEILING`/`MID` calcolati a runtime, penalità pesata
    multi-categoria, poi un secondo giro (`MID_FRACTION`) dopo il
@@ -485,16 +511,19 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
    altezza" sopra)
 6. Verifica/correzione manuale dei colori squadra (30 colori scelti
    senza ricerca storica accurata, solo per distinguibilità visiva)
-7. Scelta delle decadi giocabili a inizio partita (almeno 2, per chi
-   vuole escludere es. gli anni '90 che non conosce): quasi "gratis"
-   architetturalmente, basta filtrare `ALL_TEAM_SEASONS` alle decadi
-   scelte prima di chiamare `computeCeiling()` - curva e tetto si
-   riadattano da soli sul sottoinsieme, e' l'intero motivo per cui sono
-   calcolati a runtime. Da validare solo che pool piccoli (es. sole
-   anni 2020) diano numeri ancora sensati
-8. Modalità "hard": statistiche nascoste nel draft, giocatori ordinati
-   per cognome invece che per PPG - tocca solo la UI, non il motore
+7. ~~Scelta delle decadi giocabili a inizio partita~~ — fatto, modalità
+   "Scegli decade" (vedi sopra)
+8. ~~Modalità "hard"~~ — fatto, modalità "Blind" (vedi sopra). Ha preso
+   la forma di una vera e propria selezione modalità in home (3 tile
+   Classic/Scegli decade/Blind, stile 82-0), non solo un toggle isolato
 9. Check visivo sistematico: uno script Playwright che gioca N partite
    facendo uno screenshot ad ogni schermata chiave (draft, risultato,
    mobile/desktop), per scansione rapida di glitch grafici - oggi le
    verifiche visive restano manuali/ad-hoc
+10. Rifinitura UI (home già più essenziale col redesign a tile, resta):
+    "Nuova sfida" che salta la home e riparte diretto in una nuova
+    partita nella stessa modalità, header più snello durante il draft
+    (si vuole vedere principalmente la squadra), via l'etichetta "Metti
+    qui" sugli slot (pleonastico: lo slot si illumina già da solo)
+11. Verifica/check di giocatori, ruoli e squadre nel dataset (audit dei
+    dati, non ancora iniziato)

@@ -30,36 +30,56 @@ const GAMES = parseInt(process.argv[2] || "20", 10);
 const URL = process.argv[3] || "http://localhost:8899";
 
 const SLOT_RANK_BY_SHORT = { PM: 1, G: 2, AP: 3, AG: 4, C: 5 };
+// alterna le 3 modalita' fra le partite, cosi' lo smoke test copre tutte e
+// tre senza dover triplicare il numero di partite giocate
+const MODES = ["classic", "decade", "blind"];
 
-async function playOneGame(page, gameIndex, errors) {
-  await page.click("#btn-start");
+async function startMode(page, mode) {
+  if (mode === "classic") {
+    await page.click("#btn-mode-classic");
+  } else if (mode === "blind") {
+    await page.click("#btn-mode-blind");
+  } else {
+    await page.click("#btn-mode-decade-open");
+    await page.waitForSelector("#screen-decades:not([hidden])");
+    // 2 decadi a caso fra quelle disponibili, come richiesto dal minimo di gioco
+    await page.check("input.decade-check[value=\"'90s\"]");
+    await page.check("input.decade-check[value=\"'10s\"]");
+    await page.click("#btn-decades-start");
+  }
   await page.waitForSelector("#screen-draft:not([hidden])");
+}
+
+async function playOneGame(page, gameIndex, errors, mode) {
+  await startMode(page, mode);
 
   for (let round = 1; round <= 5; round++) {
     await page.waitForSelector(".player-row", { timeout: 5000 });
 
     // riga -> vero oggetto giocatore, nello stesso ordine con cui il gioco li
-    // renderizza (per points_avg desc, vedi renderRound in app.js), cosi' la
-    // legalita' si verifica con la stessa fonte di verita' del gioco
-    // (ranksFor, esposta su window essendo una function declaration) invece
-    // di re-implementare qui la logica dei ruoli/soglie altezza - altrimenti
-    // il test si disallinea ogni volta che quella logica cambia
-    const rowData = await page.evaluate(() => {
+    // renderizza (per points_avg desc, o alfabetico per cognome in Blind -
+    // vedi renderRound in app.js), cosi' la legalita' si verifica con la
+    // stessa fonte di verita' del gioco (ranksFor, esposta su window
+    // essendo una function declaration) invece di re-implementare qui la
+    // logica dei ruoli/soglie altezza - altrimenti il test si disallinea
+    // ogni volta che quella logica cambia
+    const rowData = await page.evaluate((isBlind) => {
       const ts = currentDraw[roundIndex];
       const pickedIds = new Set(slots.filter((s) => s.pick).map((s) => s.pick.player.player_id));
       const openRanks = new Set(slots.filter((s) => !s.pick).map((s) => s.rank));
-      return [...ts.players]
-        .sort((a, b) => b.points_avg - a.points_avg)
-        .map((p) => {
-          const ranks = pickedIds.has(p.player_id) ? [] : ranksFor(p, heightRulesEnabled);
-          const hasOpenSlot = ranks.some((r) => openRanks.has(r));
-          return { name: `${p.name} ${p.surname}`, disabled: !hasOpenSlot, ranks };
-        });
-    });
+      const sorted = isBlind
+        ? [...ts.players].sort((a, b) => a.surname.localeCompare(b.surname))
+        : [...ts.players].sort((a, b) => b.points_avg - a.points_avg);
+      return sorted.map((p) => {
+        const ranks = pickedIds.has(p.player_id) ? [] : ranksFor(p, heightRulesEnabled);
+        const hasOpenSlot = ranks.some((r) => openRanks.has(r));
+        return { name: `${p.name} ${p.surname}`, disabled: !hasOpenSlot, ranks };
+      });
+    }, mode === "blind");
 
     const target = rowData.find((r) => !r.disabled);
     if (!target) {
-      errors.push(`game ${gameIndex} round ${round}: nessuna riga selezionabile (soft lock)`);
+      errors.push(`game ${gameIndex} [${mode}] round ${round}: nessuna riga selezionabile (soft lock)`);
       return;
     }
 
@@ -74,7 +94,7 @@ async function playOneGame(page, gameIndex, errors) {
     const overlap = legalRanks.length > 0 && legalRanks.every((r) => target.ranks.includes(r));
     if (!overlap) {
       errors.push(
-        `game ${gameIndex} round ${round}: ${target.name} (rank ${JSON.stringify(target.ranks)}) mostrato legale per slot ${legalShorts.join(",")} (rank ${JSON.stringify(legalRanks)}) - non combaciano`
+        `game ${gameIndex} [${mode}] round ${round}: ${target.name} (rank ${JSON.stringify(target.ranks)}) mostrato legale per slot ${legalShorts.join(",")} (rank ${JSON.stringify(legalRanks)}) - non combaciano`
       );
     }
 
@@ -92,9 +112,9 @@ async function playOneGame(page, gameIndex, errors) {
 
   const finalNames = await page.$$eval(".lineup-row .who-name", (els) => els.map((e) => e.textContent.trim()));
   if (finalNames.length !== 5) {
-    errors.push(`game ${gameIndex}: quintetto finale con ${finalNames.length} giocatori invece di 5`);
+    errors.push(`game ${gameIndex} [${mode}]: quintetto finale con ${finalNames.length} giocatori invece di 5`);
   } else if (new Set(finalNames).size !== 5) {
-    errors.push(`game ${gameIndex}: doppione nel quintetto finale - ${JSON.stringify(finalNames)}`);
+    errors.push(`game ${gameIndex} [${mode}]: doppione nel quintetto finale - ${JSON.stringify(finalNames)}`);
   }
 
   await page.click("#btn-again");
@@ -115,7 +135,7 @@ async function playOneGame(page, gameIndex, errors) {
 
   const gameErrors = [];
   for (let g = 1; g <= GAMES; g++) {
-    await playOneGame(page, g, gameErrors);
+    await playOneGame(page, g, gameErrors, MODES[(g - 1) % MODES.length]);
   }
 
   await browser.close();

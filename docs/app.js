@@ -372,21 +372,23 @@ function renderSlotsPanel() {
       .map((s) => {
         const labelHtml = `<span class="lbl-full">${s.label}</span><span class="lbl-short">${s.short}</span>`;
         if (s.pick) {
+          // solo iniziali qui dentro (come gli avatar, stile 82-0): il
+          // pannello e' stretto (barra fissa in fondo su mobile, 5 slot
+          // su una riga) - nome e cognome interi non ci stanno leggibili
           return `<div class="slot-box filled" style="--team-color:${s.pick.teamSeason.color}">
             <div class="slot-label">${labelHtml}</div>
-            <div class="slot-player">${s.pick.player.name} ${s.pick.player.surname}</div>
+            <div class="slot-player">${initialsFor(s.pick.player)}</div>
           </div>`;
         }
         let cls = "slot-box empty";
         if (selected) {
           cls += selected.legalIds.includes(s.id) ? " legal" : " illegal";
         }
-        // niente "Metti qui": lo slot legale si illumina gia' da solo
-        // (bordo/sfondo accent, vedi .slot-box.legal in CSS) - il testo
-        // era ridondante
+        // niente testo di stato: uno slot vuoto e' libero per
+        // definizione, e quello legale si illumina gia' da solo
+        // (bordo/sfondo accent, vedi .slot-box.legal in CSS)
         return `<div class="${cls}" data-slot-id="${s.id}">
           <div class="slot-label">${labelHtml}</div>
-          <div class="slot-status">Libero</div>
         </div>`;
       })
       .join("");

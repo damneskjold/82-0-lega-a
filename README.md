@@ -577,6 +577,10 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
     logo più piccolo, sottotitolo nascosto, solo su schermata draft),
     ~~via l'etichetta "Metti qui" sugli slot~~ (restava solo "Libero",
     lo slot legale si illumina già da solo col bordo/sfondo accent —
-    pleonastico avere anche il testo)
+    pleonastico avere anche il testo), ~~via anche "Libero"~~ (uno slot
+    vuoto è libero per definizione, niente testo di stato quando non
+    c'è nulla dentro), ~~nome intero negli slot riempiti~~ (solo
+    iniziali, `initialsFor()` — il pannello è stretto, specialmente la
+    barra fissa in fondo su mobile con 5 slot su una riga sola)
 11. Verifica/check di giocatori, ruoli e squadre nel dataset (audit dei
     dati, non ancora iniziato)

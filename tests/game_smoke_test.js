@@ -43,8 +43,8 @@ async function startMode(page, mode) {
     await page.click("#btn-mode-decade-open");
     await page.waitForSelector("#screen-decades:not([hidden])");
     // 2 decadi a caso fra quelle disponibili, come richiesto dal minimo di gioco
-    await page.check("input.decade-check[value=\"'90s\"]");
-    await page.check("input.decade-check[value=\"'10s\"]");
+    await page.click(".decade-tile[data-decade=\"'90s\"]");
+    await page.click(".decade-tile[data-decade=\"'10s\"]");
     await page.click("#btn-decades-start");
   }
   await page.waitForSelector("#screen-draft:not([hidden])");

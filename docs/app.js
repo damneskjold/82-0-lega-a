@@ -859,8 +859,8 @@ async function shareResult() {
 
 function openDecadePicker() {
   // sempre pulita all'apertura: altrimenti una scelta precedente resta
-  // spuntata e si accumula silenziosamente con quella nuova
-  document.querySelectorAll(".decade-check").forEach((el) => { el.checked = false; });
+  // selezionata e si accumula silenziosamente con quella nuova
+  document.querySelectorAll(".decade-tile").forEach((el) => el.classList.remove("selected"));
   updateDecadeStartButton();
   $("#screen-home").hidden = true;
   $("#screen-decades").hidden = false;
@@ -875,8 +875,8 @@ function closeDecadePicker() {
 // finche' non sono selezionate almeno 2 decadi (vincolo esplicito: sotto
 // 2 non avrebbe senso rispetto a giocare Classic)
 function updateDecadeStartButton() {
-  const checked = document.querySelectorAll(".decade-check:checked").length;
-  $("#btn-decades-start").disabled = checked < 2;
+  const selected = document.querySelectorAll(".decade-tile.selected").length;
+  $("#btn-decades-start").disabled = selected < 2;
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
@@ -885,9 +885,14 @@ window.addEventListener("DOMContentLoaded", async () => {
   $("#btn-mode-blind").addEventListener("click", () => startDraft("blind"));
   $("#btn-mode-decade-open").addEventListener("click", openDecadePicker);
   $("#btn-decades-back").addEventListener("click", closeDecadePicker);
-  document.querySelectorAll(".decade-check").forEach((el) => el.addEventListener("change", updateDecadeStartButton));
+  document.querySelectorAll(".decade-tile").forEach((el) => {
+    el.addEventListener("click", () => {
+      el.classList.toggle("selected");
+      updateDecadeStartButton();
+    });
+  });
   $("#btn-decades-start").addEventListener("click", () => {
-    const decades = new Set([...document.querySelectorAll(".decade-check:checked")].map((el) => el.value));
+    const decades = new Set([...document.querySelectorAll(".decade-tile.selected")].map((el) => el.dataset.decade));
     startDraft("decade", decades);
   });
   $("#btn-replay").addEventListener("click", () => startDraft(lastMode, lastDecades));

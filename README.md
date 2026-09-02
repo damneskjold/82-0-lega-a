@@ -535,10 +535,15 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
    - proposta dell'utente per attenuare (non risolve da sola l'overflow,
      va comunque abbinata a un fix di layout): nome abbreviato a
      iniziale + cognome ("A. Gentile") invece di nome e cognome interi
-10. Rifinitura UI (home già più essenziale col redesign a tile;
-    ~~"Nuova sfida" diretta~~ fatto, vedi sotto — restano): header più
-    snello durante il draft (si vuole vedere principalmente la
-    squadra), via l'etichetta "Metti qui" sugli slot (pleonastico: lo
-    slot si illumina già da solo)
+10. Rifinitura UI — fatto: ~~"Nuova sfida" diretta~~ (vedi sopra),
+    ~~ordine colonne draft desktop~~ (squadra a sinistra, quintetto a
+    destra — logica vista-poi-scelta, come già su mobile dov'era in
+    fondo fuori dal flusso), ~~righe giocatore più strette su
+    desktop~~ (`@media (min-width: 861px)`, ~14 giocatori visibili
+    invece di ~8, mobile invariato), ~~checkbox decadi -> tile che si
+    illuminano~~ (stessa griglia 2x2 su mobile e desktop, più
+    consistente della vecchia flex-wrap). Restano: header più snello
+    durante il draft, via l'etichetta "Metti qui" sugli slot
+    (pleonastico: lo slot si illumina già da solo)
 11. Verifica/check di giocatori, ruoli e squadre nel dataset (audit dei
     dati, non ancora iniziato)

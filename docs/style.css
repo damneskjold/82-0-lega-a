@@ -105,23 +105,29 @@ body {
   font-size: 0.88rem;
 }
 
-.decade-options {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+.decade-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   margin-bottom: 24px;
 }
 
-.decade-options label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.decade-tile {
+  background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 16px;
+  border-radius: 10px;
+  padding: 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
   cursor: pointer;
-  font-weight: 600;
+  transition: border-color 0.15s, background 0.15s;
+}
+.decade-tile:hover { border-color: var(--muted); }
+.decade-tile.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 #screen-decades .btn-ghost {
@@ -158,17 +164,21 @@ body {
 }
 .btn-ghost:hover { border-color: var(--muted); color: var(--text); }
 
-/* DRAFT LAYOUT: pannello quintetto | squadra corrente */
+/* DRAFT LAYOUT: squadra corrente | pannello quintetto - si vede prima
+   la squadra (a sinistra), poi si sceglie e si assegna nel quintetto
+   (a destra) - stessa logica lineare vista->scelta gia' usata su
+   mobile (dove il pannello e' in fondo, fuori flusso di lettura) */
 .draft-layout {
   display: grid;
-  grid-template-columns: 230px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 230px;
   gap: 18px;
   align-items: start;
 }
+.round-main { order: 0; }
+.slots-panel { order: 1; }
 
 @media (max-width: 860px) {
   .draft-layout { grid-template-columns: 1fr; padding-bottom: 88px; }
-  .round-main { order: 0; }
 }
 
 /* pannello quintetto: 5 slot, ognuno vuoto/selezionabile/occupato */
@@ -640,5 +650,17 @@ body {
   }
   .mode-tile-desc {
     min-height: 0;
+  }
+}
+
+/* desktop: righe piu' strette per vedere piu' giocatori senza scroll -
+   solo desktop per ora, il mobile ha vincoli diversi (tocco, spazio) e
+   resta da rivedere a parte */
+@media (min-width: 861px) {
+  .player-row {
+    padding: 7px 18px;
+  }
+  .player-list {
+    max-height: 65vh;
   }
 }

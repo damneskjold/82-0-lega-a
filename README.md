@@ -522,7 +522,14 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
 9. Check visivo sistematico: uno script Playwright che gioca N partite
    facendo uno screenshot ad ogni schermata chiave (draft, risultato,
    mobile/desktop), per scansione rapida di glitch grafici - oggi le
-   verifiche visive restano manuali/ad-hoc
+   verifiche visive restano manuali/ad-hoc. Glitch già segnalati
+   dall'utente su mobile stretto, da includere nel check quando parte:
+   - colonna "B" (stoppate) tagliata a destra, esce dal viewport
+   - l'ultima riga della lista giocatori finisce dietro il pannello
+     slot fisso in fondo allo schermo, invece di lasciarle spazio
+   - proposta dell'utente per attenuare (non risolve da sola l'overflow,
+     va comunque abbinata a un fix di layout): nome abbreviato a
+     iniziale + cognome ("A. Gentile") invece di nome e cognome interi
 10. Rifinitura UI (home già più essenziale col redesign a tile, resta):
     "Nuova sfida" che salta la home e riparte diretto in una nuova
     partita nella stessa modalità, header più snello durante il draft

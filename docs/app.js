@@ -155,6 +155,10 @@ const DECADE_LABELS = {
   "anni 2020": "'20s",
 };
 
+// nome modalita' da mostrare nella riga metadati del risultato (stile
+// 82-0: "CLASSIC MODE | A+ HISTORIC | 98.1 pts")
+const MODE_LABELS = { classic: "Classic", decade: "Scegli decade", blind: "Blind" };
+
 // CEILING = tetto teorico: somma del miglior rating_lega per ciascuno dei
 // 5 rank, su tutte le squadre/decadi del dataset caricato. Calcolato in
 // runtime da computeCeiling() dopo loadData(), NON hardcoded: e' il
@@ -536,11 +540,13 @@ function showResult() {
 
   const wins = result.winsFinal;
   const losses = 30 - wins;
-  $("#result-record").textContent = `${wins}-${losses}`;
+  $("#result-record").innerHTML = `${wins}<span class="result-record-sep">—</span>${losses}`;
 
   const tier = tierFor(wins);
   $("#result-tier").innerHTML =
-    `<span class="tier-badge" style="--tier-color:${tier.color}">${tier.letter}</span> ${tier.label} · Rating ${result.teamRating.toFixed(1)}`;
+    `${MODE_LABELS[lastMode] || "Classic"} · ` +
+    `<span class="tier-badge" style="--tier-color:${tier.color}">${tier.letter}</span> ` +
+    `<span style="color:${tier.color}">${tier.label}</span> · Rating ${result.teamRating.toFixed(1)}`;
 
   const lineupEl = $("#result-lineup");
   lineupEl.innerHTML = orderedSlots

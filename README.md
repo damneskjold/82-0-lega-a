@@ -28,6 +28,19 @@ in classifica" a S "corazzata") e il dettaglio statistico dei 5 scelti.
 Il risultato è condivisibile come **immagine PNG** generata su canvas
 (Web Share API con file, fallback su download e su condivisione testuale).
 
+**Schermata risultato, stile 82-0**: punteggio con glow (`text-shadow`
+sul numero, `box-shadow` sul bordo della hero box, entrambi in
+`--accent-glow`), separatore "—" più leggero fra vittorie e sconfitte,
+riga metadati compatta sotto il punteggio con **modalità · tier
+colorato · rating** (es. "Classic · A Pretendente scudetto · Rating
+105.3" — il colore del tier, non solo grigio muto, per dare più peso
+visivo a un risultato alto, come "A+ HISTORIC" in verde su 82-0). Non
+ancora replicato sull'immagine PNG condivisa (canvas, disegno statico
+a coordinate fisse — più lavoro, lasciato per un giro successivo se
+serve). Resta da valutare: layout a due colonne su desktop (hero+azioni
+a sinistra, lista giocatori a destra, come 82-0 — su mobile resta
+impilato in verticale, confermato dall'utente).
+
 ### Legalità dei ruoli (sistema a rank)
 
 Ogni slot ha un rank fisso 1-5; ogni ruolo copre **uno o due rank adiacenti**

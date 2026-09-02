@@ -331,6 +331,9 @@ function startDraft(mode, decades) {
   $("#screen-decades").hidden = true;
   $("#screen-result").hidden = true;
   $("#screen-draft").hidden = false;
+  // header piu' snello durante il draft: si vuole vedere principalmente
+  // la squadra, non l'intestazione - vedi .topbar.draft-active in CSS
+  document.body.classList.add("draft-active");
   renderRound();
 }
 
@@ -375,18 +378,15 @@ function renderSlotsPanel() {
           </div>`;
         }
         let cls = "slot-box empty";
-        let clickable = false;
         if (selected) {
-          if (selected.legalIds.includes(s.id)) {
-            cls += " legal";
-            clickable = true;
-          } else {
-            cls += " illegal";
-          }
+          cls += selected.legalIds.includes(s.id) ? " legal" : " illegal";
         }
+        // niente "Metti qui": lo slot legale si illumina gia' da solo
+        // (bordo/sfondo accent, vedi .slot-box.legal in CSS) - il testo
+        // era ridondante
         return `<div class="${cls}" data-slot-id="${s.id}">
           <div class="slot-label">${labelHtml}</div>
-          <div class="slot-status">${clickable ? "Metti qui" : "Libero"}</div>
+          <div class="slot-status">Libero</div>
         </div>`;
       })
       .join("");
@@ -537,6 +537,7 @@ function showResult() {
 
   $("#screen-draft").hidden = true;
   $("#screen-result").hidden = false;
+  document.body.classList.remove("draft-active");
 
   const wins = result.winsFinal;
   const losses = 30 - wins;
@@ -627,6 +628,7 @@ function resetToHome() {
   $("#screen-result").hidden = true;
   $("#screen-draft").hidden = true;
   $("#screen-home").hidden = false;
+  document.body.classList.remove("draft-active");
 }
 
 // click sul logo: torna alla home. Se una sfida e' in corso (schermata

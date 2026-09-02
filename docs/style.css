@@ -446,10 +446,24 @@ body {
 }
 
 /* RESULT */
-.result-box {
-  max-width: 720px;
+/* RISULTATO: hero+azioni a sinistra, quintetto+stats a destra (stile
+   82-0) su desktop - su mobile impilato in verticale come prima */
+.result-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  max-width: 900px;
   margin: 20px auto;
-  text-align: center;
+}
+.result-left { text-align: center; }
+.result-right { text-align: left; }
+
+@media (max-width: 860px) {
+  .result-layout {
+    grid-template-columns: 1fr;
+    max-width: 520px;
+  }
 }
 
 .result-hero {
@@ -645,6 +659,7 @@ body {
   font-size: 0.88rem;
   margin-bottom: 20px;
   min-height: 1.2em;
+  text-align: center;
 }
 
 .result-actions {
@@ -684,4 +699,18 @@ body {
   .player-list {
     max-height: 65vh;
   }
+}
+
+/* header piu' snello durante il draft (classe .draft-active su body,
+   vedi startDraft()/showResult()/resetToHome() in app.js): si vuole
+   vedere principalmente la squadra, la testata torna normale altrove */
+body.draft-active .topbar {
+  padding: 10px 0 14px;
+  margin-bottom: 14px;
+}
+body.draft-active .logo {
+  font-size: 1.3rem;
+}
+body.draft-active .subtitle {
+  display: none;
 }

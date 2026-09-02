@@ -67,23 +67,25 @@
   </section>
 
   <section id="screen-result" class="screen" hidden>
-    <div class="result-box">
-      <div class="result-hero">
-        <div class="result-hero-label">Record proiettato</div>
-        <div class="result-record" id="result-record">0-0</div>
-        <div class="result-tier" id="result-tier"></div>
+    <div class="result-layout">
+      <div class="result-left">
+        <div class="result-hero">
+          <div class="result-hero-label">Record proiettato</div>
+          <div class="result-record" id="result-record">0-0</div>
+          <div class="result-tier" id="result-tier"></div>
+        </div>
+
+        <div class="result-actions">
+          <button id="btn-share" class="btn-primary btn-share">↗ Condividi</button>
+          <button id="btn-replay" class="btn-ghost">Rigioca</button>
+          <button id="btn-change-mode" class="btn-ghost">Cambia modalità</button>
+        </div>
       </div>
 
-      <div class="result-lineup" id="result-lineup"></div>
-
-      <div class="result-breakdown" id="result-breakdown"></div>
-
-      <div class="result-note" id="result-note"></div>
-
-      <div class="result-actions">
-        <button id="btn-share" class="btn-primary btn-share">↗ Condividi</button>
-        <button id="btn-replay" class="btn-ghost">Rigioca</button>
-        <button id="btn-change-mode" class="btn-ghost">Cambia modalità</button>
+      <div class="result-right">
+        <div class="result-lineup" id="result-lineup"></div>
+        <div class="result-breakdown" id="result-breakdown"></div>
+        <div class="result-note" id="result-note"></div>
       </div>
     </div>
   </section>

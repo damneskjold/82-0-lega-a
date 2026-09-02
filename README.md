@@ -37,9 +37,10 @@ colorato · rating** (es. "Classic · A Pretendente scudetto · Rating
 visivo a un risultato alto, come "A+ HISTORIC" in verde su 82-0). Non
 ancora replicato sull'immagine PNG condivisa (canvas, disegno statico
 a coordinate fisse — più lavoro, lasciato per un giro successivo se
-serve). Resta da valutare: layout a due colonne su desktop (hero+azioni
-a sinistra, lista giocatori a destra, come 82-0 — su mobile resta
-impilato in verticale, confermato dall'utente).
+serve). **Layout a due colonne su desktop** — fatto: `.result-layout`
+(hero+azioni a sinistra, quintetto+statistiche a destra, come 82-0),
+grid a 1 colonna sotto 860px come sul draft, mobile resta impilato
+in verticale.
 
 ### Legalità dei ruoli (sistema a rank)
 
@@ -565,8 +566,11 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
     squadre reali, non le icone di modalità), ~~click sul logo per
     tornare in home~~ (con conferma se una sfida è in corso, altrimenti
     diretto — prima non c'era modo di cambiare modalità a metà partita
-    senza finire le 5 squadre). Resta: header più snello durante il
-    draft, via l'etichetta "Metti qui" sugli slot (pleonastico: lo slot
-    si illumina già da solo)
+    senza finire le 5 squadre), ~~header più snello durante il draft~~
+    (classe `.draft-active` su `body`, tolta ad ogni uscita dal draft —
+    logo più piccolo, sottotitolo nascosto, solo su schermata draft),
+    ~~via l'etichetta "Metti qui" sugli slot~~ (restava solo "Libero",
+    lo slot legale si illumina già da solo col bordo/sfondo accent —
+    pleonastico avere anche il testo)
 11. Verifica/check di giocatori, ruoli e squadre nel dataset (audit dei
     dati, non ancora iniziato)

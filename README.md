@@ -398,8 +398,8 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
 1. ~~Rimuovere le forzature TEMP dal draw~~ — fatto. ~~Completare le
    squadre con le carte-decade~~ — fatto, tutte le 30 squadre della
    ricerca sono nel dataset (`data/decade_coverage_research.md`).
-   Mergiare su `main` (il sito pubblico è indietro rispetto al lavoro
-   fatto)
+   ~~Mergiare su `main`~~ — fatto, il sito pubblico
+   (https://damneskjold.github.io/82-0-lega-a/) è allineato
 2. Pesca a due passaggi in `drawFive()` (prima la squadra, poi la carta
    al suo interno) invece della pesca piatta attuale che favorisce le
    squadre con più carte — vedi sopra

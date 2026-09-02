@@ -329,6 +329,50 @@ TEAMS = {
         "display_name": "Juvecaserta",
         "role_overrides_by_name": {},
     },
+    "biella": {
+        "club_id": 3,
+        "display_name": "Biella",
+        "role_overrides_by_name": {},
+    },
+    "verona": {
+        "club_id": 63,
+        "display_name": "Verona",
+        "role_overrides_by_name": {
+            ("Vittorio", "Gallinari"): "Ala/Centro",     # gia' risolto per Virtus Bologna, stesso giocatore
+            ("Tim", "Kempton"): "Ala/Centro",            # 208cm, power forward/centro NBA (Wikipedia)
+            ("Giampiero", "Savio"): "Ala",               # gia' risolto per Virtus Bologna, stesso giocatore
+            ("Russ", "Schoene"): "Ala",                  # gia' risolto per Virtus Bologna, stesso giocatore
+            ("Riccardo", "Caneva"): "Ala",               # gia' risolto per Pallacanestro Varese, stesso giocatore
+            ("Fabio", "Torri"): "Guardia",               # guardia di riserva, poi rimpiazzato da Spagnoli (scaligerabasket.it)
+            ("Fabio", "Spagnoli"): "Guardia/Ala",        # gia' risolto per Pistoia, stesso giocatore
+            ("Sebastian", "Neal"): "Guardia",            # 196cm, guard (college Georgia)
+            # Alfiero Perbellini: nessuna fonte trovata (15 partite, 6.5
+            # min/partita, marginale) - resta eligible=False, non
+            # indovinato
+        },
+    },
+    "teramo": {
+        "club_id": 64,
+        "display_name": "Teramo",
+        "role_overrides_by_name": {},
+    },
+    "roseto": {
+        "club_id": 49,
+        "display_name": "Roseto",
+        "role_overrides_by_name": {},
+    },
+    "tortona": {
+        "club_id": 111,
+        "display_name": "Bertram Derthona Tortona",
+        "role_overrides_by_name": {},
+    },
+    "scafati": {
+        "club_id": 50,
+        "display_name": "Givova Scafati",
+        "role_overrides_by_name": {
+            ("Fabio", "Mian"): "Guardia",                # 196cm, guardia (Wikipedia)
+        },
+    },
 }
 
 STAT_FIELDS = [

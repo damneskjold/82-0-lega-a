@@ -93,21 +93,28 @@ modo (`season.year ?? season.decade`):
   decade, aggregate (`decade`, `year_range`, `seasons_included`) — è il
   modello giusto, quello di 82-0
 
-Situazione oggi: **16 squadre** con almeno una carta-decade (Bologna,
-Milano, Varese, Pesaro a 4/4; Cantù, Roma, Treviso, Reggio Emilia a 3/4;
-Venezia, Fortitudo Bologna, Napoli, Trieste, Siena a 2/4), più altre
-squadre ancora solo a carte-stagione campione. Le squadre nuove (senza
-storia di carte-stagione: Reggio Emilia, Fortitudo Bologna, Napoli) sono
-aggiunte come stub vuoto in `data/dataset.json` prima di lanciare lo
-script decade, e hanno solo carte-decade.
+Situazione oggi: **completato**. Tutte le 30 squadre identificate dalla
+ricerca di copertura hanno almeno una carta-decade (Bologna, Milano,
+Varese, Pesaro a 4/4; Cantù, Roma, Treviso, Reggio Emilia a 3/4; le
+altre 22 a 1/4 o 2/4, a seconda di quante stagioni hanno effettivamente
+giocato in Serie A in ciascuna decade). Le squadre senza storia di
+carte-stagione (la maggioranza — quasi tutte tranne le 11 originali)
+sono state aggiunte come stub vuoto in `data/dataset.json` prima di
+lanciare lo script decade, e hanno solo carte-decade, non campione.
 
-Stato dettagliato, copertura per decade di ogni squadra (fatte e da
-fare) e ordine dei prossimi batch: `data/decade_coverage_research.md`.
-(negli anni 2020 ha giocato solo 2 stagioni, sotto anche la soglia ridotta —
-vedi sotto). Le altre 6 squadre restano solo a carte-stagione: finché non
-sono convertite il pool di pesca è **sbilanciato** e le prove di gioco non
-sono rappresentative. Vedi `data/decade_coverage_research.md` per la
-ricerca completa su quali altre squadre storiche qualificano.
+Stato dettagliato, copertura per decade di ogni squadra e cronologia
+dei batch: `data/decade_coverage_research.md`.
+
+**Debito noto legato al pool**: `drawFive()` pesca da un unico elenco
+piatto di tutte le carte (`ALL_TEAM_SEASONS`), senza pesare per
+squadra. Bologna/Milano/Varese/Pesaro (9 carte ciascuna) hanno quindi
+~9 volte più probabilità di uscire rispetto a una squadra con 1 sola
+carta (la maggioranza, ora che il roster è completo). Non risolto:
+andrebbe cambiato a pesca a due passaggi (prima la squadra, poi la
+carta al suo interno) per dare a ogni squadra pari probabilità — è
+collegato alla rimozione delle 2 forzature TEMP qui sotto, che esistono
+proprio perché con la pesca piatta le squadre rare non uscivano mai nei
+test.
 
 ### Aggregazione per decade
 
@@ -312,12 +319,16 @@ data/
 ## Da fare
 
 1. Rimuovere le forzature TEMP dal draw e mergiare su `main` (il sito
-   pubblico è indietro rispetto al lavoro fatto)
-2. Completare le squadre con le carte-decade — stato e prossimi batch in
-   `data/decade_coverage_research.md`
+   pubblico è indietro rispetto al lavoro fatto). ~~Completare le
+   squadre con le carte-decade~~ — fatto, tutte le 30 squadre della
+   ricerca sono nel dataset (`data/decade_coverage_research.md`)
+2. Pesca a due passaggi in `drawFive()` (prima la squadra, poi la carta
+   al suo interno) invece della pesca piatta attuale che favorisce le
+   squadre con più carte — vedi sopra
 3. Ritarare **insieme** penalità, `MID` e `K`, a roster chiuso
-4. Sigle squadra stile 82-0 (MIL/NAP/VBO/FBO/ROM/UDI). Nota: VBO+FBO
-   implica aggiungere anche la Fortitudo, oggi non nel dataset
+4. Sigle squadra stile 82-0 (MIL/NAP/VBO/FBO/ROM/UDI) — ora fattibile,
+   Fortitudo Bologna è nel dataset
 5. Ruoli multipli adiacenti in base all'altezza (arricchire `ROLE_RANKS`
    invece del rank fisso per etichetta)
-6. Verifica/correzione manuale dei colori squadra
+6. Verifica/correzione manuale dei colori squadra (30 colori scelti
+   senza ricerca storica accurata, solo per distinguibilità visiva)

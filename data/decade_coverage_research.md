@@ -116,9 +116,24 @@ Montecatini, Rimini, Imola, Fabriano, Rieti, Ferrara, Napoli (identità
   giocatori senza ruolo trovati in questo batch appartenevano a carte
   poi scartate per sotto soglia (Livorno e Caserta anni '90) - zero
   ricerca necessaria. Aggiunti i 4 colori mancanti in `TEAM_COLORS`.
-- **Prossimo batch, ordine deciso dall'utente**: Biella+Verona+Teramo+
-  Roseto+Tortona+Scafati (1/4 ciascuna) — 6 squadre rimanenti, ultimo
-  batch della lista
+- **Batch 6 fatto (ULTIMO)**: Biella (1/4: 00, squadra nuova, 0
+  giocatori senza ruolo), Verona (1/4: 90, squadra nuova), Teramo (1/4:
+  00, squadra nuova, 0 senza ruolo), Roseto (1/4: 00, squadra nuova, 0
+  senza ruolo), Bertram Derthona Tortona (1/4: 20, squadra nuova, 0
+  senza ruolo), Givova Scafati (1/4: 20, squadra nuova). 10 giocatori
+  senza ruolo risolti (9 Verona + 1 Scafati, entrambe le carte
+  sopravvissute), 1 rimasto irrisolvibile (Alfiero Perbellini, Verona,
+  6.5 min/partita). Aggiunti i 6 colori finali in `TEAM_COLORS`.
+
+## Roster completo: tutte le 30 squadre della ricerca sono state aggiunte
+
+Con il batch 6 il dataset copre tutte le 30 squadre identificate dalla
+ricerca (tabella sopra). Nessuna squadra rimanente da aggiungere per
+questo criterio di ammissione (5 stagioni/decade, 3 per gli anni 2020).
+Prossimi passi che restano (vedi README "Da fare"): rimuovere le 2
+forzature TEMP in `drawFive()` e mergiare su `main`, poi ritarare
+penalità/`MID`/`K` a roster chiuso, poi le rifiniture (sigle squadra,
+ruoli multipli via altezza, verifica colori).
 
 Nota tecnica: `scrape_decade_sample.py` scarta automaticamente una
 decade con troppe poche stagioni disponibili invece di generare comunque

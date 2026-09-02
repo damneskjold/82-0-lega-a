@@ -55,6 +55,12 @@ const TEAM_COLORS = {
   livorno: "#457b9d",
   udine: "#1d3557",
   caserta: "#14213d",
+  biella: "#bc6c25",
+  verona: "#e9c46a",
+  teramo: "#48cae4",
+  roseto: "#e63946",
+  tortona: "#606c38",
+  scafati: "#1b4332",
 };
 
 // Formula tarata a mano sugli esempi discussi con l'utente

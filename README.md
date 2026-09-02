@@ -224,10 +224,19 @@ wins_raw = 30 / (1 + e^(-K * (team_rating - MID)))       altrimenti
   visibile": mediana 24, p10 19, **9 volte su 3000 in tier S** (raro ma
   non nullo, contro le 26+ vittorie quasi garantite di prima del primo
   retune)
-- `PERFECTION_BAND = 0.97`: sopra il 97% del tetto teorico, sempre
+- `PERFECTION_BAND = 0.93`: sopra il 93% del tetto teorico, sempre
   30-0 — un pugno di quintetti vicinissimi al meglio possibile, non un
   plateau che capita per caso vicino al tetto (comportamento naturale di
-  qualunque sigmoide, se non lo si rende esplicito)
+  qualunque sigmoide, se non lo si rende esplicito). Era `0.97`: troppo
+  raro per essere divertente. Analizzando il vero massimo raggiungibile
+  nel dataset (assegnazione ottima delle carte pescate, non solo la
+  formula) il tier S usciva solo ~1 partita su 326 giocando bene, e il
+  30-0 esatto **mai** su 100.000 draw simulati anche giocando da
+  onniscente (il quintetto migliore in assoluto — Del Negro/TVS,
+  Young/RCA, Komazec/VAR, Daye/PES, Gay/PIS, tutti anni '90 — è al 99.3%
+  del tetto ma sotto la vecchia soglia). A `0.93` il tier S capita ~1
+  partita su 78 giocando bene, il 30-0 esatto resta un unicorno
+  (~0.002%, richiede quasi la combinazione di carte perfetta)
 - `K`: calcolato da `computeK()` perché la sigmoide valga ~29.5 appena
   sotto `PERFECTION_THRESHOLD`, così il passaggio alla zona di perfezione
   resta morbido invece che un gradino

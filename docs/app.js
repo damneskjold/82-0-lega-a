@@ -136,7 +136,12 @@ let MID = 0;
 // sempre 30-0 - la "zona di perfezione" di un pugno di quintetti vicini
 // al meglio possibile, invece di un plateau che capita per caso vicino
 // al tetto (comportamento naturale di qualunque sigmoide, altrimenti).
-const PERFECTION_BAND = 0.97;
+// A 0.97 il tier S (29-30) era troppo raro per essere divertente (~1
+// partita su 326 giocando bene, verificato per assegnazione ottima dei
+// quintetti pescabili): abbassato a 0.93 per farlo capitare ogni tanto
+// con un buon pescaggio (~1 su 78), lasciando il 30-0 esatto ancora
+// quasi irraggiungibile (serve la combinazione di carte quasi perfetta).
+const PERFECTION_BAND = 0.93;
 let PERFECTION_THRESHOLD = 0;
 // K: calibrato (vedi computeK) perche' la sigmoide raggiunga circa 29.5
 // vittorie appena sotto PERFECTION_THRESHOLD, cosi' il passaggio alla

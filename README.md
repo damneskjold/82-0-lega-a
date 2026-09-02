@@ -514,6 +514,7 @@ scripts/
   discover_clubs.py         mappatura squadra -> club_id nel tempo
   scrape_dataset.py         scraping carte-stagione (prototipo, non più usato per il dataset spedito)
   scrape_decade_sample.py   carte-decade aggregate (idempotente) - unica fonte del dataset spedito
+  check_data_coverage.py   verifica indipendente copertura decadi/squadre (check dati 1.1, parte A)
 data/
   dataset.json              dataset generato (sorgente di verità)
   club_discovery.json       output di discover_clubs.py
@@ -528,6 +529,8 @@ tests/
 python3 -m http.server 8899 --directory docs &
 node tests/game_smoke_test.js         # 20 partite di default
 node tests/game_smoke_test.js 60      # numero di partite a scelta
+
+cd scripts && python3 check_data_coverage.py   # check dati 1.1 parte A: copertura decadi/squadre
 ```
 
 ## Stato e backlog
@@ -547,8 +550,18 @@ commit.
 
 **Backlog 1.1** (in quest'ordine):
 
-1. **Check dati**: audit di giocatori, ruoli e squadre nel dataset —
-   non ancora iniziato
+1. **Check dati**: audit di giocatori, ruoli e squadre nel dataset.
+   Parte A (copertura decadi/squadre) **fatta**: `scripts/check_data_coverage.py`
+   ricalcola da zero, dai dati grezzi in `data/raw_cache/` (1990-2025,
+   indipendente dalla tabella scritta a mano), quali squadre qualificano
+   per quale decade, e confronta con `data/decade_coverage_research.md`
+   e con `data/dataset.json` reale — nessun gap, nessun falso scarto,
+   nessun mismatch (trovata solo una nota di metodo da correggere nel
+   research doc, non un problema di dati: mancavano 2 delle 5 città con
+   `club_id` doppio per rifondazione). Parti B (consistenza interna:
+   duplicati, soglie eleggibilità, ricalcolo medie pesate) e C (bound di
+   sanità sulle statistiche, `role_source`, spot-check dei top player)
+   non ancora iniziate
 2. ~~**Check colori**~~ **fatto**: i 30 colori squadra (`TEAM_COLORS`
    in `app.js`) sono ora basati sul vero colore sociale storico di
    ogni club (ricerca web, fonti e confidenza per squadra in

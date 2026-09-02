@@ -19,13 +19,16 @@ scaricati durante le run precedenti di `scrape_decade_sample.py`), quindi
 Per ogni anno si contano le squadre presenti (`get-teams`, che restituisce
 esattamente le squadre di Serie A1/A di quella stagione) raggruppate per
 `club_id` — l'identificativo stabile che legabasket assegna a un club a
-prescindere dai cambi di sponsor. Tre città hanno **due `club_id` diversi**
-per una rifondazione dopo un lungo buco (fallimento, radiazione): Treviso
-(56 + 107), Trieste (55 + 106), Livorno (22 + 23) — sommati come stessa
-identità cittadina, coerente con la convenzione già in README. Bologna,
-Roma e Milano hanno invece due `club_id` genuinamente distinti perché sono
-due club diversi nella stessa città (Virtus/Fortitudo, Virtus/Stella
-Azzurra, Olimpia/Milano 1958) — **non** sommati.
+prescindere dai cambi di sponsor. **Cinque città** hanno **due `club_id`
+diversi** per una rifondazione dopo un lungo buco (fallimento, radiazione):
+Treviso (56 + 107), Trieste (55 + 106), Livorno (22 + 23), Pistoia (39 +
+102, corretto qui il 2026-09-02 — mancava in questa nota pur essendo già
+gestito correttamente in `TEAMS` negli script), Udine (58 + 57, stesso
+motivo) — sommati come stessa identità cittadina, coerente con la
+convenzione già in README. Bologna, Roma e Milano hanno invece due
+`club_id` genuinamente distinti perché sono due club diversi nella stessa
+città (Virtus/Fortitudo, Virtus/Stella Azzurra, Olimpia/Milano 1958) —
+**non** sommati.
 
 Risultato: la tabella ricostruita a memoria dall'utente era esatta su
 tutte le 29 righe. Le uniche differenze rispetto a quella versione sono
@@ -140,3 +143,16 @@ decade con troppe poche stagioni disponibili invece di generare comunque
 una carta sottile che non rispecchia una vera decade
 (`MIN_SEASONS_PER_DECADE = 5`, `MIN_SEASONS_DECADE_IN_CORSO = 3` per gli
 anni 2020).
+
+## Riverifica automatica (2026-09-02)
+
+`scripts/check_data_coverage.py` ricalcola da zero, direttamente dai file
+grezzi in `data/raw_cache/` (tutti gli anni 1990-2025, 55 `club_id`
+distinti visti), quali identità-città qualificano per quale decade, e
+confronta il risultato con la tabella sopra e con `data/dataset.json`
+reale. Nessun gap (nessuna squadra qualificante dimenticata), nessun
+falso scarto, nessun mismatch fra tabella e dataset — tutte le 30 righe
+confermate indipendentemente. L'unico problema trovato è stato di
+documentazione, non di dati: questa nota di metodo diceva "tre città" con
+`club_id` doppio invece di cinque (mancavano Pistoia e Udine, già corrette
+sopra).

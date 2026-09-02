@@ -227,12 +227,25 @@ avesse il rating più alto per un rank, il tetto andrebbe aggiornato di
 conseguenza.
 
 **UI**: l'interfaccia non mostra mai il ruolo/tag completo di legabasket
-(es. "Ala/Centro") — solo una delle 5 sigle **PM/G/AP/AG/C**
-(`roleSiglaFor()`), quella del rank più alto per cui il giocatore è
-eleggibile in quel momento (tag ibrido ufficiale o estensione per
-altezza). Una Guardia estesa mostra "AP", un'Ala estesa mostra "C": il
-giocatore "diventa" la posizione più alta che può coprire, non si vede
-mai un'etichetta doppia o il ruolo grezzo.
+(es. "Ala/Centro") — solo le sigle **PM/G/AP/AG/C** concatenate
+(`roleSiglaFor()`) di **tutti** i rank per cui il giocatore è eleggibile
+in quel momento (tag ibrido ufficiale e/o estensione per altezza), in
+ordine crescente, senza separatore:
+
+```
+Playmaker puro                    -> PM
+Playmaker esteso (o Play/Guardia) -> PMG
+Guardia pura                      -> G
+Guardia estesa (o Guardia/Ala)    -> GAP
+Ala normale (copre già AP e AG)   -> APAG
+Ala estesa a Centro               -> APAGC
+Ala/Centro (ufficiale)            -> AGC
+Centro puro                       -> C
+```
+
+Un giocatore con un solo rank mostra una sola sigla; con più rank le
+mostra tutte insieme — mai una sigla sola per un giocatore multi-ruolo,
+mai un'etichetta col nome completo.
 
 ## Motore di calcolo
 

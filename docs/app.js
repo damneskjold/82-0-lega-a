@@ -52,16 +52,17 @@ const SLOT_DEFS = [
   { id: "centro", type: "centro", label: "Centro", short: "C", rank: 5 },
 ];
 
-// sigla (PM/G/AP/AG/C) del rank piu' alto, per mostrare nell'interfaccia
-// sempre e solo la sigla - mai il nome/tag completo di legabasket (es.
-// "Ala/Centro"), mai una coppia di rank. Tiene conto sia dei tag ibridi
-// ufficiali sia dell'estensione per altezza: una Guardia estesa mostra
-// "AP", un'Ala estesa mostra "C" - il giocatore "diventa" la posizione
-// piu' alta che puo' coprire.
+// sigle (PM/G/AP/AG/C) concatenate di TUTTI i rank per cui il giocatore e'
+// eleggibile in questo momento, in ordine crescente - mai il nome/tag
+// completo di legabasket (es. "Ala/Centro"). Tiene conto sia dei tag
+// ibridi ufficiali sia dell'estensione per altezza: un playmaker anche
+// guardia mostra "PMG", un'ala normale (copre gia' AP e AG di suo)
+// mostra "APAG", un'ala estesa a centro mostra "APAGC". Un giocatore con
+// un solo rank mostra solo quella sigla (es. "G", "PM").
 const RANK_SHORT = Object.fromEntries(SLOT_DEFS.map((d) => [d.rank, d.short]));
 function roleSiglaFor(player) {
-  const ranks = ranksFor(player, heightRulesEnabled);
-  return RANK_SHORT[Math.max(...ranks)];
+  const ranks = [...ranksFor(player, heightRulesEnabled)].sort((a, b) => a - b);
+  return ranks.map((r) => RANK_SHORT[r]).join("");
 }
 
 // colore identificativo per squadra (approssimativo, solo per riconoscibilità visiva)

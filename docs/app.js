@@ -63,6 +63,53 @@ const TEAM_COLORS = {
   scafati: "#1b4332",
 };
 
+// sigle a 3 lettere stile 82-0 (no sponsor), definite insieme all'utente.
+// Bologna (VBO/FBO) e Reggio (REG/RCA) le due coppie a rischio collisione
+// per due club nella stessa citta'; Treviso/Trieste/Trento (TRV/TRI/TRE)
+// il gruppo con le iniziali piu' simili.
+const TEAM_ABBR = {
+  virtus_bologna: "VBO",
+  olimpia_milano: "MIL",
+  fortitudo_bologna: "FBO",
+  canturina: "CAN",
+  treviso: "TRV",
+  varese: "VAR",
+  siena: "SIE",
+  venezia: "VEN",
+  trieste: "TRI",
+  brescia: "BRE",
+  pesaro: "PES",
+  roma: "ROM",
+  reggio_emilia: "REG",
+  napoli: "NAP",
+  pistoia: "PIS",
+  sassari: "SAS",
+  trento: "TRE",
+  avellino: "AVE",
+  reggio_calabria: "RCA",
+  cremona: "CRE",
+  brindisi: "BRI",
+  livorno: "LIV",
+  udine: "UDI",
+  caserta: "CAS",
+  biella: "BIE",
+  verona: "VER",
+  teramo: "TER",
+  roseto: "ROS",
+  tortona: "TOR",
+  scafati: "SCA",
+};
+
+// formato compatto stile 82-0 per l'etichetta di decade, al posto di
+// "anni '90"/"anni 2000" ecc. (season.decade cosi' come generato da
+// scrape_decade_sample.py)
+const DECADE_LABELS = {
+  "anni '90": "'90s",
+  "anni 2000": "'00s",
+  "anni 2010": "'10s",
+  "anni 2020": "'20s",
+};
+
 // Formula tarata a mano sugli esempi discussi con l'utente
 const MID = 44.7;
 const K = 0.04925;
@@ -87,9 +134,8 @@ async function loadData() {
       if (!season.lineup_complete) continue;
       flat.push({
         teamKey: team.key,
-        displayName: team.display_name,
-        year: season.year ?? season.decade,
-        teamNameAtTime: season.team_name_at_time,
+        abbr: TEAM_ABBR[team.key] || team.key.slice(0, 3).toUpperCase(),
+        decadeLabel: DECADE_LABELS[season.decade] || season.decade,
         color: TEAM_COLORS[team.key] || "#d97706",
         players: season.players.filter((p) => p.eligible),
       });
@@ -206,8 +252,8 @@ function renderRound() {
     <div class="team-card-head">
       <div class="team-dot" style="--team-color:${ts.color}"></div>
       <div>
-        <div class="team-card-name">${ts.displayName}</div>
-        <div class="team-card-year">${ts.teamNameAtTime} · ${ts.year}</div>
+        <div class="team-card-name">${ts.abbr}</div>
+        <div class="team-card-year">${ts.decadeLabel}</div>
       </div>
     </div>
     <div class="player-list-header">
@@ -331,7 +377,7 @@ function showResult() {
         </div>
         <div class="who">
           <div class="who-name">${p.name} ${p.surname}</div>
-          <div class="who-from">${pk.teamSeason.teamNameAtTime} · ${pk.teamSeason.year}</div>
+          <div class="who-from">${pk.teamSeason.abbr} · ${pk.teamSeason.decadeLabel}</div>
         </div>
         <div class="who-stats">
           <div class="stat-col"><span class="stat-val">${p.points_avg.toFixed(1)}</span><span class="stat-lbl">P</span></div>
@@ -347,7 +393,7 @@ function showResult() {
   lastShareText =
     `LBA 30-0 — ${wins}-${losses} (${tier.letter}, ${tier.label})\n` +
     orderedSlots
-      .map((s) => `${s.short} ${s.pick.player.name} ${s.pick.player.surname} (${s.pick.teamSeason.teamNameAtTime} ${s.pick.teamSeason.year})`)
+      .map((s) => `${s.short} ${s.pick.player.name} ${s.pick.player.surname} (${s.pick.teamSeason.abbr} ${s.pick.teamSeason.decadeLabel})`)
       .join("\n");
 
   lastShareData = {
@@ -363,7 +409,7 @@ function showResult() {
         color: s.pick.teamSeason.color,
         role: s.short,
         name: `${p.name} ${p.surname}`,
-        team: `${s.pick.teamSeason.teamNameAtTime} · ${s.pick.teamSeason.year}`,
+        team: `${s.pick.teamSeason.abbr} · ${s.pick.teamSeason.decadeLabel}`,
         points: Number(p.points_avg || 0),
         reb: Number(p.off_rebound_avg || 0) + Number(p.def_rebound_avg || 0),
         ast: Number(p.assists_avg || 0),

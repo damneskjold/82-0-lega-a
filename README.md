@@ -153,6 +153,14 @@ vs Milano 1958), Bologna (Virtus vs Fortitudo), Roma (Virtus/Banco vs Stella
 Azzurra). Treviso, Napoli e Livorno sono trattate come identità continue
 nonostante fallimenti e rifondazioni.
 
+**UI**: il frontend non mostra il nome completo da nessuna parte (stile
+82-0) — solo la sigla a 3 lettere (`TEAM_ABBR` in `app.js`, definita
+insieme all'utente) e la decade in formato compatto (`DECADE_LABELS`:
+`anni '90`→`'90s`, `anni 2000`→`'00s`, `anni 2010`→`'10s`, `anni
+2020`→`'20s`). Le sigle a rischio collisione, risolte esplicitamente:
+Bologna (VBO Virtus / FBO Fortitudo), Reggio (REG Emilia / RCA
+Calabria), il gruppo Treviso/Trieste/Trento (TRV/TRI/TRE).
+
 ## Ruoli
 
 legabasket classifica i giocatori in 4 categorie core (Playmaker, Guardia,
@@ -341,8 +349,9 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
    al suo interno) invece della pesca piatta attuale che favorisce le
    squadre con più carte — vedi sopra
 3. Ritarare **insieme** penalità, `MID` e `K`, a roster chiuso
-4. Sigle squadra stile 82-0 (MIL/NAP/VBO/FBO/ROM/UDI) — ora fattibile,
-   Fortitudo Bologna è nel dataset
+4. ~~Sigle squadra stile 82-0~~ — fatto, tutte le 30 in `TEAM_ABBR`
+   (`app.js`), UI ora mostra solo sigla + decade compatta, mai il nome
+   completo
 5. Ruoli multipli adiacenti in base all'altezza (arricchire `ROLE_RANKS`
    invece del rank fisso per etichetta)
 6. Verifica/correzione manuale dei colori squadra (30 colori scelti

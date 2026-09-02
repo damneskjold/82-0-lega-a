@@ -513,97 +513,38 @@ node tests/game_smoke_test.js         # 20 partite di default
 node tests/game_smoke_test.js 60      # numero di partite a scelta
 ```
 
-## Da fare
+## Stato e backlog
 
-1. ~~Rimuovere le forzature TEMP dal draw~~ — fatto. ~~Completare le
-   squadre con le carte-decade~~ — fatto, tutte le 30 squadre della
-   ricerca sono nel dataset (`data/decade_coverage_research.md`).
-   ~~Mergiare su `main`~~ — fatto, il sito pubblico
-   (https://damneskjold.github.io/82-0-lega-a/) è allineato
-2. Pesca a due passaggi in `drawFive()` — **in standby**: verificato che
-   il problema è reale (simulato 200.000 draw, Virtus Bologna/4 carte
-   compare nel 47.5% delle partite contro il 16.67% atteso se equo,
-   Udine/1 carta solo nel 7.3%), ma l'utente preferisce così com'è per
-   ora — potrebbe diventare una personalizzazione facoltativa in futuro,
-   non un fix da fare comunque
-3. ~~Ritarare insieme penalità, `MID` e `K`~~ — fatto: curva a due
-   tratti con `CEILING`/`MID` calcolati a runtime, penalità pesata
-   multi-categoria, poi un secondo giro (`MID_FRACTION`) dopo il
-   feedback "troppo facile" col roster completo
-4. ~~Sigle squadra stile 82-0~~ — fatto, tutte le 30 in `TEAM_ABBR`
-   (`app.js`), UI ora mostra solo sigla + decade compatta, mai il nome
-   completo
-5. ~~Ruoli multipli adiacenti in base all'altezza~~ — fatto: sempre
-   attivo (non un'opzione), soglie 192/196/204cm scelte sui percentili
-   reali, UI sempre a sigla PM/G/AP/AG/C (vedi sezione "Ruoli estesi per
-   altezza" sopra)
-6. Verifica/correzione manuale dei colori squadra (30 colori scelti
-   senza ricerca storica accurata, solo per distinguibilità visiva)
-7. ~~Scelta delle decadi giocabili a inizio partita~~ — fatto, modalità
-   "Scegli decade" (vedi sopra)
-8. ~~Modalità "hard"~~ — fatto, modalità "Blind" (vedi sopra). Ha preso
-   la forma di una vera e propria selezione modalità in home (3 tile
-   Classic/Scegli decade/Blind, stile 82-0), non solo un toggle isolato
-9. Check visivo sistematico: uno script Playwright che gioca N partite
+**1.0 raggiunta**, mergiata su `main` (sito pubblico allineato:
+https://damneskjold.github.io/82-0-lega-a/). Tutte le 30 squadre della
+ricerca con carte-decade, motore di calcolo ritarato e verificato più
+volte (curva a due tratti, penalità multi-categoria, ruoli estesi per
+altezza), 3 modalità di gioco stile 82-0 (Classic/Scegli
+decade/Blind), UI rifinita (draft e risultato a due colonne su
+desktop, home a tile con emoji, pannello quintetto essenziale, logo
+cliccabile con conferma), i glitch mobile noti risolti (colonna
+statistiche tagliata, nome troncato con ellissi, riga nascosta dietro
+il pannello), gestione errore sul caricamento dati. Storico completo
+dei retune e delle verifiche nelle sezioni sopra e nei messaggi di
+commit.
+
+**Backlog 1.1** (in quest'ordine):
+
+1. **Check dati**: audit di giocatori, ruoli e squadre nel dataset —
+   non ancora iniziato
+2. **Check colori**: verifica/correzione dei 30 colori squadra
+   (`TEAM_COLORS` in `app.js`), oggi scelti a occhio per
+   distinguibilità, senza ricerca storica sui colori sociali reali
+3. **Check visivo sistematico**: script Playwright che gioca N partite
    facendo uno screenshot ad ogni schermata chiave (draft, risultato,
-   mobile/desktop), per scansione rapida di glitch grafici - oggi le
-   verifiche visive restano manuali/ad-hoc. Glitch già segnalati
-   dall'utente su mobile stretto:
-   - ~~colonna "B" (stoppate) tagliata a destra, esce dal viewport~~ —
-     fatto in due passi. Prima causa: `grid-template-columns: 1fr` su
-     `.draft-layout`/`.result-layout`/`.mode-tiles` in mobile, senza il
-     `minmax(0, ...)` esplicito una colonna grid non si restringe mai
-     sotto la larghezza "naturale" del contenuto, quindi il
-     troncamento con ellissi non scattava mai (fix: `minmax(0, 1fr)`).
-     Ma l'ellissi stessa era il problema successivo, segnalato
-     dall'utente confrontando con 82-0 ("impossibile non leggere il
-     nome di un giocatore" lì): **mai più troncato con ellissi**,
-     `.player-name` ora va a capo su più righe se serve
-     (`overflow-wrap: break-word` anche per i rari cognomi lunghi che
-     da soli non ci starebbero su una riga). Verificato: 25 partite a
-     320px (iPhone SE, il caso più stretto), ~625 nomi diversi, 0px di
-     overflow orizzontale su qualunque nome
-   - ~~l'ultima riga della lista giocatori finisce dietro il pannello
-     slot fisso in fondo allo schermo~~ — verificato che era già
-     risolto, effetto collaterale dell'header più snello durante il
-     draft (fatto in un giro precedente): liberando spazio verticale
-     lì, la lista interna (`.player-list`, max-height fissa) non arriva
-     più a toccare il pannello nemmeno sui viewport più bassi testati
-   - ~~proposta dell'utente: nome abbreviato a iniziale + cognome~~ —
-     fatto (`shortName()`), ma **solo nel recap finale** (schermata
-     risultato + condivisione PNG/testo): "R. Theus" invece di "Reggie
-     Theus". Durante il draft (lista giocatori, pannello quintetto,
-     "scegli dove giocherà...") resta il nome intero — lì il
-     riconoscimento del giocatore conta più della compattezza. Non
-     risolve da solo il resto dell'overflow su mobile stretto (colonna
-     "B" tagliata, riga nascosta dietro il pannello slot), quei due
-     restano da affrontare col fix di layout
-10. Rifinitura UI — fatto: ~~"Nuova sfida" diretta~~ (vedi sopra),
-    ~~ordine colonne draft desktop~~ (squadra a sinistra, quintetto a
-    destra — logica vista-poi-scelta, come già su mobile dov'era in
-    fondo fuori dal flusso), ~~righe giocatore più strette su
-    desktop~~ (`@media (min-width: 861px)`, ~14 giocatori visibili
-    invece di ~8, mobile invariato), ~~checkbox decadi -> tile che si
-    illuminano~~ (stessa griglia 2x2 su mobile e desktop, più
-    consistente della vecchia flex-wrap), ~~bottoni delle 3 mode-tile
-    disallineati~~ (colpa delle descrizioni a numero di righe diverso;
-    fix strutturale con `margin-top: auto` — il bottone si ancora in
-    fondo alla tile da solo, non serve più calcolare min-height a
-    mano), ~~punti finali nei testi brevi delle tile~~ (tolti, sono
-    istruzioni non frasi), ~~emoji per le 3 modalità~~ (💯/🕰️/🙈 — non
-    in conflitto con "niente foto/loghi": quella regola riguarda le
-    squadre reali, non le icone di modalità), ~~click sul logo per
-    tornare in home~~ (con conferma se una sfida è in corso, altrimenti
-    diretto — prima non c'era modo di cambiare modalità a metà partita
-    senza finire le 5 squadre), ~~header più snello durante il draft~~
-    (classe `.draft-active` su `body`, tolta ad ogni uscita dal draft —
-    logo più piccolo, sottotitolo nascosto, solo su schermata draft),
-    ~~via l'etichetta "Metti qui" sugli slot~~ (restava solo "Libero",
-    lo slot legale si illumina già da solo col bordo/sfondo accent —
-    pleonastico avere anche il testo), ~~via anche "Libero"~~ (uno slot
-    vuoto è libero per definizione, niente testo di stato quando non
-    c'è nulla dentro), ~~nome intero negli slot riempiti~~ (solo
-    iniziali, `initialsFor()` — il pannello è stretto, specialmente la
-    barra fissa in fondo su mobile con 5 slot su una riga sola)
-11. Verifica/check di giocatori, ruoli e squadre nel dataset (audit dei
-    dati, non ancora iniziato)
+   mobile/desktop), per scansione rapida di glitch grafici — oggi le
+   verifiche visive restano manuali/ad-hoc. I glitch già trovati a
+   mano sono stati risolti nel frattempo (vedi sopra), ma non
+   sostituiscono un check sistematico per trovarne altri
+
+**In standby** (scelta esplicita dell'utente, non un fix da fare
+comunque): pesca a due passaggi in `drawFive()` — verificato che il
+problema è reale (simulato 200.000 draw, Virtus Bologna/4 carte
+compare nel 47.5% delle partite contro il 16.67% atteso se equo,
+Udine/1 carta solo nel 7.3%), potrebbe diventare una personalizzazione
+facoltativa in futuro.

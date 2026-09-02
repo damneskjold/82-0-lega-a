@@ -546,9 +546,15 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
    - colonna "B" (stoppate) tagliata a destra, esce dal viewport
    - l'ultima riga della lista giocatori finisce dietro il pannello
      slot fisso in fondo allo schermo, invece di lasciarle spazio
-   - proposta dell'utente per attenuare (non risolve da sola l'overflow,
-     va comunque abbinata a un fix di layout): nome abbreviato a
-     iniziale + cognome ("A. Gentile") invece di nome e cognome interi
+   - ~~proposta dell'utente: nome abbreviato a iniziale + cognome~~ —
+     fatto (`shortName()`), ma **solo nel recap finale** (schermata
+     risultato + condivisione PNG/testo): "R. Theus" invece di "Reggie
+     Theus". Durante il draft (lista giocatori, pannello quintetto,
+     "scegli dove giocherà...") resta il nome intero — lì il
+     riconoscimento del giocatore conta più della compattezza. Non
+     risolve da solo il resto dell'overflow su mobile stretto (colonna
+     "B" tagliata, riga nascosta dietro il pannello slot), quei due
+     restano da affrontare col fix di layout
 10. Rifinitura UI — fatto: ~~"Nuova sfida" diretta~~ (vedi sopra),
     ~~ordine colonne draft desktop~~ (squadra a sinistra, quintetto a
     destra — logica vista-poi-scelta, come già su mobile dov'era in

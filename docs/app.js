@@ -521,6 +521,15 @@ function tierFor(wins) {
   return TIERS.find((t) => wins >= t.min) || TIERS[TIERS.length - 1];
 }
 
+// solo per il recap finale (schermata risultato + condivisione): nome
+// e cognome interi sono utili durante la scelta (riconoscere il
+// giocatore conta), ma nel recap contano di piu' compattezza e spazio
+// - iniziale puntata + cognome, stile "N. Cognome"
+function shortName(player) {
+  const initial = (player.name || "?")[0] || "?";
+  return `${initial}. ${player.surname}`;
+}
+
 function initialsFor(player) {
   const a = (player.name || "?")[0] || "?";
   const b = (player.surname || "?")[0] || "?";
@@ -561,7 +570,7 @@ function showResult() {
           <span class="avatar-role">${s.short}</span>
         </div>
         <div class="who">
-          <div class="who-name">${p.name} ${p.surname}</div>
+          <div class="who-name">${shortName(p)}</div>
           <div class="who-from">${pk.teamSeason.abbr} · ${pk.teamSeason.decadeLabel}</div>
         </div>
         <div class="who-stats">
@@ -578,7 +587,7 @@ function showResult() {
   lastShareText =
     `LBA 30-0 — ${wins}-${losses} (${tier.letter}, ${tier.label})\n` +
     orderedSlots
-      .map((s) => `${s.short} ${s.pick.player.name} ${s.pick.player.surname} (${s.pick.teamSeason.abbr} ${s.pick.teamSeason.decadeLabel})`)
+      .map((s) => `${s.short} ${shortName(s.pick.player)} (${s.pick.teamSeason.abbr} ${s.pick.teamSeason.decadeLabel})`)
       .join("\n");
 
   lastShareData = {
@@ -593,7 +602,7 @@ function showResult() {
         initials: initialsFor(p),
         color: s.pick.teamSeason.color,
         role: s.short,
-        name: `${p.name} ${p.surname}`,
+        name: shortName(p),
         team: `${s.pick.teamSeason.abbr} · ${s.pick.teamSeason.decadeLabel}`,
         points: Number(p.points_avg || 0),
         reb: Number(p.off_rebound_avg || 0) + Number(p.def_rebound_avg || 0),

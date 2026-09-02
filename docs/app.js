@@ -74,38 +74,46 @@ function roleSiglaFor(player) {
   return ranks.map((r) => RANK_SHORT[r]).join("/");
 }
 
-// colore identificativo per squadra (approssimativo, solo per riconoscibilità visiva)
+// colore identificativo per squadra: colore sociale storico REALE del club
+// (verificato via ricerca web - Wikipedia IT, siti ufficiali, stampa
+// sportiva - vedi README "Decisioni prese finora" per la metodologia e le
+// fonti), con tonalità variata dentro la stessa famiglia di colore per
+// restare distinguibile quando più club condividono lo stesso colore
+// sociale (5 bianconero, 7 biancorosso, 9 biancoblu, ecc: un vincolo reale
+// del basket italiano, non un errore di scelta). Confidenza bassa/media
+// segnalata dove le fonti erano meno solide o il club ha cambiato colori
+// nel tempo.
 const TEAM_COLORS = {
-  virtus_bologna: "#c1121f",
-  olimpia_milano: "#e2001a",
-  canturina: "#2a9d34",
-  treviso: "#52b788",
-  varese: "#c1121f",
-  siena: "#3d5a80",
-  venezia: "#f77f00",
-  trieste: "#7209b7",
-  brescia: "#0466c8",
-  pesaro: "#003566",
-  roma: "#9d4edd",
-  reggio_emilia: "#8d0801",
-  fortitudo_bologna: "#118ab2",
-  napoli: "#00a8e8",
-  pistoia: "#ffb703",
-  sassari: "#2b2d42",
-  trento: "#06a77d",
-  avellino: "#588157",
-  reggio_calabria: "#6a4c93",
-  cremona: "#264653",
-  brindisi: "#2d6a4f",
-  livorno: "#457b9d",
-  udine: "#1d3557",
-  caserta: "#14213d",
-  biella: "#bc6c25",
-  verona: "#e9c46a",
-  teramo: "#48cae4",
-  roseto: "#e63946",
-  tortona: "#606c38",
-  scafati: "#1b4332",
+  virtus_bologna: "#0A0A0A", // bianconero (alta)
+  olimpia_milano: "#953C2A", // biancorosso (alta)
+  canturina: "#0A1EAA", // biancoblu (alta)
+  treviso: "#27621F", // verde e bianco (alta)
+  varese: "#FEEB13", // gialloblù, epoca Ignis (media - doppia identità, vedi README)
+  siena: "#3ABE22", // bianco, verde e nero (alta)
+  venezia: "#6D2027", // orogranata (alta)
+  trieste: "#A31416", // biancorosso (media)
+  brescia: "#4B6DF2", // biancazzurro (media - club rifondato nel 2009)
+  pesaro: "#B22F45", // biancorosso (alta)
+  roma: "#411B1E", // giallorosso e blu - componente rosso (alta)
+  reggio_emilia: "#E14A2F", // biancorosso (alta)
+  fortitudo_bologna: "#0E1440", // biancoblu (alta)
+  napoli: "#196A94", // azzurro e bianco (alta)
+  pistoia: "#D05D47", // bianco e rosso (media)
+  sassari: "#124995", // biancoblu (alta)
+  trento: "#555A51", // bianconero (alta)
+  avellino: "#25C07E", // bianco, verde e arancione (media)
+  reggio_calabria: "#F78002", // nero e arancione - non viola (alta)
+  cremona: "#4B97F5", // bianco e blu (media)
+  brindisi: "#050E65", // biancoazzurro (alta)
+  livorno: "#6A3149", // bianco e amaranto (media)
+  udine: "#252529", // bianconero (alta)
+  caserta: "#373E39", // bianconero (alta)
+  biella: "#E62B48", // rosso e blu - componente rosso (alta)
+  verona: "#1225F0", // gialloblù - componente blu (alta)
+  teramo: "#EB1717", // biancorosso (alta)
+  roseto: "#5AB9ED", // biancazzurro (media)
+  tortona: "#534D56", // bianconero (alta)
+  scafati: "#F2BA40", // gialloblù (alta)
 };
 
 // sigle a 3 lettere stile 82-0 (no sponsor), definite insieme all'utente.

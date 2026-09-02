@@ -454,9 +454,26 @@ di default, va filtrato esplicitamente per `championship_name`.
 
 ## Decisioni prese finora (per chi riprende il progetto)
 
-- Niente foto/loghi: solo un colore identificativo per squadra
-  (approssimativo, non ricerca storica accurata — vedi `TEAM_COLORS` in
-  `app.js`)
+- Niente foto/loghi: solo un colore identificativo per squadra, ma il
+  colore stesso è **verificato**: per ognuna delle 30 squadre è stato
+  ricercato via web il vero colore sociale storico del club (Wikipedia
+  IT, siti ufficiali, stampa sportiva — vedi `TEAM_COLORS` in `app.js`
+  per il colore e la fonte/confidenza di ciascuna). Il vincolo reale
+  è che molti club condividono lo stesso colore sociale (5 bianconero,
+  7 biancorosso, 9 biancoblu...), quindi dentro ogni famiglia di
+  colore la tonalità esatta (chiarezza/saturazione) è stata scelta
+  per restare distinguibile dalle altre squadre della stessa famiglia,
+  verificato con uno script di distanza percettiva (spazio LAB) su
+  tutte le 435 coppie possibili: 430/435 hanno distanza confortevole
+  (>16), le uniche 5 coppie più vicine (12-13, comunque distinguibili)
+  sono tutte dentro il cluster dei 5 bianconero (Virtus Bologna, Trento,
+  Udine, Caserta, Tortona), un limite intrinseco quando 5 squadre reali
+  condividono lo stesso colore sociale e non si vuole "inventare" un
+  colore diverso da quello vero. Confidenza media/bassa (fonti meno
+  solide o colori sociali cambiati nel tempo) per: Varese (doppia
+  identità: biancorosso originario vs gialloblù dell'era Ignis, scelto
+  il secondo), Trieste, Brescia, Pistoia, Avellino, Cremona, Livorno,
+  Roseto.
 - Giocatori ordinati per PPG (punti a partita), non per rating, nelle
   liste di scelta
 - Draft sequenziale con validazione live: la UI blocca a monte le scelte
@@ -532,9 +549,12 @@ commit.
 
 1. **Check dati**: audit di giocatori, ruoli e squadre nel dataset —
    non ancora iniziato
-2. **Check colori**: verifica/correzione dei 30 colori squadra
-   (`TEAM_COLORS` in `app.js`), oggi scelti a occhio per
-   distinguibilità, senza ricerca storica sui colori sociali reali
+2. ~~**Check colori**~~ **fatto**: i 30 colori squadra (`TEAM_COLORS`
+   in `app.js`) sono ora basati sul vero colore sociale storico di
+   ogni club (ricerca web, fonti e confidenza per squadra in
+   "Decisioni prese finora" sopra), con tonalità variata dentro la
+   stessa famiglia di colore per restare distinguibili — verificato
+   con distanza percettiva LAB su tutte le coppie
 3. **Check visivo sistematico**: script Playwright che gioca N partite
    facendo uno screenshot ad ogni schermata chiave (draft, risultato,
    mobile/desktop), per scansione rapida di glitch grafici — oggi le

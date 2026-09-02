@@ -110,11 +110,15 @@ async function playOneGame(page, gameIndex, errors, mode) {
     }
   }
 
-  const finalNames = await page.$$eval(".lineup-row .who-name", (els) => els.map((e) => e.textContent.trim()));
-  if (finalNames.length !== 5) {
-    errors.push(`game ${gameIndex} [${mode}]: quintetto finale con ${finalNames.length} giocatori invece di 5`);
-  } else if (new Set(finalNames).size !== 5) {
-    errors.push(`game ${gameIndex} [${mode}]: doppione nel quintetto finale - ${JSON.stringify(finalNames)}`);
+  // id reali, non il nome abbreviato mostrato a schermo (".who-name" e'
+  // "N. Cognome": nel dataset ci sono giocatori reali distinti che
+  // condividono la stessa sigla, es. due "D. Taylor" diversi - un
+  // controllo per nome darebbe un falso doppione)
+  const finalIds = await page.evaluate(() => slots.map((s) => s.pick.player.player_id));
+  if (finalIds.length !== 5) {
+    errors.push(`game ${gameIndex} [${mode}]: quintetto finale con ${finalIds.length} giocatori invece di 5`);
+  } else if (new Set(finalIds).size !== 5) {
+    errors.push(`game ${gameIndex} [${mode}]: doppione nel quintetto finale - ${JSON.stringify(finalIds)}`);
   }
 
   await page.click("#btn-change-mode");

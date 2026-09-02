@@ -411,6 +411,22 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
    (`app.js`), UI ora mostra solo sigla + decade compatta, mai il nome
    completo
 5. Ruoli multipli adiacenti in base all'altezza (arricchire `ROLE_RANKS`
-   invece del rank fisso per etichetta)
+   invece del rank fisso per etichetta): "Play alto"->Guardia,
+   "Guardia alta"->Ala, "Ala alta"->Centro, come eccezione aggiuntiva
+   per singolo giocatore, non come cambio di categoria. Non è solo
+   estetica: 153 dei 754 giocatori taggati "Ala" nel dataset sono alti
+   205cm+, quanto il quartile più basso dei "Centro" veri (mediana
+   Centro 207cm, mediana Ala/Centro 206cm) - le tag legabasket sono un
+   po' incoerenti tra squadre in quella fascia. Soglie da scegliere sui
+   percentili reali per transizione, non a occhio
 6. Verifica/correzione manuale dei colori squadra (30 colori scelti
    senza ricerca storica accurata, solo per distinguibilità visiva)
+7. Scelta delle decadi giocabili a inizio partita (almeno 2, per chi
+   vuole escludere es. gli anni '90 che non conosce): quasi "gratis"
+   architetturalmente, basta filtrare `ALL_TEAM_SEASONS` alle decadi
+   scelte prima di chiamare `computeCeiling()` - curva e tetto si
+   riadattano da soli sul sottoinsieme, e' l'intero motivo per cui sono
+   calcolati a runtime. Da validare solo che pool piccoli (es. sole
+   anni 2020) diano numeri ancora sensati
+8. Modalità "hard": statistiche nascoste nel draft, giocatori ordinati
+   per cognome invece che per PPG - tocca solo la UI, non il motore

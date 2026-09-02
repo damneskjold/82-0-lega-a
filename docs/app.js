@@ -110,12 +110,42 @@ const DECADE_LABELS = {
   "anni 2020": "'20s",
 };
 
-// Formula tarata a mano sugli esempi discussi con l'utente
-const MID = 44.7;
-const K = 0.04925;
+// Formula tarata a mano sugli esempi discussi con l'utente.
+// MID = rating di una squadra "media" (5 giocatori-tipo) -> 15/30 vittorie.
+// Non e' ricavato dal dataset: e' un ancoraggio concettuale ("cosa deve
+// sembrare un record da 0.500"), tenuto fisso finche' non si ha un motivo
+// concreto per spostarlo (oggi coincide comunque con la mediana reale,
+// ~42.9 sul dataset attuale).
+const MID = 43;
+
+// CEILING = tetto teorico: somma del miglior rating_lega per ciascuno dei
+// 5 rank, su tutte le squadre/decadi del dataset caricato. Calcolato in
+// runtime da computeCeiling() dopo loadData(), NON hardcoded: e' il
+// numero che si "sfasava" ogni volta che si aggiungevano squadre (da
+// 127.5 con le prime 11 squadre a 151.6 con tutte e 30, mai ritarato nel
+// frattempo) - calcolandolo dal dataset invece che scrivendolo a mano
+// il problema non si ripresenta piu' da solo quando il roster cresce.
+let CEILING = 0;
+// PERFECTION_BAND: sopra questa frazione del tetto, il risultato e'
+// sempre 30-0 - la "zona di perfezione" di un pugno di quintetti vicini
+// al meglio possibile, invece di un plateau che capita per caso vicino
+// al tetto (comportamento naturale di qualunque sigmoide, altrimenti).
+const PERFECTION_BAND = 0.97;
+let PERFECTION_THRESHOLD = 0;
+// K: calibrato (vedi computeK) perche' la sigmoide raggiunga circa 29.5
+// vittorie appena sotto PERFECTION_THRESHOLD, cosi' il passaggio alla
+// zona di perfezione resta morbido invece che un gradino.
+let K = 0;
+
 const REF_TEAM = { points: 43.33, rebounds: 4.87 + 11.94, assists: 6.54, steals: 5.43, blocks: 1.14 };
 const PEN_THRESH = 0.5;
 const PEN_SCALE = 15;
+// le stoppate sono concentrate quasi solo nei centri (il 30% dei
+// giocatori eleggibili ne fa praticamente zero, contro <2% delle altre
+// categorie): pesarle come le altre penalizzava quintetti forti solo
+// perche' non avevano un centro-stoppatore, non perche' fossero davvero
+// sbilanciati. Pesate al 25%, le altre 4 categorie al 100%.
+const PEN_WEIGHTS = { points: 1, rebounds: 1, assists: 1, steals: 1, blocks: 0.25 };
 
 let ALL_TEAM_SEASONS = [];
 let currentDraw = []; // 5 team-season objects, in ordine di rivelazione
@@ -124,6 +154,29 @@ let slots = []; // 5 slot: { id, type, rank, pick: null | {player, teamSeason} }
 let selected = null; // giocatore selezionato in attesa di uno slot: { player, teamSeason, legalIds }
 
 const $ = (sel) => document.querySelector(sel);
+
+// tetto teorico: il miglior rating_lega disponibile per ciascuno dei 5
+// rank, sommato. Va chiamata dopo aver popolato ALL_TEAM_SEASONS.
+function computeCeiling() {
+  const bestByRank = {};
+  for (const ts of ALL_TEAM_SEASONS) {
+    for (const p of ts.players) {
+      const ranks = ROLE_RANKS[p.role] || [];
+      const rl = Number(p.rating_lega || 0);
+      for (const r of ranks) {
+        if (!(r in bestByRank) || rl > bestByRank[r]) bestByRank[r] = rl;
+      }
+    }
+  }
+  return Object.values(bestByRank).reduce((a, b) => a + b, 0);
+}
+
+// K tale per cui, appena sotto la soglia della zona di perfezione, la
+// sigmoide valga circa targetWins (29) invece di saltare direttamente a
+// 30 - vedi la spiegazione a PERFECTION_BAND sopra.
+function computeK(threshold, mid, targetWins) {
+  return -Math.log(30 / targetWins - 1) / (threshold - mid);
+}
 
 async function loadData() {
   const res = await fetch("data/dataset.json");
@@ -142,6 +195,10 @@ async function loadData() {
     }
   }
   ALL_TEAM_SEASONS = flat;
+
+  CEILING = computeCeiling();
+  PERFECTION_THRESHOLD = CEILING * PERFECTION_BAND;
+  K = computeK(PERFECTION_THRESHOLD, MID, 29.5);
 }
 
 function drawFive() {
@@ -306,7 +363,10 @@ function renderRound() {
 
 function evaluateLineup(chosen) {
   const teamRating = chosen.reduce((sum, p) => sum + Number(p.rating_lega || 0), 0);
-  const winsRaw = 30 / (1 + Math.exp(-K * (teamRating - MID)));
+  // curva a due tratti: sopra la soglia di perfezione sempre 30-0 (un
+  // pugno di quintetti vicinissimi al tetto teorico), sotto la sigmoide
+  // di sempre - vedi PERFECTION_BAND
+  const winsRaw = teamRating >= PERFECTION_THRESHOLD ? 30 : 30 / (1 + Math.exp(-K * (teamRating - MID)));
 
   const cats = {
     points: chosen.reduce((s, p) => s + Number(p.points_avg || 0), 0),
@@ -317,15 +377,20 @@ function evaluateLineup(chosen) {
   };
   const ratios = {};
   for (const k of Object.keys(cats)) ratios[k] = cats[k] / REF_TEAM[k];
-  let weakCat = null;
-  let weakRatio = Infinity;
-  for (const k of Object.keys(ratios)) {
-    if (ratios[k] < weakRatio) { weakRatio = ratios[k]; weakCat = k; }
-  }
-  const penalty = Math.max(0, PEN_THRESH - weakRatio) * PEN_SCALE;
+
+  // squilibrio complessivo: somma pesata degli scarti sotto soglia su
+  // TUTTE le categorie (non solo la peggiore) - un quintetto debole in
+  // 2 categorie pesa piu' di uno debole in 1 sola
+  const weakCats = Object.keys(ratios)
+    .filter((k) => ratios[k] < PEN_THRESH)
+    .sort((a, b) => ratios[a] - ratios[b]);
+  const penalty = PEN_SCALE * Object.keys(ratios).reduce(
+    (sum, k) => sum + PEN_WEIGHTS[k] * Math.max(0, PEN_THRESH - ratios[k]),
+    0
+  );
   const winsFinal = Math.max(0, Math.min(30, Math.round(winsRaw - penalty)));
 
-  return { teamRating, winsRaw, cats, ratios, weakCat, weakRatio, penalty, winsFinal };
+  return { teamRating, winsRaw, cats, ratios, weakCats, penalty, winsFinal };
 }
 
 const CAT_LABELS = { points: "Punti", rebounds: "Rimbalzi", assists: "Assist", steals: "Recuperate", blocks: "Stoppate" };
@@ -426,7 +491,7 @@ function showResult() {
   const breakdownEl = $("#result-breakdown");
   breakdownEl.innerHTML = Object.keys(result.cats)
     .map((k) => {
-      const weak = k === result.weakCat && result.ratios[k] < PEN_THRESH;
+      const weak = result.weakCats.includes(k);
       return `<div class="stat-box ${weak ? "weak" : ""}">
         <div class="val">${result.cats[k].toFixed(1)}</div>
         <div class="label">${CAT_LABELS[k]}</div>
@@ -436,7 +501,8 @@ function showResult() {
 
   const noteEl = $("#result-note");
   if (result.penalty > 0.05) {
-    noteEl.textContent = `Squadra sbilanciata: ${CAT_LABELS[result.weakCat]} troppo bassi (${Math.round(result.ratios[result.weakCat] * 100)}% della media di lega) → -${result.penalty.toFixed(1)} vittorie stimate`;
+    const parts = result.weakCats.map((k) => `${CAT_LABELS[k]} (${Math.round(result.ratios[k] * 100)}%)`);
+    noteEl.textContent = `Squadra sbilanciata: ${parts.join(", ")} sotto la media di lega → -${result.penalty.toFixed(1)} vittorie stimate`;
   } else {
     noteEl.textContent = "";
   }

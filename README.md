@@ -193,23 +193,56 @@ inventato una formula di rating nostra).
 
 ```
 team_rating = somma dei rating_lega dei 5 giocatori scelti
-wins_raw    = 30 / (1 + e^(-K * (team_rating - MID)))
 ```
 
-- `MID = 44.7`: rating di una squadra "media" (5 giocatori-tipo) → 15/30 vittorie
-- `K = 0.04925`: calibrato in modo che il miglior quintetto teoricamente
-  possibile **nel dataset di allora** (127.5 di rating) arrivasse esattamente
-  a 30/30
+**Curva a due tratti** (non più una sigmoide singola): sopra una soglia
+il risultato è sempre 30-0, sotto è una sigmoide calibrata.
+
+```
+CEILING              = miglior rating_lega per ciascuno dei 5 rank, sommato
+                        (calcolato a runtime da computeCeiling() dopo il
+                        caricamento del dataset — vedi sotto il perché)
+PERFECTION_THRESHOLD = CEILING * PERFECTION_BAND        (PERFECTION_BAND = 0.97)
+wins_raw = 30                                            se team_rating >= PERFECTION_THRESHOLD
+wins_raw = 30 / (1 + e^(-K * (team_rating - MID)))       altrimenti
+```
+
+- `MID = 43`: rating di una squadra "media" → 15/30 vittorie. Ancoraggio
+  concettuale tenuto fisso, non ricavato dal dataset (coincide comunque
+  con la mediana reale, ~42.9 sul dataset attuale)
+- `PERFECTION_BAND = 0.97`: sopra il 97% del tetto teorico, sempre
+  30-0 — un pugno di quintetti vicinissimi al meglio possibile, non un
+  plateau che capita per caso vicino al tetto (comportamento naturale di
+  qualunque sigmoide, se non lo si rende esplicito)
+- `K`: calcolato da `computeK()` perché la sigmoide valga ~29.5 appena
+  sotto `PERFECTION_THRESHOLD`, così il passaggio alla zona di perfezione
+  resta morbido invece che un gradino
+
+**`CEILING` è calcolato a runtime dal dataset caricato, non scritto a
+mano.** Prima era una costante fissa (127.5, poi 151.6) che si "sfasava"
+ogni volta che si aggiungevano squadre senza essere ricalcolata — è
+successo davvero: da 11 a 30 squadre il tetto vero è salito di ~19% ma
+`K`/`MID` sono rimasti quelli di prima, rendendo il gioco via via più
+facile senza che nessuno se ne accorgesse finché non è diventato troppo
+evidente. Calcolandolo dal dataset invece che scrivendolo a mano, il
+problema non si ripresenta più da solo quando il roster cresce ancora.
 
 **Penalità sbilanciamento**: si sommano 5 categorie base (punti, rimbalzi,
 assist, palle recuperate, stoppate) sui 5 giocatori, si confrontano con la
-media di lega (`REF_TEAM` in `app.js`), e se la categoria più debole scende
-sotto il 50% della media (`PEN_THRESH`) si applica una penalità
-(`PEN_SCALE = 15`, proporzionale a quanto si è sotto soglia).
+media di lega (`REF_TEAM` in `app.js`). A differenza di prima (guardava
+solo la categoria più debole), ora si somma lo scarto sotto soglia di
+**tutte** le categorie che ci finiscono sotto, pesate (`PEN_WEIGHTS`):
+punti/rimbalzi/assist/recuperate al 100%, **stoppate al 25%** — sono
+concentrate quasi solo nei centri (il 30% dei giocatori eleggibili ne fa
+praticamente zero, contro <2% delle altre categorie: pesarle uguale
+penalizzava quintetti forti solo perché senza un centro-stoppatore, non
+perché davvero sbilanciati).
 
-⚠️ **Da ritarare.** `MID`, `K` e le penalità sono tarati sul vecchio modello
-a stagioni singole e su un dataset più piccolo. Vanno ricalibrati **insieme**,
-non separatamente, e solo dopo che il roster finale di squadre è chiuso.
+```
+penalty = PEN_SCALE * Σ PEN_WEIGHTS[categoria] * max(0, PEN_THRESH - ratio[categoria])
+```
+
+`PEN_THRESH = 0.5` (soglia) e `PEN_SCALE = 15` invariati.
 
 Tutte le costanti vivono in `docs/app.js` (frontend, la copia che conta per
 il gioco pubblicato).
@@ -295,8 +328,6 @@ di default, va filtrato esplicitamente per `championship_name`.
 
 ## Debito noto
 
-- **2 forzature TEMP** attive in `drawFive()` (Olimpia e Bologna sempre nel
-  draw, per le prove utente): da rimuovere prima del merge su `main`
 - `check_lineup_complete()` in `scrape_dataset.py` usa ancora il vecchio
   `ROLE_ALIASES` ("1 PM + 1 C + 3 mobili"), non i rank del frontend: oggi
   nessuna carta è incoerente (tutte e 46 coprono i 5 rank), ma è un

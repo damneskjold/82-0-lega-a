@@ -550,13 +550,19 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
    verifiche visive restano manuali/ad-hoc. Glitch già segnalati
    dall'utente su mobile stretto:
    - ~~colonna "B" (stoppate) tagliata a destra, esce dal viewport~~ —
-     fatto: causa reale era `grid-template-columns: 1fr` su
+     fatto in due passi. Prima causa: `grid-template-columns: 1fr` su
      `.draft-layout`/`.result-layout`/`.mode-tiles` in mobile, senza il
      `minmax(0, ...)` esplicito una colonna grid non si restringe mai
      sotto la larghezza "naturale" del contenuto, quindi il
-     troncamento con ellissi già pronto su `.player-info` non scattava
-     mai. Verificato: 0 overflow orizzontale a 320px (iPhone SE, il
-     caso più stretto), stessa squadra (PES) dello screenshot originale
+     troncamento con ellissi non scattava mai (fix: `minmax(0, 1fr)`).
+     Ma l'ellissi stessa era il problema successivo, segnalato
+     dall'utente confrontando con 82-0 ("impossibile non leggere il
+     nome di un giocatore" lì): **mai più troncato con ellissi**,
+     `.player-name` ora va a capo su più righe se serve
+     (`overflow-wrap: break-word` anche per i rari cognomi lunghi che
+     da soli non ci starebbero su una riga). Verificato: 25 partite a
+     320px (iPhone SE, il caso più stretto), ~625 nomi diversi, 0px di
+     overflow orizzontale su qualunque nome
    - ~~l'ultima riga della lista giocatori finisce dietro il pannello
      slot fisso in fondo allo schermo~~ — verificato che era già
      risolto, effetto collaterale dell'header più snello durante il

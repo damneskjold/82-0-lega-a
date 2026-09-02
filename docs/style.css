@@ -403,9 +403,13 @@ body {
 }
 .player-name {
   font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* mai troncato con ellissi: il nome deve restare sempre leggibile
+     per intero (come 82-0) - va a capo su piu' righe se serve invece
+     di perdere caratteri, la riga si allunga di conseguenza.
+     overflow-wrap per i rari cognomi lunghi che da soli non ci
+     starebbero su una riga (es. "Charalampopoulos") anche a capo */
+  line-height: 1.25;
+  overflow-wrap: break-word;
 }
 .player-role {
   color: var(--muted);

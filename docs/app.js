@@ -110,14 +110,6 @@ const DECADE_LABELS = {
   "anni 2020": "'20s",
 };
 
-// Formula tarata a mano sugli esempi discussi con l'utente.
-// MID = rating di una squadra "media" (5 giocatori-tipo) -> 15/30 vittorie.
-// Non e' ricavato dal dataset: e' un ancoraggio concettuale ("cosa deve
-// sembrare un record da 0.500"), tenuto fisso finche' non si ha un motivo
-// concreto per spostarlo (oggi coincide comunque con la mediana reale,
-// ~42.9 sul dataset attuale).
-const MID = 43;
-
 // CEILING = tetto teorico: somma del miglior rating_lega per ciascuno dei
 // 5 rank, su tutte le squadre/decadi del dataset caricato. Calcolato in
 // runtime da computeCeiling() dopo loadData(), NON hardcoded: e' il
@@ -126,6 +118,16 @@ const MID = 43;
 // frattempo) - calcolandolo dal dataset invece che scrivendolo a mano
 // il problema non si ripresenta piu' da solo quando il roster cresce.
 let CEILING = 0;
+// MID = rating che vale 15/30 vittorie (record da 0.500). NON e' piu'
+// ancorato al "giocatore a caso per ruolo" (rating mediano, ~43): a
+// quel livello la sigmoide risultava gia' quasi satura per una
+// selezione semplicemente attenta (non ottimale) ai rating visibili,
+// che raggiunge da sola ~104 di rating (~68% del tetto) e quindi quasi
+// sempre 26+ vittorie. MID_FRACTION sposta l'ancoraggio a "una buona
+// selezione ma non ottimale", cosi' il .500 rappresenta uno sforzo
+// onesto e non il minimo sindacale.
+const MID_FRACTION = 0.65;
+let MID = 0;
 // PERFECTION_BAND: sopra questa frazione del tetto, il risultato e'
 // sempre 30-0 - la "zona di perfezione" di un pugno di quintetti vicini
 // al meglio possibile, invece di un plateau che capita per caso vicino
@@ -198,6 +200,7 @@ async function loadData() {
 
   CEILING = computeCeiling();
   PERFECTION_THRESHOLD = CEILING * PERFECTION_BAND;
+  MID = CEILING * MID_FRACTION;
   K = computeK(PERFECTION_THRESHOLD, MID, 29.5);
 }
 
@@ -397,11 +400,11 @@ const CAT_LABELS = { points: "Punti", rebounds: "Rimbalzi", assists: "Assist", s
 
 // livello qualitativo della squadra, in stile "voto + nome tier" (vedi 82-0)
 const TIERS = [
-  { min: 27, letter: "S", label: "Corazzata", color: "#f59e0b" },
-  { min: 23, letter: "A", label: "Pretendente scudetto", color: "#4ade80" },
+  { min: 29, letter: "S", label: "Corazzata", color: "#f59e0b" },
+  { min: 24, letter: "A", label: "Pretendente scudetto", color: "#4ade80" },
   { min: 18, letter: "B", label: "Squadra da playoff", color: "#60a5fa" },
-  { min: 13, letter: "C", label: "Salvezza tranquilla", color: "#a78bfa" },
-  { min: 8, letter: "D", label: "Zona playout", color: "#fb923c" },
+  { min: 11, letter: "C", label: "Salvezza tranquilla", color: "#a78bfa" },
+  { min: 5, letter: "D", label: "Zona playout", color: "#fb923c" },
   { min: 0, letter: "E", label: "Ultima in classifica", color: "#f87171" },
 ];
 function tierFor(wins) {

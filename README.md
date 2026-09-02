@@ -207,9 +207,19 @@ wins_raw = 30                                            se team_rating >= PERFE
 wins_raw = 30 / (1 + e^(-K * (team_rating - MID)))       altrimenti
 ```
 
-- `MID = 43`: rating di una squadra "media" → 15/30 vittorie. Ancoraggio
-  concettuale tenuto fisso, non ricavato dal dataset (coincide comunque
-  con la mediana reale, ~42.9 sul dataset attuale)
+- `MID = CEILING * MID_FRACTION` (`MID_FRACTION = 0.65`): rating che vale
+  15/30 vittorie. **Non** è più ancorato al "giocatore a caso per ruolo"
+  (rating mediano, ~43 sul dataset attuale): a quel livello la sigmoide
+  risultava già quasi satura per una selezione semplicemente attenta ai
+  rating visibili (non ottimale, senza pianificare i turni), che da sola
+  raggiunge in media ~104 di rating (~68% del tetto) — quindi quasi
+  sempre 26+ vittorie anche senza cercare le squadre migliori, il
+  problema segnalato dall'utente dopo il primo retune. Spostando
+  l'ancoraggio a "una buona selezione ma non ottimale" (65% del tetto),
+  quello stesso sforzo onesto produce una mediana di ~18-19 vittorie
+  (playoff, non scudetto) — verificato simulando 3000 draft con
+  strategia "prendo sempre il rating più alto visibile": mediana 19,
+  p90 25, **1 sola volta su 3000 in tier S**
 - `PERFECTION_BAND = 0.97`: sopra il 97% del tetto teorico, sempre
   30-0 — un pugno di quintetti vicinissimi al meglio possibile, non un
   plateau che capita per caso vicino al tetto (comportamento naturale di
@@ -218,14 +228,15 @@ wins_raw = 30 / (1 + e^(-K * (team_rating - MID)))       altrimenti
   sotto `PERFECTION_THRESHOLD`, così il passaggio alla zona di perfezione
   resta morbido invece che un gradino
 
-**`CEILING` è calcolato a runtime dal dataset caricato, non scritto a
-mano.** Prima era una costante fissa (127.5, poi 151.6) che si "sfasava"
-ogni volta che si aggiungevano squadre senza essere ricalcolata — è
-successo davvero: da 11 a 30 squadre il tetto vero è salito di ~19% ma
-`K`/`MID` sono rimasti quelli di prima, rendendo il gioco via via più
-facile senza che nessuno se ne accorgesse finché non è diventato troppo
-evidente. Calcolandolo dal dataset invece che scrivendolo a mano, il
-problema non si ripresenta più da solo quando il roster cresce ancora.
+**`CEILING` e `MID` sono calcolati a runtime dal dataset caricato, non
+scritti a mano.** `CEILING` prima era una costante fissa (127.5, poi
+151.6) che si "sfasava" ogni volta che si aggiungevano squadre senza
+essere ricalcolata — è successo davvero: da 11 a 30 squadre il tetto
+vero è salito di ~19% ma `K`/`MID` sono rimasti quelli di prima,
+rendendo il gioco via via più facile senza che nessuno se ne
+accorgesse finché non è diventato troppo evidente. Calcolandoli dal
+dataset invece che scrivendoli a mano, il problema non si ripresenta
+più da solo quando il roster cresce ancora.
 
 **Penalità sbilanciamento**: si sommano 5 categorie base (punti, rimbalzi,
 assist, palle recuperate, stoppate) sui 5 giocatori, si confrontano con la
@@ -379,7 +390,10 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
 2. Pesca a due passaggi in `drawFive()` (prima la squadra, poi la carta
    al suo interno) invece della pesca piatta attuale che favorisce le
    squadre con più carte — vedi sopra
-3. Ritarare **insieme** penalità, `MID` e `K`, a roster chiuso
+3. ~~Ritarare insieme penalità, `MID` e `K`~~ — fatto: curva a due
+   tratti con `CEILING`/`MID` calcolati a runtime, penalità pesata
+   multi-categoria, poi un secondo giro (`MID_FRACTION`) dopo il
+   feedback "troppo facile" col roster completo
 4. ~~Sigle squadra stile 82-0~~ — fatto, tutte le 30 in `TEAM_ABBR`
    (`app.js`), UI ora mostra solo sigla + decade compatta, mai il nome
    completo

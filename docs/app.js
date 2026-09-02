@@ -8,8 +8,8 @@
 // due rank adiacenti. Un giocatore puo' scivolare al massimo di una posizione
 // (es. Guardia/Ala copre Guardia e Ala Piccola, ma mai Centro o Playmaker).
 // "Ala" pura copre sia Ala Piccola che Ala Grande perche' i dati di legabasket
-// non distinguono le due (nessuna stima da altezza fatta per questo, solo per i
-// ruoli mancanti come gia' documentato).
+// non distinguono le due. Questi 7 ruoli (4 puri + 3 ibridi) sono il campo
+// `role` originale di legabasket, non una nostra stima.
 const ROLE_RANKS = {
   "Playmaker": [1],
   "Play/Guardia": [1, 2],
@@ -20,6 +20,29 @@ const ROLE_RANKS = {
   "Centro": [5],
 };
 
+// Un giocatore di ruolo PURO (non gia' ibrido) alto abbastanza guadagna
+// anche il rank adiacente superiore, come se fosse un ibrido "per quel
+// singolo giocatore" (non e' un'opzione: e' cosi' che gira il gioco).
+// Soglie scelte insieme sui percentili di altezza reali del dataset, non a
+// occhio - vedi README, sezione Ruoli. Solo +1 rank verso l'alto, mai in
+// giu', e mai sui ruoli gia' ibridi (evita la complessita' di un giocatore
+// a 3 rank tipo "playmaker alto quanto un centro").
+const HEIGHT_RANK_EXTENSION = {
+  "Playmaker": { minHeight: 192, extraRank: 2 },
+  "Guardia": { minHeight: 196, extraRank: 3 },
+  "Ala": { minHeight: 204, extraRank: 5 },
+};
+
+// rank legali per un giocatore: quelli del suo ruolo, piu' l'eventuale rank
+// extra per altezza se extendByHeight e' true.
+function ranksFor(player, extendByHeight) {
+  const base = ROLE_RANKS[player.role] || [];
+  if (!extendByHeight) return base;
+  const ext = HEIGHT_RANK_EXTENSION[player.role];
+  if (!ext || !player.height || player.height < ext.minHeight) return base;
+  return base.includes(ext.extraRank) ? base : [...base, ext.extraRank];
+}
+
 // i 5 slot del quintetto, ciascuno con la propria posizione (rank) specifica
 const SLOT_DEFS = [
   { id: "playmaker", type: "playmaker", label: "Playmaker", short: "PM", rank: 1 },
@@ -28,6 +51,18 @@ const SLOT_DEFS = [
   { id: "wing3", type: "wing", label: "Ala Grande", short: "AG", rank: 4 },
   { id: "centro", type: "centro", label: "Centro", short: "C", rank: 5 },
 ];
+
+// sigla (PM/G/AP/AG/C) del rank piu' alto, per mostrare nell'interfaccia
+// sempre e solo la sigla - mai il nome/tag completo di legabasket (es.
+// "Ala/Centro"), mai una coppia di rank. Tiene conto sia dei tag ibridi
+// ufficiali sia dell'estensione per altezza: una Guardia estesa mostra
+// "AP", un'Ala estesa mostra "C" - il giocatore "diventa" la posizione
+// piu' alta che puo' coprire.
+const RANK_SHORT = Object.fromEntries(SLOT_DEFS.map((d) => [d.rank, d.short]));
+function roleSiglaFor(player) {
+  const ranks = ranksFor(player, heightRulesEnabled);
+  return RANK_SHORT[Math.max(...ranks)];
+}
 
 // colore identificativo per squadra (approssimativo, solo per riconoscibilità visiva)
 const TEAM_COLORS = {
@@ -163,16 +198,26 @@ let currentDraw = []; // 5 team-season objects, in ordine di rivelazione
 let roundIndex = 0;
 let slots = []; // 5 slot: { id, type, rank, pick: null | {player, teamSeason} }
 let selected = null; // giocatore selezionato in attesa di uno slot: { player, teamSeason, legalIds }
+// SEMPRE true nel gioco spedito: le regole "as is" (false) restano
+// raggiungibili in codice (computeCeiling/recomputeCurve/ranksFor
+// accettano tutte il parametro), ma non sono un'opzione per chi gioca -
+// non c'e' un doppio dataset, e' la stessa unica sorgente dati con due
+// modi di leggerla, uno dei quali e' quello che gira davvero.
+let heightRulesEnabled = true;
 
 const $ = (sel) => document.querySelector(sel);
 
 // tetto teorico: il miglior rating_lega disponibile per ciascuno dei 5
-// rank, sommato. Va chiamata dopo aver popolato ALL_TEAM_SEASONS.
-function computeCeiling() {
+// rank, sommato. Va chiamata dopo aver popolato ALL_TEAM_SEASONS. Dipende
+// da extendByHeight perche' con i ruoli estesi un rank puo' avere un
+// candidato migliore (es. un'ala molto alta col rating piu' alto di ogni
+// centro puro) - il tetto va ricalcolato per lo stesso motivo per cui e'
+// dinamico sul roster: non deve sfasarsi rispetto alle regole attive.
+function computeCeiling(extendByHeight) {
   const bestByRank = {};
   for (const ts of ALL_TEAM_SEASONS) {
     for (const p of ts.players) {
-      const ranks = ROLE_RANKS[p.role] || [];
+      const ranks = ranksFor(p, extendByHeight);
       const rl = Number(p.rating_lega || 0);
       for (const r of ranks) {
         if (!(r in bestByRank) || rl > bestByRank[r]) bestByRank[r] = rl;
@@ -180,6 +225,16 @@ function computeCeiling() {
     }
   }
   return Object.values(bestByRank).reduce((a, b) => a + b, 0);
+}
+
+// ricalcola CEILING/PERFECTION_THRESHOLD/MID/K per le regole attive in
+// questo momento (chiamata dopo il caricamento dati con le regole di
+// default, e di nuovo ad ogni "Genera sfida" con lo stato scelto in home).
+function recomputeCurve(extendByHeight) {
+  CEILING = computeCeiling(extendByHeight);
+  PERFECTION_THRESHOLD = CEILING * PERFECTION_BAND;
+  MID = CEILING * MID_FRACTION;
+  K = computeK(PERFECTION_THRESHOLD, MID, 29.5);
 }
 
 // K tale per cui, appena sotto la soglia della zona di perfezione, la
@@ -206,11 +261,7 @@ async function loadData() {
     }
   }
   ALL_TEAM_SEASONS = flat;
-
-  CEILING = computeCeiling();
-  PERFECTION_THRESHOLD = CEILING * PERFECTION_BAND;
-  MID = CEILING * MID_FRACTION;
-  K = computeK(PERFECTION_THRESHOLD, MID, 29.5);
+  recomputeCurve(heightRulesEnabled);
 }
 
 function drawFive() {
@@ -248,9 +299,10 @@ function startDraft() {
 
 // Determina in quali slot (per id) puo' essere messo un giocatore, dato lo stato attuale.
 // Ogni slot ha un rank fisso (1=playmaker...5=centro); il ruolo del giocatore copre uno o
-// due rank adiacenti (ROLE_RANKS) - legale solo se il rank dello slot e' tra quelli coperti.
+// due rank adiacenti (ranksFor, eventualmente esteso per altezza) - legale solo se il
+// rank dello slot e' tra quelli coperti.
 function legalSlotIdsFor(player) {
-  const ranks = ROLE_RANKS[player.role] || [];
+  const ranks = ranksFor(player, heightRulesEnabled);
   const legal = [];
   for (const s of slots) {
     if (s.pick) continue;
@@ -353,7 +405,7 @@ function renderRound() {
     row.innerHTML = `
       <div class="player-info">
         <div class="player-name">${p.name} ${p.surname}</div>
-        <div class="player-role">${alreadyPicked ? "Già nel tuo quintetto" : p.role}</div>
+        <div class="player-role">${alreadyPicked ? "Già nel tuo quintetto" : roleSiglaFor(p)}</div>
       </div>
       <div class="player-stats">
         <div class="stat-col">${p.points_avg.toFixed(1)}</div>

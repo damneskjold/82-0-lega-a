@@ -29,55 +29,56 @@ try {
 const GAMES = parseInt(process.argv[2] || "20", 10);
 const URL = process.argv[3] || "http://localhost:8899";
 
-const ROLE_RANKS = {
-  Playmaker: [1],
-  "Play/Guardia": [1, 2],
-  Guardia: [2],
-  "Guardia/Ala": [2, 3],
-  Ala: [3, 4],
-  "Ala/Centro": [4, 5],
-  Centro: [5],
-};
 const SLOT_RANK_BY_SHORT = { PM: 1, G: 2, AP: 3, AG: 4, C: 5 };
 
 async function playOneGame(page, gameIndex, errors) {
   await page.click("#btn-start");
   await page.waitForSelector("#screen-draft:not([hidden])");
 
-  const pickedRoles = []; // { slotShort, role }
   for (let round = 1; round <= 5; round++) {
     await page.waitForSelector(".player-row", { timeout: 5000 });
 
-    const rows = await page.$$eval(".player-row", (els) =>
-      els.map((el, i) => ({
-        i,
-        name: el.querySelector(".player-name")?.textContent.trim(),
-        role: el.querySelector(".player-role")?.textContent.trim(),
-        disabled: el.classList.contains("disabled"),
-      }))
-    );
-    const target = rows.find((r) => !r.disabled);
+    // riga -> vero oggetto giocatore, nello stesso ordine con cui il gioco li
+    // renderizza (per points_avg desc, vedi renderRound in app.js), cosi' la
+    // legalita' si verifica con la stessa fonte di verita' del gioco
+    // (ranksFor, esposta su window essendo una function declaration) invece
+    // di re-implementare qui la logica dei ruoli/soglie altezza - altrimenti
+    // il test si disallinea ogni volta che quella logica cambia
+    const rowData = await page.evaluate(() => {
+      const ts = currentDraw[roundIndex];
+      const pickedIds = new Set(slots.filter((s) => s.pick).map((s) => s.pick.player.player_id));
+      const openRanks = new Set(slots.filter((s) => !s.pick).map((s) => s.rank));
+      return [...ts.players]
+        .sort((a, b) => b.points_avg - a.points_avg)
+        .map((p) => {
+          const ranks = pickedIds.has(p.player_id) ? [] : ranksFor(p, heightRulesEnabled);
+          const hasOpenSlot = ranks.some((r) => openRanks.has(r));
+          return { name: `${p.name} ${p.surname}`, disabled: !hasOpenSlot, ranks };
+        });
+    });
+
+    const target = rowData.find((r) => !r.disabled);
     if (!target) {
       errors.push(`game ${gameIndex} round ${round}: nessuna riga selezionabile (soft lock)`);
       return;
     }
 
-    await page.locator(".player-row").nth(target.i).click();
+    const rowIndex = rowData.indexOf(target);
+    await page.locator(".player-row").nth(rowIndex).click();
     await page.waitForSelector(".slot-box.legal", { timeout: 3000 });
     const legalShorts = await page.$$eval(".slot-box.legal .lbl-short", (els) => els.map((e) => e.textContent.trim()));
 
-    // il ruolo del giocatore deve coprire almeno uno dei rank degli slot legali mostrati
-    const playerRanks = ROLE_RANKS[target.role] || [];
-    const legalRanks = legalShorts.map((s) => SLOT_RANK_BY_SHORT[s]);
-    const overlap = legalRanks.some((r) => playerRanks.includes(r));
+    // gli slot mostrati come legali devono corrispondere esattamente ai
+    // rank del giocatore secondo ranksFor()
+    const legalRanks = legalShorts.map((s) => SLOT_RANK_BY_SHORT[s]).sort();
+    const overlap = legalRanks.length > 0 && legalRanks.every((r) => target.ranks.includes(r));
     if (!overlap) {
       errors.push(
-        `game ${gameIndex} round ${round}: ${target.name} (ruolo ${target.role}) mostrato legale per slot ${legalShorts.join(",")} ma nessun rank combacia`
+        `game ${gameIndex} round ${round}: ${target.name} (rank ${JSON.stringify(target.ranks)}) mostrato legale per slot ${legalShorts.join(",")} (rank ${JSON.stringify(legalRanks)}) - non combaciano`
       );
     }
 
     await page.locator(".slot-box.legal").first().click();
-    pickedRoles.push({ name: target.name, role: target.role });
 
     if (round < 5) {
       await page.waitForFunction(

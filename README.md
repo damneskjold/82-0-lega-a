@@ -185,6 +185,55 @@ a mano.
 Ogni giocatore porta un campo `role_source` che dice quale livello è stato
 usato.
 
+### Ruoli estesi per altezza
+
+Un giocatore che ha cambiato squadra spesso trova squadre con tante "Ali"
+ma senza nessun "Ala/Centro": impossibile mettere in campo un Centro
+decente se pesca solo carte con quel profilo, anche con giocatori alti
+quanto un centro vero. Un giocatore di ruolo **puro** (non già ibrido)
+alto abbastanza guadagna anche il rank adiacente superiore, come se
+legabasket stesso gli avesse dato un tag ibrido — solo +1 verso l'alto,
+mai in giù, mai sui ruoli già ibridi (niente giocatori a 3 rank, per ora
+— vedi backlog). **Non è un'opzione**: è così che gira il gioco spedito,
+non c'è un toggle in home — la logica "as is" (senza estensione) resta
+comunque richiamabile in codice (`ranksFor(player, false)`), non è stata
+cancellata, semplicemente non è quello che gira davvero.
+
+```
+Playmaker (rank 1) + altezza >= 192cm  -> anche Guardia (rank 2)
+Guardia   (rank 2) + altezza >= 196cm  -> anche Ala (rank 3)
+Ala       (rank 3,4) + altezza >= 204cm -> anche Centro (rank 5)
+```
+
+(`HEIGHT_RANK_EXTENSION` in `app.js`, funzione `ranksFor(player, extendByHeight)`
+usata al posto dell'accesso diretto a `ROLE_RANKS` ovunque serva la legalità.)
+
+Soglie scelte insieme sui percentili di altezza reali del dataset, non a
+occhio, con un vincolo esplicito dell'utente: Playmaker→Guardia doveva
+restare la transizione più rara, non la più comune (con le mediane dei
+tag ibridi corrispondenti — 191/197/206 — usciva l'ordine opposto,
+22%/11%/16%). Alla fine, con 192/196/204: **17% / 26% / 29%** dei
+giocatori di ruolo puro guadagnano il rank extra rispettivamente — nota
+che Ala→Centro (204cm) supera Guardia→Ala: sceso da 205 (dove l'ordine
+sarebbe rimasto "in mezzo", 21%) a 204 di proposito, accettando lo
+scambio.
+
+`CEILING`/`MID`/`K` si calcolano (`recomputeCurve()`, chiamata da
+`loadData()`) sulle regole estese — con questo dataset il tetto non
+cambia rispetto a "as is" (i giocatori migliori per ogni rank hanno già
+un tag ibrido ufficiale legabasket, l'estensione non li supera), ma il
+calcolo resta parametrico in generale: se in futuro un ruolo puro esteso
+avesse il rating più alto per un rank, il tetto andrebbe aggiornato di
+conseguenza.
+
+**UI**: l'interfaccia non mostra mai il ruolo/tag completo di legabasket
+(es. "Ala/Centro") — solo una delle 5 sigle **PM/G/AP/AG/C**
+(`roleSiglaFor()`), quella del rank più alto per cui il giocatore è
+eleggibile in quel momento (tag ibrido ufficiale o estensione per
+altezza). Una Guardia estesa mostra "AP", un'Ala estesa mostra "C": il
+giocatore "diventa" la posizione più alta che può coprire, non si vede
+mai un'etichetta doppia o il ruolo grezzo.
+
 ## Motore di calcolo
 
 Rating giocatore = `rating_lega` (indice ufficiale legabasket, già
@@ -410,15 +459,10 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
 4. ~~Sigle squadra stile 82-0~~ — fatto, tutte le 30 in `TEAM_ABBR`
    (`app.js`), UI ora mostra solo sigla + decade compatta, mai il nome
    completo
-5. Ruoli multipli adiacenti in base all'altezza (arricchire `ROLE_RANKS`
-   invece del rank fisso per etichetta): "Play alto"->Guardia,
-   "Guardia alta"->Ala, "Ala alta"->Centro, come eccezione aggiuntiva
-   per singolo giocatore, non come cambio di categoria. Non è solo
-   estetica: 153 dei 754 giocatori taggati "Ala" nel dataset sono alti
-   205cm+, quanto il quartile più basso dei "Centro" veri (mediana
-   Centro 207cm, mediana Ala/Centro 206cm) - le tag legabasket sono un
-   po' incoerenti tra squadre in quella fascia. Soglie da scegliere sui
-   percentili reali per transizione, non a occhio
+5. ~~Ruoli multipli adiacenti in base all'altezza~~ — fatto: sempre
+   attivo (non un'opzione), soglie 192/196/204cm scelte sui percentili
+   reali, UI sempre a sigla PM/G/AP/AG/C (vedi sezione "Ruoli estesi per
+   altezza" sopra)
 6. Verifica/correzione manuale dei colori squadra (30 colori scelti
    senza ricerca storica accurata, solo per distinguibilità visiva)
 7. Scelta delle decadi giocabili a inizio partita (almeno 2, per chi
@@ -430,3 +474,7 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
    anni 2020) diano numeri ancora sensati
 8. Modalità "hard": statistiche nascoste nel draft, giocatori ordinati
    per cognome invece che per PPG - tocca solo la UI, non il motore
+9. Check visivo sistematico: uno script Playwright che gioca N partite
+   facendo uno screenshot ad ogni schermata chiave (draft, risultato,
+   mobile/desktop), per scansione rapida di glitch grafici - oggi le
+   verifiche visive restano manuali/ad-hoc

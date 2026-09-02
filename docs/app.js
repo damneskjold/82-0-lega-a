@@ -307,8 +307,15 @@ function drawFive() {
 }
 
 // mode: "classic" | "decade" | "blind". decades: Set di decadeLabel
-// ("'90s" ecc.), richiesto solo per "decade".
+// ("'90s" ecc.), richiesto solo per "decade". Salvate per "Rigioca" a
+// fine partita, che deve ripartire nella stessa modalita' senza tornare
+// alla scelta.
+let lastMode = "classic";
+let lastDecades = null;
+
 function startDraft(mode, decades) {
+  lastMode = mode;
+  lastDecades = decades;
   blindMode = mode === "blind";
   currentPool = mode === "decade" ? ALL_TEAM_SEASONS.filter((ts) => decades.has(ts.decadeLabel)) : ALL_TEAM_SEASONS;
   recomputeCurve(currentPool, heightRulesEnabled);
@@ -883,6 +890,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     const decades = new Set([...document.querySelectorAll(".decade-check:checked")].map((el) => el.value));
     startDraft("decade", decades);
   });
-  $("#btn-again").addEventListener("click", resetToHome);
+  $("#btn-replay").addEventListener("click", () => startDraft(lastMode, lastDecades));
+  $("#btn-change-mode").addEventListener("click", resetToHome);
   $("#btn-share").addEventListener("click", shareResult);
 });

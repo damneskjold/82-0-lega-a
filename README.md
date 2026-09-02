@@ -81,6 +81,11 @@ nostra), tutte sullo stesso motore (`startDraft(mode, decades)` in
   nome e ruolo, la valutazione del quintetto a fine partita resta
   invariata (mostra tutto, solo la fase di scelta è "alla cieca").
 
+A fine partita, 2 bottoni distinti (non uno solo che torna sempre alla
+scelta modalità): **Rigioca** ripete subito la stessa modalità/decadi
+(`lastMode`/`lastDecades`, salvate da `startDraft()`), **Cambia
+modalità** torna alla home con le 3 tile.
+
 ## Fonte dati e vincoli
 
 - Fonte: API JSON pubbliche di legabasket.it (non documentate, scoperte
@@ -530,10 +535,10 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
    - proposta dell'utente per attenuare (non risolve da sola l'overflow,
      va comunque abbinata a un fix di layout): nome abbreviato a
      iniziale + cognome ("A. Gentile") invece di nome e cognome interi
-10. Rifinitura UI (home già più essenziale col redesign a tile, resta):
-    "Nuova sfida" che salta la home e riparte diretto in una nuova
-    partita nella stessa modalità, header più snello durante il draft
-    (si vuole vedere principalmente la squadra), via l'etichetta "Metti
-    qui" sugli slot (pleonastico: lo slot si illumina già da solo)
+10. Rifinitura UI (home già più essenziale col redesign a tile;
+    ~~"Nuova sfida" diretta~~ fatto, vedi sotto — restano): header più
+    snello durante il draft (si vuole vedere principalmente la
+    squadra), via l'etichetta "Metti qui" sugli slot (pleonastico: lo
+    slot si illumina già da solo)
 11. Verifica/check di giocatori, ruoli e squadre nel dataset (audit dei
     dati, non ancora iniziato)

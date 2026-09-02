@@ -117,7 +117,7 @@ async function playOneGame(page, gameIndex, errors, mode) {
     errors.push(`game ${gameIndex} [${mode}]: doppione nel quintetto finale - ${JSON.stringify(finalNames)}`);
   }
 
-  await page.click("#btn-again");
+  await page.click("#btn-change-mode");
   await page.waitForSelector("#screen-home:not([hidden])");
 }
 

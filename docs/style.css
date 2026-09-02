@@ -618,11 +618,14 @@ body {
 
 .result-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
 }
-.result-actions .btn-primary,
+.result-actions .btn-primary {
+  flex: 1 1 100%;
+}
 .result-actions .btn-ghost {
-  flex: 1;
+  flex: 1 1 0;
 }
 .btn-share {
   display: inline-flex;

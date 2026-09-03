@@ -448,7 +448,7 @@ il risultato è sempre 30-0, sotto è una sigmoide calibrata.
 CEILING              = miglior rating_lega per ciascuno dei 5 rank, sommato
                         (calcolato a runtime da computeCeiling() dopo il
                         caricamento del dataset — vedi sotto il perché)
-PERFECTION_THRESHOLD = CEILING * PERFECTION_BAND        (PERFECTION_BAND = 0.97)
+PERFECTION_THRESHOLD = CEILING * PERFECTION_BAND        (PERFECTION_BAND = 0.93)
 wins_raw = 30                                            se team_rating >= PERFECTION_THRESHOLD
 wins_raw = 30 / (1 + e^(-K * (team_rating - MID)))       altrimenti
 ```
@@ -483,6 +483,41 @@ wins_raw = 30 / (1 + e^(-K * (team_rating - MID)))       altrimenti
   del tetto ma sotto la vecchia soglia). A `0.93` il tier S capita ~1
   partita su 78 giocando bene, il 30-0 esatto resta un unicorno
   (~0.002%, richiede quasi la combinazione di carte perfetta)
+
+**Ri-misurato** dopo le correzioni ai ruoli (le 4 correzioni verificate e
+la regola dei rimbalzi hanno cambiato chi è eleggibile per quale rank, e
+quindi anche `CEILING`), con `tests/difficulty_check.js` — che chiama le
+funzioni vere del gioco (`drawFive`, `ranksFor`, `evaluateLineup`) sulla
+pagina reale invece di re-implementarle. Tre giocatori diversi a
+confronto sulle stesse 3000 pescate:
+
+| strategia | media | mediana | max | tier S (≥29) | 30-0 |
+|---|---|---|---|---|---|
+| primo eleggibile (quella dello smoke test) | 21.1 | 22 | 29 | 1 su 429 | 0 |
+| avido (miglior rating disponibile, senza pianificare) | 24.0 | 24 | 29 | 1 su 79 | 0 |
+| ottimo (miglior formazione possibile su quella pescata) | 25.1 | 25 | 29 | 1 su 35 | 0 |
+
+**La taratura del tier S regge**: l'~1 su 78 scritto sopra corrisponde
+quasi esattamente all'1 su 79 misurato ora per la strategia avida, che è
+il "giocando bene" a cui quel numero si riferiva. Giocando in modo
+davvero ottimale è ~1 su 35, ma è un giocatore più forte di quello con
+cui era stata fatta la taratura, non uno scostamento.
+
+Sul **30-0 esatto**, misurato a parte su 400.000 pescate (solo il rating
+massimo ottenibile, senza penalità: è un *limite superiore*, giocando
+davvero è più raro): **43 pescate superano la soglia, ~1 ogni 9.300**.
+Su 3000 pescate giocate in modo ottimale il miglior rating raggiunto è
+136.8 contro una soglia di 141 — il 90% del tetto contro il 93%
+richiesto, quindi nemmeno una volta. Il 30-0 **esiste davvero e il gioco
+lo assegna**: forzando la miglior combinazione possibile di 5 carte
+(Treviso/Varese/Pesaro/Pistoia/Reggio Calabria, tutte anni '90) il
+risultato è 30-0 con penalità 0 e rating 150.6 su 151.6, quindi non è un
+traguardo fasullo. Ma resta un evento che chi gioca non vedrà mai: la
+strategia avida, che è già un giocatore attento, non ha passato 29 in
+3000 partite. **Da decidere** se lasciarlo come mito irraggiungibile
+(coerente con l'intento dichiarato: "il 30-0 esatto resta un unicorno")
+o allentare `PERFECTION_BAND` — cambiarlo però muove anche la frequenza
+del tier S, oggi tarata bene.
 - `K`: calcolato da `computeK()` perché la sigmoide valga ~29.5 appena
   sotto `PERFECTION_THRESHOLD`, così il passaggio alla zona di perfezione
   resta morbido invece che un gradino
@@ -664,6 +699,7 @@ tests/
   game_smoke_test.js        test di fumo (partita completa, no doppioni, legalità ruoli, 0 errori console)
   visual_check.js           check visivo sistematico (overflow, testo tagliato, elementi irraggiungibili) su 6 viewport
   visual_check_selftest.js  test negativo dello scanner: rompe la pagina apposta e verifica che i controlli scattino
+  difficulty_check.js       taratura: 3 strategie a confronto, frequenza del tier S, raggiungibilità del 30-0
 ```
 
 ## Come lanciare i test
@@ -675,6 +711,9 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
 
 node tests/visual_check.js            # check visivo su 6 viewport (salva gli screenshot in /tmp, il path lo stampa)
 node tests/visual_check_selftest.js   # verifica che lo scanner del check visivo scatti davvero
+
+node tests/difficulty_check.js        # taratura: 3 strategie, tier S, raggiungibilità del 30-0 (~2 min)
+node tests/difficulty_check.js 500 50000   # più veloce, stime più rumorose
 
 cd scripts && python3 check_data_coverage.py     # check dati 1.1 parte A: copertura decadi/squadre
 cd scripts && python3 check_data_consistency.py  # check dati 1.1 parte B: consistenza interna (tocca la rete solo per 5 chiamate di spot-check)

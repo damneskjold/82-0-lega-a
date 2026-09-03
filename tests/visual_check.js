@@ -199,8 +199,40 @@ function scanDom(touchMin) {
     });
     return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
   };
-  for (const el of Array.from(document.querySelectorAll('[style*="--team-color"]')).filter(visible)) {
+  // il colore squadra a volte è impostato via style inline su un elemento
+  // (es. --team-color) ma applicato da CSS a un discendente (es. l'icona
+  // quadrata dentro uno slot pieno): bisogna guardare anche i figli, non
+  // solo l'elemento che porta l'attributo style. Ma la variabile CSS si
+  // eredita su TUTTI i discendenti anche quando nessuno la usa davvero
+  // (es. i bottoni del filtro ruolo dentro la card della squadra, che non
+  // c'entrano nulla col colore squadra): per non segnalare falsi positivi,
+  // teniamo solo i discendenti il cui sfondo/colore effettivo corrisponde
+  // proprio al valore risolto di --team-color/--team-ink su quell'elemento.
+  const resolveProbe = document.createElement("div");
+  resolveProbe.style.cssText = "position:absolute;top:-9999px;left:-9999px";
+  document.body.appendChild(resolveProbe);
+  const resolveVar = (el, name) => {
+    const raw = getComputedStyle(el).getPropertyValue(name).trim();
+    if (!raw) return null;
+    resolveProbe.style.color = "";
+    resolveProbe.style.color = raw;
+    return getComputedStyle(resolveProbe).color;
+  };
+  const teamColorCandidates = new Set();
+  for (const root of document.querySelectorAll('[style*="--team-color"]')) {
+    teamColorCandidates.add(root);
+    for (const desc of root.querySelectorAll("*")) teamColorCandidates.add(desc);
+  }
+  for (const el of Array.from(teamColorCandidates).filter(visible)) {
     const st = getComputedStyle(el);
+    // richiediamo che sia lo SFONDO di questo elemento a essere il colore
+    // squadra: un discendente che eredita solo il colore testo (es. lo
+    // span delle iniziali dentro .who-avatar, che non ha sfondo proprio,
+    // trasparente) non è un consumatore reale della coppia sfondo/testo —
+    // quella coppia si controlla già sull'elemento che ha davvero lo
+    // sfondo colorato (qui il genitore, il cui textContent include anche
+    // il testo dello span figlio)
+    if (st.backgroundColor !== resolveVar(el, "--team-color")) continue;
     const fg = parseRgb(st.color);
     const bg = parseRgb(st.backgroundColor);
     if (!fg || !bg || !el.textContent.trim()) continue;
@@ -215,6 +247,7 @@ function scanDom(touchMin) {
       });
     }
   }
+  resolveProbe.remove();
 
   // 7. bersagli tocco piccoli (solo mobile, solo informativo)
   if (vw <= 480) {

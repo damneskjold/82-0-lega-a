@@ -449,22 +449,26 @@ function renderSlotsPanel() {
       .map((s) => {
         const labelHtml = `<span class="lbl-full">${s.label}</span><span class="lbl-short">${s.short}</span>`;
         if (s.pick) {
-          // solo iniziali qui dentro (come gli avatar, stile 82-0): il
-          // pannello e' stretto (barra fissa in fondo su mobile, 5 slot
-          // su una riga) - nome e cognome interi non ci stanno leggibili
-          return `<div class="slot-box filled" style="--team-color:${s.pick.teamSeason.color}">
+          const color = s.pick.teamSeason.color;
+          // quadrato colorato con le iniziali, come l'avatar della
+          // schermata finale (stesso inkFor() per il contrasto: non
+          // sparisce su una squadra dal colore chiaro) - non solo una
+          // barretta a sinistra su uno sfondo scuro
+          return `<div class="slot-box filled" style="--team-color:${color};--team-ink:${inkFor(color)}">
+            <div class="slot-icon">${initialsFor(s.pick.player)}</div>
             <div class="slot-label">${labelHtml}</div>
-            <div class="slot-player">${initialsFor(s.pick.player)}</div>
           </div>`;
         }
         let cls = "slot-box empty";
         if (selected) {
           cls += selected.legalIds.includes(s.id) ? " legal" : " illegal";
         }
-        // niente testo di stato: uno slot vuoto e' libero per
-        // definizione, e quello legale si illumina gia' da solo
-        // (bordo/sfondo accent, vedi .slot-box.legal in CSS)
+        // quadrato vuoto (solo contorno) con la sigla del ruolo dentro:
+        // stessa forma dello slot pieno, riempirlo di colore non la
+        // cambia. Niente altro testo di stato: quello legale si illumina
+        // gia' da solo (bordo/sfondo accent, vedi .slot-box.legal in CSS)
         return `<div class="${cls}" data-slot-id="${s.id}">
+          <div class="slot-icon">${s.short}</div>
           <div class="slot-label">${labelHtml}</div>
         </div>`;
       })

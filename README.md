@@ -116,6 +116,38 @@ comprese due correzioni trovate lì: le colonne erano troppo strette per
 il padding aggiunto e il divisore tagliava dentro le cifre, e il colore
 decorativo di uno slot si perdeva sullo sfondo scuro.
 
+### Quintetto a quadrati
+
+Il pannello "Quintetto" durante il draft mostrava gli slot riempiti con
+una barretta colorata a sinistra su sfondo scuro, diversa dallo stile
+usato nella schermata finale (avatar quadrati colorati con iniziali). Ora
+usa lo stesso linguaggio ovunque: ogni slot ha un **quadratino** (`.slot-icon`,
+38px desktop / 30px mobile) fin da vuoto — solo contorno, con dentro la
+sigla del ruolo ("C", "PM"...) — che diventa colorato con le iniziali del
+giocatore una volta scelto, con lo stesso calcolo di contrasto
+(`inkFor()`) già usato per gli avatar finali. Riempire uno slot cambia
+solo il colore del quadrato, mai la sua forma. Lo stato "legale" (slot
+apribile subito) resta un contorno arancione sullo stesso quadrato,
+invece di colorare l'intera riga. Prototipato con un mockup a dati reali
+prima di scrivere il codice vero, approvato senza revisioni.
+
+Il cambiamento ha scoperto un buco nello scanner di contrasto di
+`tests/visual_check.js`: controllava solo l'elemento che porta
+l'attributo `style="--team-color:..."`, ma qui il colore vero lo applica
+il CSS a un **figlio** (`.slot-box.filled .slot-icon`), non
+all'elemento con lo style inline — un "0 problemi" sarebbe stato un falso
+negativo. Corretto per controllare anche i discendenti, ma tenendo solo
+quelli il cui **sfondo effettivo** risolve davvero al valore di
+`--team-color` (non basta ereditare la variabile: i bottoni del filtro
+ruolo, annidati nella stessa card per motivi di markup, la ereditano
+anch'essi senza usarla, e uno span di sole iniziali senza sfondo proprio,
+tipo `.avatar-initials`, eredita solo il colore testo — controllarlo da
+solo contro uno sfondo trasparente sarebbe un falso positivo, il
+contrasto vero si vede già sul genitore che ha davvero sfondo *e* testo).
+Verificato con un nuovo caso in `tests/visual_check_selftest.js` che
+riproduce esattamente il pattern genitore/figlio e prova che lo scanner
+corretto lo intercetta.
+
 ## Modalità di gioco
 
 Scelte in home con 3 tile (stile 82-0, che ha Classic/Hoop IQ/1v1 —

@@ -53,6 +53,28 @@ const CASES = [
     },
   },
   {
+    name: "colore squadra su un figlio (come .slot-icon) -> contrasto basso non visto sul genitore",
+    expect: "contrasto-basso-a-schermo",
+    break: () => {
+      // pattern del pannello quintetto: --team-color sta sul genitore, ma
+      // il vero sfondo/colore lo applica il CSS a un figlio (.slot-icon).
+      // uno scanner che guarda solo l'elemento con l'attributo style non
+      // lo vedrebbe mai.
+      const style = document.createElement("style");
+      style.textContent = ".selftest-slot .selftest-icon { background: var(--team-color); color: #fff; }";
+      document.head.appendChild(style);
+      const wrap = document.createElement("div");
+      wrap.className = "selftest-slot";
+      wrap.setAttribute("style", "--team-color:#FEEB13");
+      const icon = document.createElement("div");
+      icon.className = "selftest-icon";
+      icon.style.cssText = "width:40px;height:40px";
+      icon.textContent = "RT";
+      wrap.appendChild(icon);
+      document.querySelector("#app").appendChild(wrap);
+    },
+  },
+  {
     name: "velo fisso sopra tutto -> elementi interattivi irraggiungibili",
     expect: "coperto-anche-dopo-scroll",
     break: () => {

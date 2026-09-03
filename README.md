@@ -498,9 +498,10 @@ di default, va filtrato esplicitamente per `championship_name`.
   3 volte con dei 500 transitori; per ora l'unico rimedio è cancellare il
   file di cache specifico e rilanciare. Servirebbe un contatore di
   fallimenti con riepilogo a fine run, e non cachare gli errori
-- **Nessun test versionato**: gli script Playwright usati per le verifiche
-  (composizione quintetto, legalità rank, doppioni, overflow mobile) vivono
-  in `/tmp` e spariscono
+- ~~**Nessun test versionato**~~ risolto: le verifiche che prima vivevano
+  in `/tmp` e sparivano ad ogni sessione ora sono in `tests/` (smoke test
+  di gioco, check visivo + il suo test negativo) e in `scripts/`
+  (i tre check sui dati)
 
 ## Struttura repo
 
@@ -522,7 +523,10 @@ data/
   club_discovery.json       output di discover_clubs.py
   raw_cache/                cache risposte API grezze (non versionata)
 tests/
-  game_smoke_test.js        test di fumo Playwright (partita completa, no doppioni, legalità ruoli, 0 errori console)
+  lib/driver.js             helper condivisi per guidare il gioco da Playwright
+  game_smoke_test.js        test di fumo (partita completa, no doppioni, legalità ruoli, 0 errori console)
+  visual_check.js           check visivo sistematico (overflow, testo tagliato, elementi irraggiungibili) su 6 viewport
+  visual_check_selftest.js  test negativo dello scanner: rompe la pagina apposta e verifica che i controlli scattino
 ```
 
 ## Come lanciare i test
@@ -531,6 +535,9 @@ tests/
 python3 -m http.server 8899 --directory docs &
 node tests/game_smoke_test.js         # 20 partite di default
 node tests/game_smoke_test.js 60      # numero di partite a scelta
+
+node tests/visual_check.js            # check visivo su 6 viewport (salva gli screenshot in /tmp, il path lo stampa)
+node tests/visual_check_selftest.js   # verifica che lo scanner del check visivo scatti davvero
 
 cd scripts && python3 check_data_coverage.py     # check dati 1.1 parte A: copertura decadi/squadre
 cd scripts && python3 check_data_consistency.py  # check dati 1.1 parte B: consistenza interna (tocca la rete solo per 5 chiamate di spot-check)
@@ -552,7 +559,12 @@ il pannello), gestione errore sul caricamento dati. Storico completo
 dei retune e delle verifiche nelle sezioni sopra e nei messaggi di
 commit.
 
-**Backlog 1.1** (in quest'ordine):
+**Backlog 1.1: tutti e tre i punti fatti.** I tre check (dati, colori,
+visivo) sono ora script versionati e rilanciabili, non verifiche una
+tantum: `scripts/check_data_coverage.py`,
+`scripts/check_data_consistency.py`, `scripts/check_data_sanity.py`,
+`tests/visual_check.js` (+ il suo selftest). Dettaglio di cosa fa
+ciascuno e cosa ha trovato qui sotto.
 
 1. ~~**Check dati**~~ **fatto**: audit di giocatori, ruoli e squadre nel
    dataset, in 3 parti.
@@ -611,12 +623,27 @@ commit.
    "Decisioni prese finora" sopra), con tonalità variata dentro la
    stessa famiglia di colore per restare distinguibili — verificato
    con distanza percettiva LAB su tutte le coppie
-3. **Check visivo sistematico**: script Playwright che gioca N partite
-   facendo uno screenshot ad ogni schermata chiave (draft, risultato,
-   mobile/desktop), per scansione rapida di glitch grafici — oggi le
-   verifiche visive restano manuali/ad-hoc. I glitch già trovati a
-   mano sono stati risolti nel frattempo (vedi sopra), ma non
-   sostituiscono un check sistematico per trovarne altri
+3. ~~**Check visivo sistematico**~~ **fatto**: `tests/visual_check.js`
+   percorre una matrice di 15 schermate (home, decadi, draft in vari
+   stati, lista scrollata in fondo, risultato, errore di caricamento) ×
+   6 viewport (320→1440px) × modalità classic/blind, e su ognuna passa
+   uno **scanner generico su tutti gli elementi visibili** invece di
+   controllare solo quelli già sospetti: overflow orizzontale di pagina,
+   elementi oltre i bordi, contenuto tagliato dove l'overflow è nascosto,
+   elementi interattivi irraggiungibili (portati al centro con
+   `scrollIntoView` e poi verificati con `elementFromPoint`: distingue
+   "sta sotto il pannello ma basta scrollare" da "non c'è scroll che
+   tenga"), più un report informativo sui bersagli tocco < 36px. Salva
+   anche uno screenshot per combinazione, fuori dal repo, perché certe
+   cose le vede solo l'occhio. `tests/visual_check_selftest.js` rompe la
+   pagina apposta e verifica che i controlli scattino davvero: uno
+   scanner che non segnala mai niente sembra identico a uno che
+   funziona. Glitch trovati e corretti in questo giro: nomi del
+   quintetto finale troncati con "..." a 320px (ora vanno a capo, e
+   sotto i 400px le statistiche passano su una riga propria per lasciare
+   spazio al nome), etichette dei totali che si toccavano
+   ("RIMBALZIASSIST..."), record che andava a capo col trattino appeso
+   quando entrambi i numeri erano a due cifre (es. 18-12)
 
 **In standby** (scelta esplicita dell'utente, non un fix da fare
 comunque): pesca a due passaggi in `drawFive()` — verificato che il

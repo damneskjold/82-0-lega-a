@@ -499,6 +499,11 @@ body {
   letter-spacing: -0.02em;
   margin-top: 6px;
   text-shadow: 0 0 30px var(--accent-glow), 0 0 70px var(--accent-soft);
+  /* mai a capo: con due numeri a due cifre (es. 18-12) su schermi stretti
+     il record andava a capo lasciando il trattino appeso in fondo alla
+     prima riga. Con nowrap un'eventuale larghezza di troppo diventa un
+     overflow, che il check visivo sa vedere (tests/visual_check.js). */
+  white-space: nowrap;
 }
 
 .result-record-sep {
@@ -630,14 +635,14 @@ body {
     padding: 0 3px;
     bottom: -6px;
   }
-  .lineup-row .who {
-    overflow: hidden;
-  }
+  /* niente ellissi sui nomi: un nome tagliato con "..." non si legge, e
+     il nome qui e' gia' abbreviato (shortName, "N. Cognome"). Stessa
+     scelta fatta per .player-name nella lista del draft: va a capo. */
   .lineup-row .who-name,
   .lineup-row .who-from {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow-wrap: break-word;
+    line-height: 1.25;
   }
   .lineup-row .who-stats {
     gap: 6px;
@@ -698,6 +703,39 @@ body {
   }
   .mode-tile-desc {
     min-height: 0;
+  }
+}
+
+/* telefoni stretti (320-400px): nella riga del quintetto finale le 5
+   colonne di statistiche mangiano quasi tutta la larghezza e al nome
+   restano ~56px, troppo pochi anche per un nome gia' abbreviato. Le
+   statistiche vanno quindi a capo su una riga propria, cosi' il nome ha
+   tutto lo spazio. Trovato dal check visivo (tests/visual_check.js). */
+@media (max-width: 400px) {
+  /* il record piu' largo possibile e' "30—30": a 4.5rem non ci sta */
+  .result-record {
+    font-size: 3.4rem;
+  }
+  .lineup-row {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+  .lineup-row .who {
+    flex: 1 1 auto;
+  }
+  .lineup-row .who-stats {
+    flex: 1 0 100%;
+    justify-content: space-between;
+    /* allineate sotto il nome, non sotto l'avatar (36px + 8px di gap) */
+    padding-left: 44px;
+  }
+  /* le etichette della riga totali si toccavano ("RIMBALZIASSIST...") */
+  .result-breakdown {
+    gap: 4px;
+  }
+  .stat-box .label {
+    font-size: 0.58rem;
+    letter-spacing: 0;
   }
 }
 

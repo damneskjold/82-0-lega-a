@@ -6,6 +6,9 @@
  * volta): completamento partita, nessun doppione nel quintetto,
  * legalità dei ruoli negli slot, 0 errori console.
  *
+ * Per i glitch grafici (overflow, testo tagliato, elementi coperti) c'è
+ * invece tests/visual_check.js, che riusa gli stessi helper di guida.
+ *
  * Uso:
  *   1. avviare un server statico sulla cartella docs/, es.:
  *        python3 -m http.server 8899 --directory docs
@@ -15,82 +18,33 @@
  * Richiede Playwright installato e disponibile a livello globale
  * (require('playwright')) - non è una dipendenza npm del repo.
  */
-// playwright non e' una dipendenza npm del repo: si prova la risoluzione
-// normale (funziona se e' installato come dipendenza o globalmente sul
-// path di node), altrimenti si cade sul percorso globale noto in questo
-// ambiente di sviluppo.
-let chromium;
-try {
-  ({ chromium } = require("playwright"));
-} catch {
-  ({ chromium } = require("/opt/node22/lib/node_modules/playwright"));
-}
+const {
+  MODES,
+  DEFAULT_URL,
+  launchBrowser,
+  newPage,
+  gotoHome,
+  startMode,
+  selectPlayableRow,
+  placeAndAdvance,
+} = require("./lib/driver");
 
 const GAMES = parseInt(process.argv[2] || "20", 10);
-const URL = process.argv[3] || "http://localhost:8899";
-
-const SLOT_RANK_BY_SHORT = { PM: 1, G: 2, AP: 3, AG: 4, C: 5 };
-// alterna le 3 modalita' fra le partite, cosi' lo smoke test copre tutte e
-// tre senza dover triplicare il numero di partite giocate
-const MODES = ["classic", "decade", "blind"];
-
-async function startMode(page, mode) {
-  if (mode === "classic") {
-    await page.click("#btn-mode-classic");
-  } else if (mode === "blind") {
-    await page.click("#btn-mode-blind");
-  } else {
-    await page.click("#btn-mode-decade-open");
-    await page.waitForSelector("#screen-decades:not([hidden])");
-    // 2 decadi a caso fra quelle disponibili, come richiesto dal minimo di gioco
-    await page.click(".decade-tile[data-decade=\"'90s\"]");
-    await page.click(".decade-tile[data-decade=\"'10s\"]");
-    await page.click("#btn-decades-start");
-  }
-  await page.waitForSelector("#screen-draft:not([hidden])");
-}
+const URL = process.argv[3] || DEFAULT_URL;
 
 async function playOneGame(page, gameIndex, errors, mode) {
   await startMode(page, mode);
 
   for (let round = 1; round <= 5; round++) {
-    await page.waitForSelector(".player-row", { timeout: 5000 });
-
-    // riga -> vero oggetto giocatore, nello stesso ordine con cui il gioco li
-    // renderizza (per points_avg desc, o alfabetico per cognome in Blind -
-    // vedi renderRound in app.js), cosi' la legalita' si verifica con la
-    // stessa fonte di verita' del gioco (ranksFor, esposta su window
-    // essendo una function declaration) invece di re-implementare qui la
-    // logica dei ruoli/soglie altezza - altrimenti il test si disallinea
-    // ogni volta che quella logica cambia
-    const rowData = await page.evaluate((isBlind) => {
-      const ts = currentDraw[roundIndex];
-      const pickedIds = new Set(slots.filter((s) => s.pick).map((s) => s.pick.player.player_id));
-      const openRanks = new Set(slots.filter((s) => !s.pick).map((s) => s.rank));
-      const sorted = isBlind
-        ? [...ts.players].sort((a, b) => a.surname.localeCompare(b.surname))
-        : [...ts.players].sort((a, b) => b.points_avg - a.points_avg);
-      return sorted.map((p) => {
-        const ranks = pickedIds.has(p.player_id) ? [] : ranksFor(p, heightRulesEnabled);
-        const hasOpenSlot = ranks.some((r) => openRanks.has(r));
-        return { name: `${p.name} ${p.surname}`, disabled: !hasOpenSlot, ranks };
-      });
-    }, mode === "blind");
-
-    const target = rowData.find((r) => !r.disabled);
-    if (!target) {
+    const picked = await selectPlayableRow(page, mode === "blind");
+    if (!picked) {
       errors.push(`game ${gameIndex} [${mode}] round ${round}: nessuna riga selezionabile (soft lock)`);
       return;
     }
 
-    const rowIndex = rowData.indexOf(target);
-    await page.locator(".player-row").nth(rowIndex).click();
-    await page.waitForSelector(".slot-box.legal", { timeout: 3000 });
-    const legalShorts = await page.$$eval(".slot-box.legal .lbl-short", (els) => els.map((e) => e.textContent.trim()));
-
     // gli slot mostrati come legali devono corrispondere esattamente ai
     // rank del giocatore secondo ranksFor()
-    const legalRanks = legalShorts.map((s) => SLOT_RANK_BY_SHORT[s]).sort();
+    const { target, legalShorts, legalRanks } = picked;
     const overlap = legalRanks.length > 0 && legalRanks.every((r) => target.ranks.includes(r));
     if (!overlap) {
       errors.push(
@@ -98,16 +52,7 @@ async function playOneGame(page, gameIndex, errors, mode) {
       );
     }
 
-    await page.locator(".slot-box.legal").first().click();
-
-    if (round < 5) {
-      await page.waitForFunction(
-        (r) => document.querySelector("#round-progress")?.textContent.includes(`Squadra ${r + 1} di`),
-        round
-      );
-    } else {
-      await page.waitForSelector("#screen-result:not([hidden])");
-    }
+    await placeAndAdvance(page, round);
   }
 
   // id reali, non il nome abbreviato mostrato a schermo (".who-name" e'
@@ -126,22 +71,19 @@ async function playOneGame(page, gameIndex, errors, mode) {
 }
 
 (async () => {
-  const browser = await chromium.launch({ args: ["--no-sandbox"] });
-  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-  const consoleErrors = [];
-  page.on("pageerror", (e) => consoleErrors.push("pageerror: " + e.message));
-  page.on("console", (m) => {
-    if (m.type() === "error") consoleErrors.push("console: " + m.text());
-  });
+  const browser = await launchBrowser();
+  const page = await newPage(browser, { width: 1280, height: 900 });
 
-  await page.goto(URL, { waitUntil: "networkidle" });
-  await page.waitForSelector("#screen-home:not([hidden])");
+  await gotoHome(page, URL);
 
   const gameErrors = [];
   for (let g = 1; g <= GAMES; g++) {
+    // alterna le 3 modalita' fra le partite, cosi' lo smoke test copre
+    // tutte e tre senza dover triplicare il numero di partite giocate
     await playOneGame(page, g, gameErrors, MODES[(g - 1) % MODES.length]);
   }
 
+  const consoleErrors = page.consoleErrors;
   await browser.close();
 
   console.log(`Partite giocate: ${GAMES}`);

@@ -27,11 +27,31 @@ const ROLE_RANKS = {
 // occhio - vedi README, sezione Ruoli. Solo +1 rank verso l'alto, mai in
 // giu', e mai sui ruoli gia' ibridi (evita la complessita' di un giocatore
 // a 3 rank tipo "playmaker alto quanto un centro").
+// Per estendere un'ala fino al Centro l'altezza da sola non basta: il
+// gruppo delle ali sopra i 204cm si e' rivelato un miscuglio di lunghi
+// veri e di ali che giocavano sul perimetro, e la regola le spingeva
+// tutte verso il centro (Kukoc archiviato come AG/C, Bodiroga pure).
+// Serve anche che rimbalzi come un lungo. La soglia e' calibrata sui
+// centri puri del dataset, non scelta a occhio: 6.7 rimbalzi/30min e' il
+// loro 25esimo percentile, cioe' "almeno quanto un centro vero scarso".
+// Per gli altri due salti (play->guardia, guardia->ala) non si applica:
+// li' si rivendica un posto piu' grande sul perimetro, e l'altezza e' un
+// indizio ragionevole di suo.
+const BIG_REBOUNDS_PER_30 = 6.7;
 const HEIGHT_RANK_EXTENSION = {
   "Playmaker": { minHeight: 192, extraRank: 2 },
   "Guardia": { minHeight: 196, extraRank: 3 },
-  "Ala": { minHeight: 204, extraRank: 5 },
+  "Ala": { minHeight: 204, extraRank: 5, minRebounds30: BIG_REBOUNDS_PER_30 },
 };
+
+// rimbalzi totali per 30 minuti: normalizzati sui minuti, altrimenti si
+// premia solo chi giocava tanto invece di chi rimbalzava da lungo
+function rebounds30(player) {
+  const min = Number(player.minutes_avg) || 0;
+  if (min <= 0) return null;
+  const reb = (Number(player.off_rebound_avg) || 0) + (Number(player.def_rebound_avg) || 0);
+  return (reb / min) * 30;
+}
 
 // rank legali per un giocatore: quelli del suo ruolo, piu' l'eventuale rank
 // extra per altezza se extendByHeight e' true. Massimo 2 rank adiacenti,
@@ -47,6 +67,12 @@ function ranksFor(player, extendByHeight) {
   const ext = HEIGHT_RANK_EXTENSION[player.role];
   if (!ext || !player.height || player.height < ext.minHeight) return base;
   if (base.includes(ext.extraRank)) return base;
+  if (ext.minRebounds30 != null) {
+    const r30 = rebounds30(player);
+    // senza minuti non si puo' verificare: meglio non estendere che
+    // regalare il ruolo di centro a un'ala solo perche' e' alta
+    if (r30 === null || r30 < ext.minRebounds30) return base;
+  }
   const combined = [...base, ext.extraRank].sort((a, b) => a - b);
   return combined.length > 2 ? combined.slice(combined.length - 2) : combined;
 }

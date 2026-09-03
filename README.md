@@ -260,11 +260,39 @@ quello che gira davvero.
 ```
 Playmaker (rank 1) + altezza >= 192cm  -> anche Guardia (rank 2)
 Guardia   (rank 2) + altezza >= 196cm  -> anche Ala (rank 3)
-Ala       (rank 3,4) + altezza >= 204cm -> anche Centro (rank 5)
+Ala       (rank 3,4) + altezza >= 204cm E rimbalzi >= 6.7/30min -> Centro (rank 5)
 ```
+
+**Perché il salto ad Ala/Centro chiede anche i rimbalzi.** Con la sola
+altezza il gruppo delle ali sopra i 204cm era un miscuglio: lunghi veri
+insieme ad ali che giocavano sul perimetro, e la regola spingeva tutte
+verso il centro. Ne uscivano classificazioni palesemente sbagliate —
+**Toni Kukoc** (che a Treviso era l'ala che portava palla) e **Dejan
+Bodiroga** archiviati come ala grande/centro solo perché alti. Ora
+l'altezza non basta: serve anche rimbalzare come un lungo. La soglia è
+calibrata sui **centri puri del dataset**, non scelta a occhio — 6.7
+rimbalzi per 30 minuti è il loro 25° percentile, cioè "almeno quanto un
+centro vero scarso". Delle 96 ali alte in dubbio, 29 restano AG/C e 67
+tornano AP/AG. Verificato che nessuna delle 62 carte-decade perda la
+copertura dei 5 slot, e che la difficoltà non si sposti: sulle stesse
+4000 pescate simulate, media 23.96 → 23.97 vittorie, tier S 1.75% →
+1.73%, zero blocchi. Il salto vale solo per Ala→Centro: per gli altri
+due (play→guardia, guardia→ala) si rivendica un posto più grande sul
+perimetro, dove l'altezza è un indizio ragionevole di suo.
 
 (`HEIGHT_RANK_EXTENSION` in `app.js`, funzione `ranksFor(player, extendByHeight)`
 usata al posto dell'accesso diretto a `ROLE_RANKS` ovunque serva la legalità.)
+
+**Correzioni verificate al ruolo** (`role_forced_by_name` in
+`scrape_decade_sample.py`): a differenza di `role_overrides_by_name`, che
+riempie solo i buchi quando legabasket non dà alcun ruolo, queste
+*vincono* su una classificazione esistente e servono ai casi in cui la
+fonte è proprio sbagliata. Applicate con parsimonia, una riga di
+motivazione con fonte per ciascuna. Oggi ce ne sono 4: Danilović e
+Ginóbili (dati "Ala" da legabasket, erano guardie: 2.9 e 3.0-4.3
+rimbalzi/30min, profilo da perimetro puro), Radja (dato "Centro", a Roma
+era ala-pivot: 8.5 rimbalzi/30min) e Danilo Gallinari (dato
+"Guardia/Ala", a Milano a 205cm era ala piccola/grande, mai guardia).
 
 Soglie scelte insieme sui percentili di altezza reali del dataset, non a
 occhio, con un vincolo esplicito dell'utente: Playmaker→Guardia doveva

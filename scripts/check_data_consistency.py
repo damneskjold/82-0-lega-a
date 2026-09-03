@@ -100,7 +100,8 @@ for team_key, cfg in sorted(ALL_TEAMS_FOR_RECOMPUTE.items()):
 
     for label, y0, y1 in DECADES:
         stored = seasons_by_decade.get(label)
-        recomputed = build_decade(club_ids, cfg["display_name"], cfg["role_overrides_by_name"], label, y0, y1)
+        recomputed = build_decade(club_ids, cfg["display_name"], cfg["role_overrides_by_name"], label, y0, y1,
+                                  cfg.get("role_forced_by_name"))
         qualifies = len(recomputed["seasons_included"]) >= min_seasons_for(label)
 
         if stored is None:

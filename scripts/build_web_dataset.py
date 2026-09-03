@@ -40,6 +40,7 @@ PLAYER_FIELDS = {
     "surname": "cognome mostrato nella lista, nelle iniziali e nel nome abbreviato",
     "role": "ruolo base, da cui derivano i rank degli slot",
     "height": "soglie di estensione del ruolo per altezza (ranksFor)",
+    "minutes_avg": "normalizza i rimbalzi per 30 minuti in ranksFor: l'estensione ala->centro richiede che rimbalzi da lungo, non solo che sia alto",
     "eligible": "filtro al caricamento in loadData - SERVE anche se ormai sono tutti true, senza diventa undefined e il gioco scarta tutti",
     "points_avg": "colonna P e ordinamento della lista",
     "off_rebound_avg": "colonna R (sommata alle difensive)",

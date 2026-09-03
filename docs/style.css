@@ -416,9 +416,12 @@ body {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* niente ellissi, come per il nome sopra: la sigla del ruolo ("AP/AG")
+     sta comunque su una riga, ma "Già nel tuo quintetto" su schermi
+     stretti veniva tagliato a meta' (trovato dal check visivo a 320px).
+     Meglio che vada a capo. */
+  line-height: 1.25;
+  overflow-wrap: break-word;
 }
 .player-stats {
   display: flex;

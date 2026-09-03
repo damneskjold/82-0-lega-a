@@ -73,6 +73,16 @@ TEAMS = {
             ("Giampiero", "Savio"): "Ala",              # 195cm, ala (Wikipedia)
             ("Tullio", "De Piccoli"): "Ala/Centro",     # 202cm, ala/centro (Wikipedia)
         },
+        # correzioni verificate che VINCONO sulla classificazione di
+        # legabasket (a differenza di role_overrides_by_name, che riempie
+        # solo i buchi). Usate con parsimonia e solo dove la ricerca
+        # storica contraddice la fonte in modo netto.
+        "role_forced_by_name": {
+            # legabasket lo da' "Ala" (= AP/AG): era una guardia tiratrice pura, 201cm (Wikipedia IT)
+            ("Predrag", "Danilovic"): "Guardia/Ala",
+            # legabasket lo da' "Ala": in Italia giocava guardia, 198-201cm (Wikipedia IT, Proballers)
+            ("Emanuel", "Ginobili"): "Guardia/Ala",
+        },
     },
     "olimpia_milano": {
         "club_id": 28,
@@ -107,6 +117,15 @@ TEAMS = {
             ("Diego", "Garavaglia"): "Ala",             # settore giovanile Olimpia (Wikipedia IT)
             ("Federico", "Pillepich"): "Ala",           # ala grande, settore giovanile Olimpia (PianetaBasket)
             ("Guglielmo", "Youssef"): "Ala",            # settore giovanile Olimpia (PianetaBasket)
+        },
+        # correzioni verificate che VINCONO sulla classificazione di
+        # legabasket (a differenza di role_overrides_by_name, che riempie
+        # solo i buchi). Usate con parsimonia e solo dove la ricerca
+        # storica contraddice la fonte in modo netto.
+        "role_forced_by_name": {
+            # legabasket lo da' "Guardia/Ala" (= G/AP): a 205cm a Milano era
+            # ala piccola con impieghi da ala grande, mai guardia (olimpiamilano.com, Wikipedia IT)
+            ("Danilo", "Gallinari"): "Ala",
         },
     },
     "varese": {
@@ -177,6 +196,15 @@ TEAMS = {
             # Giovanni Focardi, Andrea Negro: nessuna fonte trovata (profili
             # legabasket vuoti, proballers non accessibile, nessuna pagina
             # Wikipedia dedicata) - restano eligible=False, non indovinati
+        },
+        # correzioni verificate che VINCONO sulla classificazione di
+        # legabasket (a differenza di role_overrides_by_name, che riempie
+        # solo i buchi). Usate con parsimonia e solo dove la ricerca
+        # storica contraddice la fonte in modo netto.
+        "role_forced_by_name": {
+            # legabasket lo da' "Centro" (= solo C): a Roma era ala-pivot,
+            # il 4 di riferimento oltre che centro (Wikipedia IT ed EN)
+            ("Dino", "Radja"): "Ala/Centro",
         },
     },
     "treviso": {
@@ -331,6 +359,14 @@ TEAMS = {
             ("Clivo Massimo", "Righi"): "Centro",        # trovato dall'utente
             ("Dirk", "Rassloff"): "Centro",              # trovato dall'utente
         },
+        # correzioni verificate che VINCONO sulla classificazione di
+        # legabasket (a differenza di role_overrides_by_name, che riempie
+        # solo i buchi). Usate con parsimonia e solo dove la ricerca
+        # storica contraddice la fonte in modo netto.
+        "role_forced_by_name": {
+            # stesso caso della sua carta Virtus Bologna: guardia, non ala
+            ("Emanuel", "Ginobili"): "Guardia/Ala",
+        },
     },
     "cremona": {
         "club_id": 100,
@@ -449,7 +485,9 @@ SHOT_PAIRS = {
 
 
 def build_decade(club_ids: list, display_name: str, role_overrides_by_name: dict,
-                  label: str, year_start: int, year_end: int) -> dict:
+                  label: str, year_start: int, year_end: int,
+                  role_forced_by_name: dict = None) -> dict:
+    role_forced_by_name = role_forced_by_name or {}
     print(f"\n=== {display_name} - {label} ({year_start}-{year_end}) ===")
     acc = {}  # player_id -> dict con sums, meta
     seasons_included = []
@@ -528,10 +566,13 @@ def build_decade(club_ids: list, display_name: str, role_overrides_by_name: dict
 
     # override manuali risolti per nome (l'id lo scopriamo solo ora)
     role_overrides_by_pid = {}
+    role_forced_by_pid = {}
     for pid, a in acc.items():
         key = (a["name"], a["surname"])
         if key in role_overrides_by_name:
             role_overrides_by_pid[pid] = role_overrides_by_name[key]
+        if key in role_forced_by_name:
+            role_forced_by_pid[pid] = role_forced_by_name[key]
 
     players_out = []
     missing_role = []
@@ -541,7 +582,14 @@ def build_decade(club_ids: list, display_name: str, role_overrides_by_name: dict
         role = a["role"]
         role_source = a["role_source"]
 
-        if not role:
+        # correzione verificata: vince anche su un ruolo gia' assegnato da
+        # legabasket, a differenza di role_overrides_by_name che riempie
+        # solo i buchi. Serve per i casi in cui la classificazione della
+        # fonte e' proprio sbagliata (vedi le note in TEAMS).
+        if pid in role_forced_by_pid:
+            role = role_forced_by_pid[pid]
+            role_source = "ricerca_verificata"
+        elif not role:
             if pid in role_overrides_by_pid:
                 role = role_overrides_by_pid[pid]
                 role_source = "wikipedia_lookup"
@@ -608,7 +656,8 @@ def main():
 
         club_ids = cfg["club_ids"] if "club_ids" in cfg else [cfg["club_id"]]
         all_decade_objs = [
-            build_decade(club_ids, cfg["display_name"], cfg["role_overrides_by_name"], label, y0, y1)
+            build_decade(club_ids, cfg["display_name"], cfg["role_overrides_by_name"], label, y0, y1,
+                         cfg.get("role_forced_by_name"))
             for label, y0, y1 in DECADES
         ]
         decade_objs = [d for d in all_decade_objs if len(d["seasons_included"]) >= min_seasons_for(d["decade"])]

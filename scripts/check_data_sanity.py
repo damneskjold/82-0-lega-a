@@ -108,7 +108,7 @@ else:
 print("\n=== 2. Distribuzione role_source ===\n")
 counts = Counter(p.get("role_source") for _, _, p in all_rows)
 total = len(all_rows)
-for source in ["roster", "fallback_career", "estimated_height", "wikipedia_lookup", None]:
+for source in ["roster", "fallback_career", "estimated_height", "wikipedia_lookup", "ricerca_verificata", None]:
     n = counts.pop(source, 0)
     label = source or "(nessuno, non eligible)"
     pct = 100 * n / total if total else 0

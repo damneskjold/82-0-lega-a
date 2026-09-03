@@ -302,6 +302,13 @@ body {
     border-radius: 7px;
     font-size: 0.68rem;
   }
+  /* su mobile l'etichetta sotto il quadrato e' gia' la sigla del ruolo
+     (.lbl-short): tenerla anche dentro il quadrato la scriveva due volte
+     ("PM" sopra "PM"). Lo slot vuoto resta un contorno e basta. Si
+     nasconde la sigla e non l'etichetta perche' l'etichetta serve anche
+     a slot pieno (li' dentro ci sono le iniziali del giocatore): cosi'
+     la barra non cambia altezza quando uno slot si riempie */
+  .slot-box .icon-role { display: none; }
   .slot-box .slot-label {
     font-size: 0.62rem;
     font-weight: 700;
@@ -519,6 +526,18 @@ body {
   }
   .role-filter {
     padding: 8px 12px;
+  }
+  /* bersaglio da toccare: 26x35px col solo padding non bastava (il
+     check visivo li segnalava tutti e 5 sotto i 36px minimi). Servono
+     entrambe le dimensioni - "A" e "C", una lettera sola, erano i piu'
+     stretti. Solo mobile: su desktop il puntatore non ha bisogno di
+     tanto e allargarli sciuperebbe la riga compatta */
+  .role-chip {
+    min-height: 36px;
+    min-width: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 

@@ -466,9 +466,11 @@ function renderSlotsPanel() {
         // quadrato vuoto (solo contorno) con la sigla del ruolo dentro:
         // stessa forma dello slot pieno, riempirlo di colore non la
         // cambia. Niente altro testo di stato: quello legale si illumina
-        // gia' da solo (bordo/sfondo accent, vedi .slot-box.legal in CSS)
+        // gia' da solo (bordo/sfondo accent, vedi .slot-box.legal in CSS).
+        // La sigla e' in uno span perche' su mobile va nascosta: li'
+        // l'etichetta sotto e' gia' la sigla e verrebbe scritta due volte
         return `<div class="${cls}" data-slot-id="${s.id}">
-          <div class="slot-icon">${s.short}</div>
+          <div class="slot-icon"><span class="icon-role">${s.short}</span></div>
           <div class="slot-label">${labelHtml}</div>
         </div>`;
       })
@@ -900,6 +902,19 @@ function renderShareCard(data) {
       ctx.fillStyle = C.muted;
       ctx.font = `700 12px ${FONT}`;
       ctx.fillText(s[0], cx, rowY + 58);
+
+      // divisore verticale fra le colonne, come sullo schermo
+      // (.who-stats .stat-col:not(:first-child)): stesso C.border dei
+      // separatori orizzontali, e va da sopra il valore a sotto
+      // l'etichetta, cioe' esattamente l'altezza della coppia, non
+      // dell'intera riga
+      if (si > 0) {
+        ctx.strokeStyle = C.border;
+        ctx.beginPath();
+        ctx.moveTo(cx - colW / 2, rowY + 16);
+        ctx.lineTo(cx - colW / 2, rowY + 62);
+        ctx.stroke();
+      }
     });
 
     if (i < data.players.length - 1) {

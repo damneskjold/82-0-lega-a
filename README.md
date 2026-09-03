@@ -106,11 +106,26 @@ volta sola *dopo* aver scelto il filtro, non su ogni pulsante prima):
 coi ruoli ibridi che contano in più chip un numero per pulsante avrebbe
 richiesto una nota a parte per spiegare perché "non torna".
 
+Su mobile i chip hanno `min-height`/`min-width` di **36px**: col solo
+padding restavano 26px di altezza (e 35px di larghezza per "A" e "C",
+una lettera sola), sotto il minimo che `visual_check.js` segnala per un
+bersaglio da toccare — servono entrambe le dimensioni perché il check
+guarda entrambe. Su desktop restano compatti: il puntatore non ha
+bisogno di 36px.
+
 Le 5 colonne di statistiche (P R A S B) hanno **divisori verticali
 sobri** fra loro (stesso `--border` già usato per le righe, riusato in
 verticale) e i numeri sono **centrati** nella propria colonna invece che
 allineati a destra — CSS puro (`.player-stats .stat-col`), nessuna
-modifica alla struttura dati. Prototipato con mockup interattivi
+modifica alla struttura dati. Gli stessi divisori sono anche nella
+schermata risultato (`.who-stats`) e **nella card PNG condivisa**: quella
+è disegnata su `<canvas>`, quindi il CSS non la tocca e le linee vanno
+tracciate a mano in `renderShareCard()` (stesso `C.border` dei separatori
+orizzontali già presenti, alte quanto la coppia valore+etichetta, non
+quanto l'intera riga). Se ne era accorta una passata a mano: gli script
+verificano che la card sia leggibile e contrastata, non che sia coerente
+con la schermata che riproduce — ed è l'unica cosa del gioco che finisce
+sotto gli occhi di altri. Prototipato con mockup interattivi
 (dati reali della carta, non lorem) prima di scrivere il codice vero,
 comprese due correzioni trovate lì: le colonne erano troppo strette per
 il padding aggiunto e il divisore tagliava dentro le cifre, e il colore
@@ -130,6 +145,17 @@ solo il colore del quadrato, mai la sua forma. Lo stato "legale" (slot
 apribile subito) resta un contorno arancione sullo stesso quadrato,
 invece di colorare l'intera riga. Prototipato con un mockup a dati reali
 prima di scrivere il codice vero, approvato senza revisioni.
+
+**Su mobile il quadrato vuoto è vuoto davvero**: lì l'etichetta sotto è
+già la sigla (`.lbl-short`), quindi tenerla anche dentro il quadrato la
+scriveva due volte ("PM" sopra "PM") — su desktop non si nota perché
+l'etichetta è la parola intera ("PLAYMAKER") e la sigla dentro il
+quadrato la completa. Si nasconde la sigla (`.icon-role`) e non
+l'etichetta perché l'etichetta serve anche a slot pieno, dove nel
+quadrato ci sono le iniziali del giocatore: così la barra in fondo allo
+schermo non cambia altezza quando uno slot si riempie (verificato: 72px
+sia vuota sia con slot pieni), coerente col principio che riempire uno
+slot cambia solo il colore, mai la forma.
 
 Il cambiamento ha scoperto un buco nello scanner di contrasto di
 `tests/visual_check.js`: controllava solo l'elemento che porta

@@ -516,6 +516,7 @@ scripts/
   scrape_decade_sample.py   carte-decade aggregate (idempotente) - unica fonte del dataset spedito
   check_data_coverage.py   verifica indipendente copertura decadi/squadre (check dati 1.1, parte A)
   check_data_consistency.py verifica interna: ricalcolo, duplicati, eleggibilità, spot-check live (check dati 1.1, parte B)
+  check_data_sanity.py     bound di sanità sulle statistiche, distribuzione role_source, top rating (check dati 1.1, parte C)
 data/
   dataset.json              dataset generato (sorgente di verità)
   club_discovery.json       output di discover_clubs.py
@@ -533,6 +534,7 @@ node tests/game_smoke_test.js 60      # numero di partite a scelta
 
 cd scripts && python3 check_data_coverage.py     # check dati 1.1 parte A: copertura decadi/squadre
 cd scripts && python3 check_data_consistency.py  # check dati 1.1 parte B: consistenza interna (tocca la rete solo per 5 chiamate di spot-check)
+cd scripts && python3 check_data_sanity.py       # check dati 1.1 parte C: bound di sanità, role_source, top rating
 ```
 
 ## Stato e backlog
@@ -552,8 +554,9 @@ commit.
 
 **Backlog 1.1** (in quest'ordine):
 
-1. **Check dati**: audit di giocatori, ruoli e squadre nel dataset.
-   Parte A (copertura decadi/squadre) **fatta**: `scripts/check_data_coverage.py`
+1. ~~**Check dati**~~ **fatto**: audit di giocatori, ruoli e squadre nel
+   dataset, in 3 parti.
+   Parte A (copertura decadi/squadre): `scripts/check_data_coverage.py`
    ricalcola da zero, dai dati grezzi in `data/raw_cache/` (1990-2025,
    indipendente dalla tabella scritta a mano), quali squadre qualificano
    per quale decade, e confronta con `data/decade_coverage_research.md`
@@ -579,9 +582,29 @@ commit.
    perché nessuna fonte reperibile lo riporta, identità comunque
    confermata: Massimo Re, Emilio Rotasperti, Federico Aime, Angelillo
    D'Ambrosio), poi rigenerata con `scrape_decade_sample.py` come le
-   altre 29. Nessuna carta Olimpia ha perso `lineup_complete`.
-   Parte C (bound di sanità sulle statistiche, `role_source`, spot-check
-   dei top player) non ancora iniziata
+   altre 29. Nessuna carta Olimpia ha perso `lineup_complete`. Parte C
+   (bound di sanità) **fatta**: `scripts/check_data_sanity.py` controlla
+   su tutte le 4110 righe giocatore-decade percentuali di tiro in
+   [0,100], nessun valore negativo, minuti/partita ≤42, altezza in un
+   range umano plausibile, `eligible` sempre con un ruolo — più la
+   distribuzione di `role_source` (91,2% direttamente da roster
+   legabasket, 3,7% + 0,1% da ricerca web/stima altezza, quindi a
+   rischio più alto) e la top 20 per `rating_lega` come base per lo
+   spot-check mirato (i giocatori più forti hanno l'impatto maggiore su
+   un eventuale errore). Trovate e corrette 3 altezze chiaramente
+   sbagliate nei dati grezzi di legabasket.it stessi (es. 85cm, 108cm,
+   102cm — impossibili per un giocatore): 2 corrette con un valore
+   plausibile già presente altrove nella cache dello stesso giocatore
+   (Colbey Ross 185cm, Arturas Gudaitis 211cm), 1 annullata perché
+   nessun valore alternativo esiste né in cache né via ricerca web
+   (Massimiliano Gironi) — nessun impatto di gioco in nessuno dei 3 casi
+   (l'altezza non era comunque abbastanza per un'estensione di ruolo).
+   Spot-check della top 20 per rating: nomi tutti verificabili e reali
+   (Toni Kukoc, Dino Radja, Reggie Theus, Vinny Del Negro, Aleksandar
+   Djordjevic, Dean Garrett, ecc.), 2 controllati a fondo con ricerca
+   esterna indipendente (Djordjevic a Olimpia Milano e Fortitudo
+   Bologna, Dean Garrett e Michael Young a Reggio Calabria) — confermati.
+   **Check dati completo: parti A, B e C tutte fatte.**
 2. ~~**Check colori**~~ **fatto**: i 30 colori squadra (`TEAM_COLORS`
    in `app.js`) sono ora basati sul vero colore sociale storico di
    ogni club (ricerca web, fonti e confidenza per squadra in

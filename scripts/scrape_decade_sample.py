@@ -410,6 +410,19 @@ TEAMS = {
     },
 }
 
+# correzioni per valori di altezza chiaramente errati nei dati grezzi di
+# legabasket.it (scoperti da check_data_sanity.py: altezze fuori da un
+# range umano plausibile). Per player_id con un valore alternativo
+# plausibile gia' visto in cache (altra stagione/squadra dello stesso
+# giocatore) si usa quello - mai un valore inventato; None quando nessun
+# valore plausibile e' disponibile ne' in cache ne' via ricerca web
+# (Massimiliano Gironi: annullato invece di indovinare).
+HEIGHT_CORRECTIONS = {
+    6604: 185,   # Colbey Ross: la cache mostra sia 85 sia 185 a seconda della stagione/squadra - 185 e' plausibile per un playmaker, gia' presente altrove in cache
+    2579: 211,   # Arturas Gudaitis: la cache mostra sia 108 sia 211 - 211 e' plausibile per un centro, gia' presente altrove in cache
+    2420: None,  # Massimiliano Gironi: la cache mostra solo 102 (impossibile) in entrambe le stagioni disponibili, nessun valore alternativo trovato
+}
+
 STAT_FIELDS = [
     "minutes_avg", "points_avg", "off_rebound_avg", "def_rebound_avg",
     "assists_avg", "steals_avg", "turnovers_avg", "blocks_avg",
@@ -508,6 +521,8 @@ def build_decade(club_ids: list, display_name: str, role_overrides_by_name: dict
                         a["role_source"] = "fallback_career"
             if not a["height"]:
                 h = p.get("height")
+                if pid in HEIGHT_CORRECTIONS:
+                    h = HEIGHT_CORRECTIONS[pid]
                 if h:
                     a["height"] = h
 

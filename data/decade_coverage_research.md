@@ -179,3 +179,24 @@ fonte reperibile ne riporta il ruolo di gioco). Rigenerata con
 `scrape_decade_sample.py` come le altre 29, nessuna carta ha perso
 `lineup_complete`. Da questo momento Olimpia Milano non è più un caso
 speciale: stesso processo, stesso standard di tutte le altre squadre.
+
+## Bound di sanità (check dati 1.1 parte C, 2026-09-03)
+
+`scripts/check_data_sanity.py` controlla su tutte le 4110 righe
+giocatore-decade: percentuali di tiro in [0,100], nessun valore
+negativo, minuti/partita ≤42, altezza in un range umano plausibile
+(150-235cm), `eligible` sempre con un ruolo. Trovate e corrette 3
+altezze impossibili nei dati grezzi di legabasket.it (85cm, 108cm,
+102cm) — aggiunto `HEIGHT_CORRECTIONS` in `scrape_decade_sample.py`: 2
+corrette con un valore plausibile già visto altrove in cache per lo
+stesso giocatore (Colbey Ross 185cm, Arturas Gudaitis 211cm), 1
+annullata per mancanza di un valore alternativo verificabile
+(Massimiliano Gironi) — nessun impatto di gioco in nessuno dei 3 casi.
+Anche la distribuzione di `role_source` (91,2% roster, 3,7%+0,1% da
+ricerca/stima altezza) e la top 20 per `rating_lega` sono state
+verificate: nomi tutti reali e plausibili per l'epoca/squadra, 2
+controllati a fondo con ricerca esterna indipendente (Aleksandar
+Djordjevic a Olimpia Milano e Fortitudo Bologna, Dean Garrett e Michael
+Young a Reggio Calabria) — confermati.
+
+**Check dati (backlog 1.1) completo: parti A, B e C tutte fatte.**

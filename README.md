@@ -474,7 +474,7 @@ il risultato è sempre 30-0, sotto è una sigmoide calibrata.
 CEILING              = miglior rating_lega per ciascuno dei 5 rank, sommato
                         (calcolato a runtime da computeCeiling() dopo il
                         caricamento del dataset — vedi sotto il perché)
-PERFECTION_THRESHOLD = CEILING * PERFECTION_BAND        (PERFECTION_BAND = 0.93)
+PERFECTION_THRESHOLD = CEILING * PERFECTION_BAND        (PERFECTION_BAND = 0.89)
 wins_raw = 30                                            se team_rating >= PERFECTION_THRESHOLD
 wins_raw = 30 / (1 + e^(-K * (team_rating - MID)))       altrimenti
 ```
@@ -496,54 +496,39 @@ wins_raw = 30 / (1 + e^(-K * (team_rating - MID)))       altrimenti
   visibile": mediana 24, p10 19, **9 volte su 3000 in tier S** (raro ma
   non nullo, contro le 26+ vittorie quasi garantite di prima del primo
   retune)
-- `PERFECTION_BAND = 0.93`: sopra il 93% del tetto teorico, sempre
-  30-0 — un pugno di quintetti vicinissimi al meglio possibile, non un
-  plateau che capita per caso vicino al tetto (comportamento naturale di
-  qualunque sigmoide, se non lo si rende esplicito). Era `0.97`: troppo
-  raro per essere divertente. Analizzando il vero massimo raggiungibile
-  nel dataset (assegnazione ottima delle carte pescate, non solo la
-  formula) il tier S usciva solo ~1 partita su 326 giocando bene, e il
-  30-0 esatto **mai** su 100.000 draw simulati anche giocando da
-  onniscente (il quintetto migliore in assoluto — Del Negro/TVS,
-  Young/RCA, Komazec/VAR, Daye/PES, Gay/PIS, tutti anni '90 — è al 99.3%
-  del tetto ma sotto la vecchia soglia). A `0.93` il tier S capita ~1
-  partita su 78 giocando bene, il 30-0 esatto resta un unicorno
-  (~0.002%, richiede quasi la combinazione di carte perfetta)
-
-**Ri-misurato** dopo le correzioni ai ruoli (le 4 correzioni verificate e
-la regola dei rimbalzi hanno cambiato chi è eleggibile per quale rank, e
-quindi anche `CEILING`), con `tests/difficulty_check.js` — che chiama le
-funzioni vere del gioco (`drawFive`, `ranksFor`, `evaluateLineup`) sulla
-pagina reale invece di re-implementarle. Tre giocatori diversi a
-confronto sulle stesse 3000 pescate:
-
-| strategia | media | mediana | max | tier S (≥29) | 30-0 |
-|---|---|---|---|---|---|
-| primo eleggibile (quella dello smoke test) | 21.1 | 22 | 29 | 1 su 429 | 0 |
-| avido (miglior rating disponibile, senza pianificare) | 24.0 | 24 | 29 | 1 su 79 | 0 |
-| ottimo (miglior formazione possibile su quella pescata) | 25.1 | 25 | 29 | 1 su 35 | 0 |
-
-**La taratura del tier S regge**: l'~1 su 78 scritto sopra corrisponde
-quasi esattamente all'1 su 79 misurato ora per la strategia avida, che è
-il "giocando bene" a cui quel numero si riferiva. Giocando in modo
-davvero ottimale è ~1 su 35, ma è un giocatore più forte di quello con
-cui era stata fatta la taratura, non uno scostamento.
-
-Sul **30-0 esatto**, misurato a parte su 400.000 pescate (solo il rating
-massimo ottenibile, senza penalità: è un *limite superiore*, giocando
-davvero è più raro): **43 pescate superano la soglia, ~1 ogni 9.300**.
-Su 3000 pescate giocate in modo ottimale il miglior rating raggiunto è
-136.8 contro una soglia di 141 — il 90% del tetto contro il 93%
-richiesto, quindi nemmeno una volta. Il 30-0 **esiste davvero e il gioco
-lo assegna**: forzando la miglior combinazione possibile di 5 carte
-(Treviso/Varese/Pesaro/Pistoia/Reggio Calabria, tutte anni '90) il
-risultato è 30-0 con penalità 0 e rating 150.6 su 151.6, quindi non è un
-traguardo fasullo. Ma resta un evento che chi gioca non vedrà mai: la
-strategia avida, che è già un giocatore attento, non ha passato 29 in
-3000 partite. **Da decidere** se lasciarlo come mito irraggiungibile
-(coerente con l'intento dichiarato: "il 30-0 esatto resta un unicorno")
-o allentare `PERFECTION_BAND` — cambiarlo però muove anche la frequenza
-del tier S, oggi tarata bene.
+- `PERFECTION_BAND = 0.89`: sopra l'89% del tetto teorico, sempre 30-0 —
+  un pugno di quintetti vicinissimi al meglio possibile, non un plateau
+  che capita per caso vicino al tetto (comportamento naturale di
+  qualunque sigmoide, se non lo si rende esplicito). Tre ritocchi, ognuno
+  misurato prima di essere spedito — mai a occhio, perché `K` dipende da
+  `PERFECTION_THRESHOLD` tramite `computeK()`: spostare la banda non
+  tocca solo la punta della curva, la ripiattisce tutta, e uno
+  spostamento piccolo ha un effetto più grande di quanto sembri a naso:
+  - `0.97` (primo valore): troppo raro per essere divertente — tier S
+    ~1 partita su 326 giocando bene, 30-0 esatto **mai** su 100.000
+    pescate anche giocando da onniscente (il quintetto migliore in
+    assoluto — Del Negro/TVS, Young/RCA, Komazec/VAR, Daye/PES, Gay/PIS,
+    tutti anni '90 — è al 99.3% del tetto ma sotto quella soglia)
+  - `0.93`: tier S ~1 su 78 giocando bene, voluto così. Ma con le
+    correzioni ai ruoli successive (vedi "Ruoli estesi per altezza",
+    cambiano chi è eleggibile per quale rank e quindi anche `CEILING`)
+    si è scoperto — con `tests/difficulty_check.js`, che chiama le
+    funzioni vere del gioco (`drawFive`, `ranksFor`, `evaluateLineup`)
+    invece di re-implementarle — che il 30-0 esatto non usciva **mai**,
+    nemmeno giocando nel modo assolutamente migliore (0 su 3000 pescate):
+    la soglia stava sopra il 99.9-esimo percentile di quello che le
+    pescate permettono, non un problema di bravura
+  - `0.89` (attuale): confrontate 7 bande (`0.93`→`0.87`) sulle
+    **stesse identiche pescate**, chiamando la vera `evaluateLineup()` —
+    un primo giro con una riscrittura a mano della formula (senza
+    l'arrotondamento e la penalità che la vera funzione applica) aveva
+    dato un tier S 3 volte più basso del reale, un errore scoperto solo
+    confrontandolo col numero prodotto dalla funzione vera. `0.89` è il
+    primo valore dove il 30-0 esce per davvero giocando in modo ottimo
+    (5 su 3000, ~1 ogni 600 — anche confermato su un giro più ampio,
+    5 su 4000), tenendo l'aumento del tier S il più piccolo possibile
+    fra le opzioni che funzionano: 1 su 31 → 1 su 14, contro 1 su 9 a
+    `0.87` (quasi il triplo, per lo stesso identico guadagno sul 30-0)
 - `K`: calcolato da `computeK()` perché la sigmoide valga ~29.5 appena
   sotto `PERFECTION_THRESHOLD`, così il passaggio alla zona di perfezione
   resta morbido invece che un gradino
@@ -557,6 +542,22 @@ rendendo il gioco via via più facile senza che nessuno se ne
 accorgesse finché non è diventato troppo evidente. Calcolandoli dal
 dataset invece che scrivendoli a mano, il problema non si ripresenta
 più da solo quando il roster cresce ancora.
+
+**`CEILING` è la somma del massimo `rating_lega` per ciascun rank su
+tutto il pool — non è garantito che una combinazione reale di 5 carte
+distinte possa prenderli tutti insieme.** Verificato che è comunque
+quasi raggiungibile per davvero, non un fantasma: la miglior
+combinazione reale di 5 carte esistenti (Del Negro/TVS, Young/RCA,
+Komazec/VAR, Daye/PES, Gay/PIS, tutte anni '90) arriva al **99.3% del
+tetto** (150.6 su 151.6, trovato due volte in sessioni diverse con lo
+stesso risultato) — i giocatori più forti per ruolo si concentrano quasi
+tutti sulle stesse squadre/anni '90. Non lo si ri-ancora al valore
+esatto: calcolarlo per davvero è una ricerca combinatoria su tutte le
+combinazioni di carte (quella usata in `tests/difficulty_check.js` per
+verificarlo, pensata per girare offline in un test, non nel browser ad
+ogni caricamento pagina) — introdurre quel costo per guadagnare uno
+0.7% reintrodurrebbe sotto altra forma lo stesso problema di
+staleness già risolto sopra.
 
 **Penalità sbilanciamento**: si sommano 5 categorie base (punti, rimbalzi,
 assist, palle recuperate, stoppate) sui 5 giocatori, si confrontano con la
@@ -899,3 +900,18 @@ problema è reale (simulato 200.000 draw, Virtus Bologna/4 carte
 compare nel 47.5% delle partite contro il 16.67% atteso se equo,
 Udine/1 carta solo nel 7.3%), potrebbe diventare una personalizzazione
 facoltativa in futuro.
+
+**In standby anche**: un giudizio separato dal record, che confronti il
+rating ottenuto col massimo ottenibile da quella specifica pescata
+(quanto hai sfruttato le carte che ti sono capitate, non solo quanto è
+alto il numero finale — oggi il rating dipende per il 90% dalla fortuna
+della pescata, per il resto dalla bravura, vedi la tabella dei percentili
+sopra). Scartato deliberatamente: mostrare quel numero toglierebbe la
+magia al giocatore casual, rendendo esplicito quanto la pescata conta
+più della bravura — cosa che oggi il gioco lascia intuire ma non
+sbatte in faccia. Se mai implementato, va dietro un toggle
+"developer", mai visibile di default, sullo stesso principio delle
+pescate riorganizzate sequenziali sopra. Il calcolo esiste già pronto
+all'uso — la stessa ricerca del miglior quintetto per-pescata scritta
+per `tests/difficulty_check.js` — quindi il costo futuro sarebbe
+soprattutto di interfaccia, non di calcolo.

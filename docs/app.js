@@ -259,11 +259,24 @@ let MID = 0;
 // al meglio possibile, invece di un plateau che capita per caso vicino
 // al tetto (comportamento naturale di qualunque sigmoide, altrimenti).
 // A 0.97 il tier S (29-30) era troppo raro per essere divertente (~1
-// partita su 326 giocando bene, verificato per assegnazione ottima dei
-// quintetti pescabili): abbassato a 0.93 per farlo capitare ogni tanto
-// con un buon pescaggio (~1 su 78), lasciando il 30-0 esatto ancora
-// quasi irraggiungibile (serve la combinazione di carte quasi perfetta).
-const PERFECTION_BAND = 0.93;
+// partita su 326 giocando bene): abbassato a 0.93, poi a 0.89 dopo aver
+// misurato che a 0.93 il 30-0 esatto non usciva mai nemmeno giocando in
+// modo ottimale (0 su 3000 pescate) - non era un problema di bravura, la
+// soglia stava sopra il 99.9-esimo percentile di quello che le pescate
+// permettono. Confrontate 7 bande (0.93->0.87) sulle STESSE pescate,
+// chiamando la vera evaluateLineup() (non una riscrittura a mano - un
+// primo giro senza arrotondamento/penalita' aveva dato numeri sballati,
+// vedi README): 0.90 e sotto restava a 0/3000; 0.89 e' il primo valore
+// dove il 30-0 esce davvero (5 su 3000, ~1 ogni 600 giocando in modo
+// ottimale) con l'aumento di tier S piu' contenuto fra le opzioni che
+// funzionano (1/31 -> 1/14, contro 1/9 a 0.87 - quasi il triplo).
+// ATTENZIONE: K dipende da PERFECTION_THRESHOLD (vedi computeK sotto),
+// quindi cambiare questa costante non sposta solo la punta della curva
+// ma la ripiattisce tutta - anche piccoli spostamenti hanno un effetto
+// piu' grande di quanto sembri a naso, vanno sempre misurati con
+// tests/difficulty_check.js prima di cambiarli (vedi README, sezione
+// "Curva a due tratti").
+const PERFECTION_BAND = 0.89;
 let PERFECTION_THRESHOLD = 0;
 // K: calibrato (vedi computeK) perche' la sigmoide raggiunga circa 29.5
 // vittorie appena sotto PERFECTION_THRESHOLD, cosi' il passaggio alla

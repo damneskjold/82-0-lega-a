@@ -413,12 +413,22 @@ override di ruolo). È **idempotente**: se una carta-decade per quella
 squadra esiste già, la sostituisce invece di appenderla — una versione
 precedente non lo era e ha duplicato i dati.
 
-Dopo aver rigenerato `data/dataset.json`, **copiarlo a mano** in
-`docs/data/dataset.json` (il frontend legge da lì):
+Dopo aver rigenerato `data/dataset.json`, va ricostruita la copia che
+legge il frontend:
 
 ```bash
-cp data/dataset.json docs/data/dataset.json
+cd scripts && python3 build_web_dataset.py
 ```
+
+Non è più una copia identica (prima era un `cp` fatto a mano,
+dimenticabile): `data/dataset.json` resta la sorgente completa per i
+check, mentre `docs/data/dataset.json` contiene **solo quello che il
+gioco legge davvero** — i giocatori selezionabili e 13 campi su 24. Da
+3.44 MB a 0.72 MB (0.28 → 0.10 MB compressi in rete): il resto veniva
+scaricato e buttato via dal browser. Se un domani serve mostrare in
+partita una statistica oggi non mostrata, va aggiunta a `PLAYER_FIELDS`
+nello script — che ha una guardia apposta: se `app.js` nomina un campo
+non spedito, il build fallisce invece di lasciare un `undefined` in giro.
 
 `scripts/discover_clubs.py` è lo script (già eseguito, risultato in
 `data/club_discovery.json`) usato per mappare i nomi storici delle
@@ -491,7 +501,7 @@ di default, va filtrato esplicitamente per `championship_name`.
 
 - `check_lineup_complete()` in `scrape_dataset.py` usa ancora il vecchio
   `ROLE_ALIASES` ("1 PM + 1 C + 3 mobili"), non i rank del frontend: oggi
-  nessuna carta è incoerente (tutte e 46 coprono i 5 rank), ma è un
+  nessuna carta è incoerente (tutte e 62 coprono i 5 rank), ma è un
   controllo che non controlla più la cosa giusta
 - `http_get_json()` cattura gli `HTTPError` e **cacha `{}`**: una chiamata
   fallita diventa silenziosamente "giocatore senza statistiche". È successo
@@ -510,11 +520,12 @@ docs/           sito pubblicato (GitHub Pages serve da qui)
   index.html
   style.css
   app.js
-  data/dataset.json         copia del dataset usata dal frontend
+  data/dataset.json         dataset snello servito al browser (generato da build_web_dataset.py, non copia)
 scripts/
   discover_clubs.py         mappatura squadra -> club_id nel tempo
   scrape_dataset.py         scraping carte-stagione (prototipo, non più usato per il dataset spedito)
   scrape_decade_sample.py   carte-decade aggregate (idempotente) - unica fonte del dataset spedito
+  build_web_dataset.py      costruisce la copia snella per il browser (solo i campi usati dal gioco)
   check_data_coverage.py   verifica indipendente copertura decadi/squadre (check dati 1.1, parte A)
   check_data_consistency.py verifica interna: ricalcolo, duplicati, eleggibilità, spot-check live (check dati 1.1, parte B)
   check_data_sanity.py     bound di sanità sulle statistiche, distribuzione role_source, top rating (check dati 1.1, parte C)

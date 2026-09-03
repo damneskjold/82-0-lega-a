@@ -563,28 +563,25 @@ commit.
    `club_id` doppio per rifondazione). Parte B (consistenza interna)
    **fatta**: `scripts/check_data_consistency.py` (1) richiama la vera
    `build_decade()` su tutti i dati già in cache e confronta il
-   risultato campo per campo con `data/dataset.json` per le 29 squadre
-   in `TEAMS`, (2) controlla duplicati e coerenza della soglia di
-   eleggibilità su tutto il dataset, (3) fa uno spot-check dal vivo
+   risultato campo per campo con `data/dataset.json` per tutte le 30
+   squadre in `TEAMS`, (2) controlla duplicati e coerenza della soglia
+   di eleggibilità su tutto il dataset, (3) fa uno spot-check dal vivo
    contro l'API di legabasket.it su 5 giocatori-stagione a caso.
    Risultato: **pulito** su tutti e tre — nessun mismatch di ricalcolo,
    nessun duplicato, nessuna violazione di eleggibilità, cache locale
-   confermata identica ai dati live. Unica nota, solo su **Olimpia
-   Milano** (l'unica squadra fuori da `TEAMS`, con `role_overrides_by_name`
-   storico perso — non ricalcolabile 1:1): 25 giocatori con differenze
-   di ruolo isolate, tutte spiegate — 6 dipendevano dagli override persi
-   (non riverificabili), 19 hanno altezza 0/assente nel roster e oggi
-   `build_decade()` li lascia senza ruolo mentre il passaggio più
-   vecchio con cui furono generati chiamava comunque
-   `estimate_role_from_height()` (che per quel caso restituisce
-   apposta "Ala" come valore neutro, vedi il suo commento in
-   `scrape_dataset.py`) — una divergenza reale tra le due generazioni di
-   script, non un bug del ricalcolo. Nessuna carta Olimpia perde
-   `lineup_complete` in nessuno scenario (verificato). Da decidere se
-   tenerli così o riallineare Olimpia allo standard più severo di oggi
-   (perderebbero ruolo/eleggibilità). Parte C (bound di sanità sulle
-   statistiche, `role_source`, spot-check dei top player) non ancora
-   iniziata
+   confermata identica ai dati live. La Parte B aveva inizialmente
+   trovato **Olimpia Milano** fuori standard (unica squadra generata da
+   un passaggio più vecchio della sessione, con `role_overrides_by_name`
+   mai salvato in `TEAMS` — non ricalcolabile 1:1): risolto aggiungendola
+   a `TEAMS` con ricerca web verificata per i 24 giocatori senza ruolo
+   classificato né altezza (20 risolti con fonte citata — Wikipedia,
+   Museo del Basket Milano, Playbasket.it, ecc. — 4 restano senza ruolo
+   perché nessuna fonte reperibile lo riporta, identità comunque
+   confermata: Massimo Re, Emilio Rotasperti, Federico Aime, Angelillo
+   D'Ambrosio), poi rigenerata con `scrape_decade_sample.py` come le
+   altre 29. Nessuna carta Olimpia ha perso `lineup_complete`.
+   Parte C (bound di sanità sulle statistiche, `role_source`, spot-check
+   dei top player) non ancora iniziata
 2. ~~**Check colori**~~ **fatto**: i 30 colori squadra (`TEAM_COLORS`
    in `app.js`) sono ora basati sul vero colore sociale storico di
    ogni club (ricerca web, fonti e confidenza per squadra in

@@ -74,6 +74,41 @@ TEAMS = {
             ("Tullio", "De Piccoli"): "Ala/Centro",     # 202cm, ala/centro (Wikipedia)
         },
     },
+    "olimpia_milano": {
+        "club_id": 28,
+        "display_name": "Olimpia Milano",
+        # aggiunta dopo le altre 29 (le carte-decade originarie risalivano a
+        # un passaggio piu' vecchio della sessione, con un
+        # role_overrides_by_name mai salvato - vedi check_data_consistency.py
+        # e data/decade_coverage_research.md). Ricerca web per 24 giocatori
+        # senza ruolo classificato ne' altezza: 20 risolti qui, 4 restano
+        # irrisolvibili (Massimo Re, Emilio Rotasperti, Federico Aime,
+        # Angelillo D'Ambrosio - identita' confermata ma nessuna fonte
+        # riporta il ruolo di gioco, per D'Ambrosio l'unico omonimo trovato
+        # ha un anno di nascita diverso quindi neanche quello e' affidabile)
+        "role_overrides_by_name": {
+            ("Cozell", "Mc Queen"): "Centro",          # NC State, drafted Celtics 1985 (Wikipedia)
+            ("Piero", "Montecchi"): "Play/Guardia",     # playmaker/guardia (Museo del Basket Milano)
+            ("Jay", "Vincent"): "Ala",                  # ex NBA Dallas Mavericks, Michigan State (Wikipedia)
+            ("Johnny", "Rogers"): "Ala",                # (Museo del Basket Milano)
+            ("Zan", "Tabak"): "Centro",                 # ex NBA Houston Rockets (Wikipedia)
+            ("Mathias", "Sahlstrom"): "Centro",         # pivot svedese, arrivato da Iraklis Salonicco 1997/98 (Museo del Basket Milano)
+            ("Georgios", "Kalaitzis"): "Guardia/Ala",   # ala/guardia greco (Wikipedia)
+            ("Riccardo", "Musumeci"): "Guardia",        # settore giovanile Olimpia (Playbasket.it)
+            ("Francesco", "Gravaghi"): "Guardia",       # settore giovanile Olimpia (RealOlimpiaMilano)
+            ("Luigi", "Suigo"): "Centro",               # settore giovanile Olimpia (Sportando)
+            ("Samuele", "Giardini"): "Guardia",         # (Eurobasket.com)
+            ("Cristian", "Barbieri"): "Ala",            # settore giovanile Olimpia (Playbasket.it)
+            ("Francesco", "De Capitani"): "Guardia",    # settore giovanile Olimpia, da Saronno (RealOlimpiaMilano)
+            ("Federico Andrea", "Ferraris"): "Playmaker",  # settore giovanile Olimpia (Playbasket.it)
+            ("Vittorio", "Lazzari"): "Ala",             # settore giovanile Olimpia (Playbasket.it)
+            ("Giovanni", "Tam"): "Centro",              # settore giovanile Olimpia (PianetaBasket/MilanoToday)
+            ("Luca", "Panna"): "Centro",                # settore giovanile Olimpia (MessinaSportiva.it)
+            ("Diego", "Garavaglia"): "Ala",             # settore giovanile Olimpia (Wikipedia IT)
+            ("Federico", "Pillepich"): "Ala",           # ala grande, settore giovanile Olimpia (PianetaBasket)
+            ("Guglielmo", "Youssef"): "Ala",            # settore giovanile Olimpia (PianetaBasket)
+        },
+    },
     "varese": {
         "club_id": 60,
         "display_name": "Pallacanestro Varese",

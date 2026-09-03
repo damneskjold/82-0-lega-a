@@ -67,16 +67,11 @@ from scrape_decade_sample import (  # noqa: E402
 
 MIN_PRESENCES = scrape_dataset.MIN_PRESENCES
 
-# Olimpia Milano non e' in TEAMS di scrape_decade_sample.py (carte-decade
-# fatte in un passaggio piu' vecchio della sessione, role_overrides_by_name
-# storico perso - vedi data/decade_coverage_research.md). La ricalcolo
-# comunque con override vuoti: le statistiche numeriche restano un segnale
-# valido, eventuali differenze isolate su ruolo/eligible per pochi
-# giocatori sono attese e vanno lette come "non verificabile", non un bug.
-OLIMPIA_CFG = {"club_ids": [28], "display_name": "Olimpia Milano", "role_overrides_by_name": {}}
-
+# Olimpia Milano e' stata aggiunta a TEAMS in scrape_decade_sample.py (era
+# l'unica squadra fuori da quel dict, con un role_overrides_by_name storico
+# perso - vedi data/decade_coverage_research.md e la nota di commit): ora
+# ricalcolabile 1:1 come le altre 29, nessuna gestione speciale necessaria.
 ALL_TEAMS_FOR_RECOMPUTE = dict(DECADE_TEAMS)
-ALL_TEAMS_FOR_RECOMPUTE["olimpia_milano"] = OLIMPIA_CFG
 
 FIELDS_TO_COMPARE = [
     "role", "role_source", "height", "games_total", "eligible",
@@ -85,7 +80,6 @@ FIELDS_TO_COMPARE = [
     "blocked_against_avg", "fouls_committed_avg", "fouls_suffered_avg",
     "fg2_pct", "fg3_pct", "ft_pct", "rating_lega", "rating_oer",
 ]
-ROLE_RELATED_FIELDS = {"role", "role_source", "eligible"}
 
 dataset = json.loads(DATASET_PATH.read_text(encoding="utf-8"))
 teams_in_dataset = {t["key"]: t for t in dataset["teams"]}
@@ -94,7 +88,6 @@ print("=== 1. Ricalcolo indipendente (build_decade su cache) vs dataset.json ===
 
 recompute_mismatches = []          # (team_key, decade, player_id, field, atteso, ricalcolato)
 recompute_player_set_diffs = []    # (team_key, decade, solo_in_dataset, solo_in_ricalcolo)
-olimpia_diffs = {"wikipedia_lookup_lost": 0, "estimated_height_gate": 0, "other": 0}
 
 for team_key, cfg in sorted(ALL_TEAMS_FOR_RECOMPUTE.items()):
     team = teams_in_dataset.get(team_key)
@@ -128,28 +121,9 @@ for team_key, cfg in sorted(ALL_TEAMS_FOR_RECOMPUTE.items()):
 
         for pid in sorted(set(stored_players) & set(recomputed_players)):
             sp, rp = stored_players[pid], recomputed_players[pid]
-            if team_key == "olimpia_milano" and rp.get("role") is None and sp.get("role") is not None:
-                # Olimpia Milano non e' in TEAMS: ricalcolata con override
-                # vuoti, quindi un ruolo perso nel ricalcolo ha una di due
-                # spiegazioni note (mai un bug silenzioso, controllate qui
-                # esplicitamente):
-                if sp.get("role_source") == "wikipedia_lookup":
-                    # dipendeva da role_overrides_by_name storico, perso
-                    olimpia_diffs["wikipedia_lookup_lost"] += 1
-                    continue
-                if sp.get("role_source") == "estimated_height" and not sp.get("height"):
-                    # vedi nota "gate altezza=0" sotto: build_decade() salta
-                    # estimate_role_from_height() quando height e' 0/assente
-                    # anche se la funzione stessa gestisce quel caso (torna
-                    # "Ala" come valore neutro) - Olimpia risale a un
-                    # passaggio piu' vecchio che la chiamava comunque
-                    olimpia_diffs["estimated_height_gate"] += 1
-                    continue
             for field in FIELDS_TO_COMPARE:
                 sv, rv = sp.get(field), rp.get(field)
                 if sv != rv:
-                    if team_key == "olimpia_milano" and field in ROLE_RELATED_FIELDS:
-                        olimpia_diffs["other"] += 1
                     recompute_mismatches.append((team_key, label, pid, field, sv, rv))
 
         if stored.get("lineup_complete") != recomputed.get("lineup_complete"):
@@ -171,19 +145,6 @@ if recompute_player_set_diffs:
     print(f"\n  Differenze nell'insieme giocatori (potrebbero indicare stagioni/roster diversi): {len(recompute_player_set_diffs)}")
     for team_key, label, only_stored, only_recomputed in recompute_player_set_diffs:
         print(f"    [{team_key}] {label}: solo in dataset={only_stored} solo in ricalcolo={only_recomputed}")
-
-if olimpia_diffs["wikipedia_lookup_lost"] or olimpia_diffs["estimated_height_gate"]:
-    print(f"\n  Note su Olimpia Milano (non trattate come bug del dataset, vedi README):")
-    if olimpia_diffs["wikipedia_lookup_lost"]:
-        print(f"    - {olimpia_diffs['wikipedia_lookup_lost']} giocatori col ruolo da role_overrides_by_name storico "
-              f"(perso, mai salvato in TEAMS) - non verificabili con questo script")
-    if olimpia_diffs["estimated_height_gate"]:
-        print(f"    - {olimpia_diffs['estimated_height_gate']} giocatori con altezza 0/assente nel roster: "
-              f"build_decade() attuale li lascia senza ruolo (non chiama estimate_role_from_height quando "
-              f"l'altezza e' 0/falsy), Olimpia risale invece a un passaggio che la chiamava comunque, "
-              f"ottenendo il valore neutro \"Ala\" che estimate_role_from_height restituisce apposta per "
-              f"quel caso (vedi il suo commento in scrape_dataset.py) - divergenza reale fra le due "
-              f"generazioni, non un errore di ricalcolo di questo script")
 
 # --- 2. controlli strutturali sul dataset.json reale ---
 print("\n=== 2. Controlli strutturali (duplicati, soglia eleggibilita') ===\n")

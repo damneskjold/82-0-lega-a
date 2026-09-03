@@ -156,3 +156,26 @@ confermate indipendentemente. L'unico problema trovato è stato di
 documentazione, non di dati: questa nota di metodo diceva "tre città" con
 `club_id` doppio invece di cinque (mancavano Pistoia e Udine, già corrette
 sopra).
+
+## Consistenza interna (check dati 1.1 parte B, 2026-09-03)
+
+`scripts/check_data_consistency.py` ricalcola le carte-decade di tutte
+le 30 squadre da zero (richiamando la vera `build_decade()` sui dati già
+in cache) e confronta il risultato con `data/dataset.json` — pulito su
+tutte, nessun mismatch, nessun duplicato, nessuna violazione di
+eleggibilità (dettagli in README, sezione "Stato e backlog").
+
+In questo passaggio è emerso che **Olimpia Milano** era l'unica delle 30
+squadre non presente in `TEAMS` di `scrape_decade_sample.py`: le sue
+carte-decade risalivano a un passaggio più vecchio della sessione, con un
+`role_overrides_by_name` storico mai salvato, quindi non ricalcolabile
+1:1 come le altre 29. Risolto: aggiunta a `TEAMS` (club_id 28) con
+ricerca web verificata per i 24 giocatori senza ruolo classificato né
+altezza nel roster — 20 risolti con fonte citata (Wikipedia, Museo del
+Basket Milano, Playbasket.it, Eurobasket.com, ecc.), 4 restano senza
+ruolo (Massimo Re, Emilio Rotasperti, Federico Aime, Angelillo
+D'Ambrosio — identità confermata da data/luogo di nascita, ma nessuna
+fonte reperibile ne riporta il ruolo di gioco). Rigenerata con
+`scrape_decade_sample.py` come le altre 29, nessuna carta ha perso
+`lineup_complete`. Da questo momento Olimpia Milano non è più un caso
+speciale: stesso processo, stesso standard di tutte le altre squadre.

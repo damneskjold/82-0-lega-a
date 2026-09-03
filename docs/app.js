@@ -116,6 +116,32 @@ const TEAM_COLORS = {
   scafati: "#F2BA40", // gialloblù (alta)
 };
 
+// Il colore squadra fa da sfondo alle iniziali del giocatore (avatar del
+// quintetto finale e card PNG condivisa). Con i colori sociali veri
+// introdotti nella 1.1 alcune squadre sono chiarissime - Varese e'
+// giallo #FEEB13 - e le iniziali bianche fisse ci sparivano sopra
+// (contrasto 1.23, sotto qualunque soglia leggibile). L'inchiostro si
+// sceglie quindi in base al contrasto WCAG, mai fisso.
+const INK_LIGHT = "#ffffff";
+const INK_DARK = "#0f141b"; // stesso valore di --bg
+function relLuminance(hex) {
+  const ch = [1, 3, 5].map((i) => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+}
+function contrastRatio(l1, l2) {
+  return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+}
+function inkFor(bgHex) {
+  if (typeof bgHex !== "string" || !/^#[0-9a-fA-F]{6}$/.test(bgHex)) return INK_LIGHT;
+  const l = relLuminance(bgHex);
+  return contrastRatio(l, relLuminance(INK_LIGHT)) >= contrastRatio(l, relLuminance(INK_DARK))
+    ? INK_LIGHT
+    : INK_DARK;
+}
+
 // sigle a 3 lettere stile 82-0 (no sponsor), definite insieme all'utente.
 // Bologna (VBO/FBO) e Reggio (REG/RCA) le due coppie a rischio collisione
 // per due club nella stessa citta'; Treviso/Trieste/Trento (TVS/TRI/TNT)
@@ -576,7 +602,7 @@ function showResult() {
       const p = pk.player;
       const reb = Number(p.off_rebound_avg || 0) + Number(p.def_rebound_avg || 0);
       return `<div class="lineup-row">
-        <div class="who-avatar" style="--team-color:${pk.teamSeason.color}">
+        <div class="who-avatar" style="--team-color:${pk.teamSeason.color};--team-ink:${inkFor(pk.teamSeason.color)}">
           <span class="avatar-initials">${initialsFor(p)}</span>
           <span class="avatar-role">${s.short}</span>
         </div>
@@ -773,10 +799,11 @@ function renderShareCard(data) {
   let ry = listY + LIST_PAD;
   data.players.forEach((p, i) => {
     const rowY = ry;
-    ctx.fillStyle = p.color || C.accent;
+    const avatarBg = p.color || C.accent;
+    ctx.fillStyle = avatarBg;
     roundRectPath(ctx, 54, rowY + 14, 70, 70, 10);
     ctx.fill();
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = inkFor(avatarBg); // non bianco fisso: vedi inkFor()
     ctx.font = `800 26px ${FONT}`;
     ctx.textAlign = "center";
     ctx.fillText(p.initials, 54 + 35, rowY + 14 + 44);

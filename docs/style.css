@@ -573,7 +573,9 @@ body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: #fff;
+  /* non bianco fisso: su squadre dal colore chiarissimo (Varese e'
+     giallo) le iniziali sparivano. Lo calcola inkFor() in app.js. */
+  color: var(--team-ink, #fff);
   font-weight: 800;
   font-size: 0.85rem;
   margin-bottom: 6px;

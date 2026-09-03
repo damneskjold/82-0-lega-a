@@ -650,7 +650,22 @@ commit.
    sotto i 400px le statistiche passano su una riga propria per lasciare
    spazio al nome), etichette dei totali che si toccavano
    ("RIMBALZIASSIST..."), record che andava a capo col trattino appeso
-   quando entrambi i numeri erano a due cifre (es. 18-12)
+   quando entrambi i numeri erano a due cifre (es. 18-12).
+   **Copre anche la card PNG condivisa**, che essendo disegnata su
+   `<canvas>` lo scanner del DOM non vedeva ed era il buco più grosso —
+   oltretutto è l'unica cosa del gioco che finisce sotto gli occhi di
+   altri. Lì è saltata fuori una regressione dei colori nuovi: le
+   iniziali erano disegnate in bianco fisso sopra il colore squadra, e
+   con i colori sociali veri **7 squadre su 30 le avevano illeggibili**
+   (Varese è giallo: contrasto 1.23, praticamente invisibili). Ora
+   l'inchiostro lo sceglie `inkFor()` in base al contrasto WCAG, chiaro
+   o scuro, sia sul canvas sia sull'avatar nella schermata risultato:
+   contrasto minimo salito da 1.23 a 4.37 su tutte e 30. Il check ora
+   verifica il contrasto sia nei dati (tutti i 30 colori) sia a schermo
+   (colore calcolato del pixel, così se il collegamento della variabile
+   CSS si rompe si vede), e salva la card PNG anche in una versione col
+   **caso peggiore forzato** — i 5 colori squadra più chiari tutti
+   insieme — invece di sperare che il sorteggio ci capiti
 
 **In standby** (scelta esplicita dell'utente, non un fix da fare
 comunque): pesca a due passaggi in `drawFive()` — verificato che il

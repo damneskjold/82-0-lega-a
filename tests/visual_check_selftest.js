@@ -41,6 +41,18 @@ const CASES = [
     },
   },
   {
+    name: "iniziali bianche su colore squadra chiarissimo -> contrasto basso",
+    expect: "contrasto-basso-a-schermo",
+    break: () => {
+      // e' esattamente la regressione vera trovata dopo il cambio colori
+      // della 1.1: bianco fisso sopra il giallo di Varese
+      const d = document.createElement("div");
+      d.setAttribute("style", "--team-color:#FEEB13;background:#FEEB13;color:#fff;width:40px;height:40px");
+      d.textContent = "RT";
+      document.querySelector("#app").appendChild(d);
+    },
+  },
+  {
     name: "velo fisso sopra tutto -> elementi interattivi irraggiungibili",
     expect: "coperto-anche-dopo-scroll",
     break: () => {

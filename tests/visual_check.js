@@ -183,7 +183,40 @@ function scanDom(touchMin) {
   for (const [el, top] of scrollState) el.scrollTop = top;
   window.scrollTo(0, pageScroll);
 
-  // 6. bersagli tocco piccoli (solo mobile, solo informativo)
+  // 6. contrasto reale a schermo dove il colore squadra fa da sfondo:
+  //    il controllo sui colori in checkShareCard() verifica che inkFor()
+  //    calcoli il valore giusto, questo verifica che arrivi davvero fino
+  //    al pixel (se il collegamento della variabile CSS si rompe, lì non
+  //    si vedrebbe)
+  const parseRgb = (s) => {
+    const m = s.match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)/);
+    return m ? [+m[1], +m[2], +m[3]] : null;
+  };
+  const lum = (rgb) => {
+    const ch = rgb.map((v) => {
+      const c = v / 255;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+  };
+  for (const el of Array.from(document.querySelectorAll('[style*="--team-color"]')).filter(visible)) {
+    const st = getComputedStyle(el);
+    const fg = parseRgb(st.color);
+    const bg = parseRgb(st.backgroundColor);
+    if (!fg || !bg || !el.textContent.trim()) continue;
+    const lf = lum(fg);
+    const lb = lum(bg);
+    const ratio = (Math.max(lf, lb) + 0.05) / (Math.min(lf, lb) + 0.05);
+    if (ratio < 3) {
+      problems.push({
+        type: "contrasto-basso-a-schermo",
+        el: describe(el),
+        detail: `testo ${st.color} su ${st.backgroundColor}, contrasto ${ratio.toFixed(2)} < 3.0`,
+      });
+    }
+  }
+
+  // 7. bersagli tocco piccoli (solo mobile, solo informativo)
   if (vw <= 480) {
     for (const el of interactive) {
       const r = el.getBoundingClientRect();
@@ -287,6 +320,92 @@ async function runViewport(browser, vp, findings) {
   await page.close();
 }
 
+/**
+ * Card PNG condivisa + contrasto delle iniziali sui colori squadra.
+ *
+ * La card è disegnata su <canvas>, quindi lo scanner del DOM non la vede:
+ * era il buco più grosso del check visivo, ed è anche l'unica cosa del
+ * gioco che finisce sotto gli occhi di altre persone. Il controllo vero e
+ * proprio è sul contrasto (calcolabile, quindi non regredisce in
+ * silenzio); il PNG viene salvato per una scorsa a occhio, e ne viene
+ * generata anche una versione col caso peggiore forzato, invece di
+ * sperare che il sorteggio peschi proprio le squadre dai colori chiari.
+ */
+async function checkShareCard(browser, findings) {
+  const page = await newPage(browser, { width: 1280, height: 900 });
+  await gotoHome(page, URL);
+
+  // contrasto delle iniziali su ognuno dei 30 colori squadra: sotto 3.0
+  // (soglia WCAG per testo grande in grassetto) non si leggono
+  const contrasts = await page.evaluate(() =>
+    Object.entries(TEAM_COLORS).map(([team, color]) => {
+      const ink = inkFor(color);
+      return { team, color, ink, ratio: contrastRatio(relLuminance(color), relLuminance(ink)) };
+    })
+  );
+  for (const c of contrasts) {
+    if (c.ratio < 3.0) {
+      findings.problems.push({
+        type: "contrasto-iniziali-illeggibile",
+        el: `${c.team} (${c.color})`,
+        detail: `inchiostro ${c.ink}, contrasto ${c.ratio.toFixed(2)} < 3.0`,
+        where: "card PNG + avatar quintetto",
+      });
+    }
+  }
+  const peggiore = contrasts.reduce((a, b) => (a.ratio <= b.ratio ? a : b));
+  console.log(
+    `  contrasto iniziali: minimo ${peggiore.ratio.toFixed(2)} (${peggiore.team}), su ${contrasts.length} squadre`
+  );
+
+  // una partita vera, per avere lastShareData da renderizzare
+  await startMode(page, "classic");
+  for (let round = 1; round <= 5; round++) {
+    if (!(await selectPlayableRow(page, false))) {
+      findings.errors.push(`card PNG: nessuna riga selezionabile al round ${round}`);
+      await page.close();
+      return;
+    }
+    await placeAndAdvance(page, round);
+  }
+  await page.waitForSelector("#screen-result:not([hidden])");
+
+  // i 5 colori squadra più chiari: è lì che le iniziali bianche fisse
+  // sparivano, quindi la card di controllo li usa tutti insieme
+  const cards = await page.evaluate(() => {
+    const render = (data) => {
+      const c = renderShareCard(data);
+      return { w: c.width, h: c.height, url: c.toDataURL("image/png") };
+    };
+    const normale = render(lastShareData);
+
+    const piuChiari = Object.entries(TEAM_COLORS)
+      .map(([team, color]) => ({ team, color, l: relLuminance(color) }))
+      .sort((a, b) => b.l - a.l)
+      .slice(0, 5);
+    const peggiore = render({
+      ...lastShareData,
+      players: lastShareData.players.map((p, i) => ({ ...p, color: piuChiari[i].color })),
+    });
+    return { normale, peggiore, colori: piuChiari.map((x) => `${x.team} ${x.color}`) };
+  });
+
+  for (const [nome, card] of [["normale", cards.normale], ["colori-piu-chiari", cards.peggiore]]) {
+    if (!card.w || !card.h) {
+      findings.errors.push(`card PNG (${nome}): canvas di dimensioni ${card.w}x${card.h}`);
+      continue;
+    }
+    const file = path.join(OUT_DIR, `share-card__${nome}.png`);
+    fs.writeFileSync(file, Buffer.from(card.url.split(",")[1], "base64"));
+    findings.shots += 1;
+    console.log(`  card PNG ${nome}: ${card.w}x${card.h} -> ${path.basename(file)}`);
+  }
+  console.log(`  (caso peggiore forzato con: ${cards.colori.join(", ")})`);
+
+  findings.consoleErrors.push(...page.consoleErrors.map((e) => `card PNG: ${e}`));
+  await page.close();
+}
+
 function report(findings) {
   console.log(`\nScreenshot salvati: ${findings.shots} in ${OUT_DIR}\n`);
 
@@ -357,6 +476,9 @@ if (require.main !== module) return;
     await runViewport(browser, vp, findings);
     process.stdout.write("fatto\n");
   }
+
+  process.stdout.write("card PNG condivisa + contrasto colori squadra...\n");
+  await checkShareCard(browser, findings);
 
   await browser.close();
   process.exit(report(findings) ? 0 : 1);

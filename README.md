@@ -148,6 +148,31 @@ Verificato con un nuovo caso in `tests/visual_check_selftest.js` che
 riproduce esattamente il pattern genitore/figlio e prova che lo scanner
 corretto lo intercetta.
 
+### Colonne della schermata risultato
+
+Gli stessi divisori verticali della lista di pescaggio valgono anche per
+le 5 colonne (P R A S B) della riga di ogni giocatore nel quintetto
+finale, con i numeri **centrati**: prima quella riga usava ancora lo
+spaziamento a `gap`, quindi le due schermate mostravano gli stessi dati
+in due modi diversi. Stesso schema di lì (il padding assorbe il
+divisore, `border-left` sulle colonne diverse dalla prima).
+
+Sotto il quintetto, la riga dei **totali di squadra** (Punti, Rimbalzi,
+Assist, Recuperate, Stoppate) aveva un difetto più sottile, segnalato
+guardando due partite diverse a confronto: usava
+`justify-content: space-between` con ogni box largo quanto il proprio
+contenuto, quindi un valore più largo — i rimbalzi quando in quintetto
+c'è un centro vero, es. "28.4" invece di "9.1" — spostava **tutta la
+riga**, e le etichette non stavano mai nello stesso punto da una partita
+all'altra. Ora ogni box è `flex: 1`: larghezza uguale sempre,
+indipendente dai numeri che escono. Verificato su 6 partite di fila che
+le posizioni x dei 5 box sono identiche al pixel. La larghezza fissa ha
+poi fatto emergere il problema opposto sui telefoni più stretti —
+l'etichetta più lunga ("Recuperate") non ci stava più in una riga sola e
+usciva dal box toccando quella dopo: risolto con `overflow-wrap` (va a
+capo invece di sovrapporsi, stessa scelta già presa per nomi e ruoli) e
+un font leggermente più piccolo sotto i 400px.
+
 ## Modalità di gioco
 
 Scelte in home con 3 tile (stile 82-0, che ha Classic/Hoop IQ/1v1 —
@@ -657,6 +682,30 @@ cd scripts && python3 check_data_sanity.py       # check dati 1.1 parte C: bound
 ```
 
 ## Stato e backlog
+
+**Dopo la 1.1** è arrivato un giro di correzioni e rifiniture, anch'esse
+già su `main` (dettaglio nelle sezioni sopra, qui solo l'elenco):
+
+- **peso del dataset**: il browser scarica solo i campi che il gioco usa
+  davvero, 3.44 → 0.72 MB, con `scripts/build_web_dataset.py` che si
+  rifiuta di scrivere se `app.js` usa un campo non incluso (vedi "Come
+  rigenerare il dataset")
+- **4 ruoli corretti con ricerca verificata** (Danilovic, Ginobili,
+  Gallinari, Radja) tramite il nuovo `role_forced_by_name`, e
+  l'estensione di ruolo verso il Centro ora chiede anche i **rimbalzi**,
+  non solo l'altezza — soglia presa dal 25° percentile dei centri veri
+  (vedi "Ruoli estesi per altezza")
+- **filtro ruolo** nella lista di pescaggio (Tutti/PM/G/A/C), per non
+  dover scorrere 79 righe grigie quando resta aperto un solo slot
+- **quintetto a quadrati**: gli slot del draft usano lo stesso linguaggio
+  visivo degli avatar della schermata finale, quadrato fin da vuoto
+- **colonne allineate** nella schermata risultato: divisori come nella
+  lista di pescaggio, e la riga dei totali non si sposta più a seconda di
+  quanto sono larghi i numeri di quella partita
+
+Il giro ha anche chiuso un **falso negativo nello scanner del check
+visivo** (non vedeva i colori applicati via CSS a un figlio) e ha aggiunto
+il caso corrispondente al test negativo dello scanner.
 
 **1.1 raggiunta**, mergiata su `main` (sito pubblico allineato:
 https://damneskjold.github.io/82-0-lega-a/). La 1.1 è tutta verifica,

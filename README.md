@@ -199,6 +199,55 @@ usciva dal box toccando quella dopo: risolto con `overflow-wrap` (va a
 capo invece di sovrapporsi, stessa scelta già presa per nomi e ruoli) e
 un font leggermente più piccolo sotto i 400px.
 
+### Il quintetto visibile senza scroll (solo mobile)
+
+Segnalato con uno screenshot reale (iPhone 17, non uno schermo piccolo):
+della schermata risultato si vedevano solo 2 giocatori su 5 senza
+scrollare. Misurato: il contenuto è alto **1180px** contro una finestra
+di **852px** anche nel caso migliore (browser senza barre) — 2 righe
+piene e una terza tagliata, esattamente come nello screenshot. Confronto
+con 82-0 (stesso telefono, stesso utente): loro il quintetto lo mostrano
+subito dopo il record, coi bottoni (Share/Build Another) **in fondo**;
+da noi i bottoni (Condividi/Rigioca/Cambia modalità) stavano **sopra**
+il quintetto, e l'header pieno (logo + sottotitolo) tornava a piena
+misura proprio nella schermata dove serviva più spazio.
+
+**Esplicitamente richiesto di non toccare il desktop**, che va bene
+com'è — tutto qui sotto vale solo sotto gli 860px:
+
+- **Riordino via CSS `order`, non l'HTML**: `.result-left`/
+  `.result-right` diventano `display: contents` solo nella media query,
+  il che libera i loro figli (`.result-hero`, `.result-actions`,
+  `.result-lineup`, `.result-breakdown`, `.result-note`) a stare tutti
+  allo stesso livello nell'unica colonna della griglia — a quel punto si
+  riordinano con `order` senza spostare una riga nell'HTML. Il desktop,
+  che sta fuori da questa media query, resta l'identica griglia a due
+  colonne di sempre (verificato pixel per pixel: stesso screenshot prima
+  e dopo). Nuovo ordine mobile: record → quintetto → totali → nota →
+  bottoni, stesso schema di 82-0.
+- **Header compatto riusato, non reinventato**: esisteva già una classe
+  (`header-compact`, prima si chiamava `draft-active`) che comprime
+  l'header durante il draft — ma vale su *tutte* le larghezze, draft
+  compreso il desktop, dov'è comportamento vecchio e voluto. Usarla
+  anche nel risultato avrebbe compattato l'header pure sul desktop del
+  risultato, che non doveva cambiare: serviva una classe **diversa**
+  (`result-compact`), con le stesse identiche regole ma scritte *dentro*
+  la media query sotto gli 860px, così il desktop non la vede mai. Non
+  è stato un tentativo riuscito al primo colpo: il primo giro riusava
+  `header-compact` anche nel risultato senza accorgersi che comprimeva
+  pure il desktop — trovato solo confrontando lo screenshot prima/dopo,
+  non a occhio.
+- **Una sola colonna su mobile, mai due** — richiesto esplicitamente:
+  82-0 ci riesce con una sola colonna, quindi niente split laterale per
+  guadagnare spazio in verticale.
+
+Risultato misurato: **da 2 a 4 giocatori interi visibili su 5** sullo
+stesso iPhone, zero riga di HTML spostata, zero pixel diverso sul
+desktop (confermato da `tests/visual_check.js` su tutti i viewport).
+Restano fuori dallo schermo solo il 5° giocatore (parzialmente) e i
+totali — comprimere ogni riga giocatore su una riga sola (come fa 82-0)
+resta un secondo passo possibile, più invasivo, non fatto qui.
+
 ## Modalità di gioco
 
 Scelte in home con 3 tile (stile 82-0, che ha Classic/Hoop IQ/1v1 —

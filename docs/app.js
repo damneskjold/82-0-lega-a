@@ -420,9 +420,12 @@ function startDraft(mode, decades) {
   $("#screen-decades").hidden = true;
   $("#screen-result").hidden = true;
   $("#screen-draft").hidden = false;
-  // header piu' snello durante il draft: si vuole vedere principalmente
-  // la squadra, non l'intestazione - vedi .topbar.draft-active in CSS
-  document.body.classList.add("draft-active");
+  // header piu' snello durante il draft (vedi .topbar.header-compact in
+  // CSS, vale anche su desktop). result-compact e' la versione solo-
+  // mobile usata nel risultato (vedi showResult()) - qui si toglie nel
+  // caso si arrivi da "Rigioca" senza passare da resetToHome()
+  document.body.classList.add("header-compact");
+  document.body.classList.remove("result-compact");
   renderRound();
 }
 
@@ -661,7 +664,14 @@ function showResult() {
 
   $("#screen-draft").hidden = true;
   $("#screen-result").hidden = false;
-  document.body.classList.remove("draft-active");
+  // header-compact e' del draft (vale anche su desktop, invariato): si
+  // toglie qui come sempre. result-compact e' un'altra cosa - comprime
+  // l'header SOLO sotto gli 860px (vedi CSS), perche' su schermi stretti
+  // il quintetto deve restare visibile senza scroll quanto possibile
+  // (l'header pieno costava 81px inutili). Il desktop del risultato non
+  // deve cambiare aspetto rispetto a prima.
+  document.body.classList.remove("header-compact");
+  document.body.classList.add("result-compact");
 
   const wins = result.winsFinal;
   const losses = 30 - wins;
@@ -752,7 +762,8 @@ function resetToHome() {
   $("#screen-result").hidden = true;
   $("#screen-draft").hidden = true;
   $("#screen-home").hidden = false;
-  document.body.classList.remove("draft-active");
+  document.body.classList.remove("header-compact");
+  document.body.classList.remove("result-compact");
 }
 
 // click sul logo: torna alla home. Se una sfida e' in corso (schermata

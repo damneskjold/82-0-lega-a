@@ -568,6 +568,41 @@ body {
     grid-template-columns: minmax(0, 1fr);
     max-width: 520px;
   }
+  /* su schermi stretti il quintetto finiva sotto ai bottoni
+     (Condividi/Rigioca/Cambia modalita'), quindi fuori dallo schermo
+     senza scrollare - su iPhone se ne vedevano solo 2 su 5 giocatori.
+     display:contents libera .result-hero/.result-actions/.result-lineup/
+     .result-breakdown/.result-note dal loro contenitore (.result-left/
+     .result-right) e li mette tutti allo stesso livello nella singola
+     colonna della griglia, cosi' si possono riordinare con "order" senza
+     spostare nulla nell'HTML - il desktop, che sta fuori da questa media
+     query, resta l'esatta stessa griglia a due colonne di sempre */
+  .result-left,
+  .result-right {
+    display: contents;
+  }
+  .result-hero { order: 1; }
+  .result-lineup { order: 2; }
+  .result-breakdown { order: 3; }
+  .result-note { order: 4; }
+  .result-actions { order: 5; }
+
+  /* header compatto SOLO qui sotto gli 860px (classe .result-compact su
+     body, vedi showResult() in app.js) - non e' .header-compact: quella
+     e' del draft e vale anche su desktop, invariata da sempre. Il
+     desktop del risultato non deve cambiare affatto (l'utente l'ha
+     chiesto esplicitamente), quindi questa regola resta dentro la media
+     query, mai fuori */
+  body.result-compact .topbar {
+    padding: 10px 0 14px;
+    margin-bottom: 14px;
+  }
+  body.result-compact .logo {
+    font-size: 1.3rem;
+  }
+  body.result-compact .subtitle {
+    display: none;
+  }
 }
 
 .result-hero {
@@ -577,6 +612,10 @@ body {
   margin-bottom: 20px;
   background: linear-gradient(180deg, var(--accent-soft), transparent 70%);
   box-shadow: 0 0 50px -18px var(--accent);
+  /* gia' centrato per eredita' da .result-left su desktop - esplicito
+     qui perche' su mobile .result-left diventa display:contents (vedi
+     sotto) e quell'eredita' si interrompe */
+  text-align: center;
 }
 
 .result-hero-label {
@@ -867,16 +906,18 @@ body {
   }
 }
 
-/* header piu' snello durante il draft (classe .draft-active su body,
-   vedi startDraft()/showResult()/resetToHome() in app.js): si vuole
-   vedere principalmente la squadra, la testata torna normale altrove */
-body.draft-active .topbar {
+/* header piu' snello durante draft e risultato (classe .header-compact
+   su body, vedi startDraft()/resetToHome() in app.js - resta attiva
+   anche dopo showResult(), non viene piu' tolta li': si vuole vedere
+   principalmente la squadra/il quintetto, la testata torna normale solo
+   in home) */
+body.header-compact .topbar {
   padding: 10px 0 14px;
   margin-bottom: 14px;
 }
-body.draft-active .logo {
+body.header-compact .logo {
   font-size: 1.3rem;
 }
-body.draft-active .subtitle {
+body.header-compact .subtitle {
   display: none;
 }

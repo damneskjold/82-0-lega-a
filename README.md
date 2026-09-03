@@ -546,8 +546,20 @@ cd scripts && python3 check_data_sanity.py       # check dati 1.1 parte C: bound
 
 ## Stato e backlog
 
-**1.0 raggiunta**, mergiata su `main` (sito pubblico allineato:
-https://damneskjold.github.io/82-0-lega-a/). Tutte le 30 squadre della
+**1.1 raggiunta**, mergiata su `main` (sito pubblico allineato:
+https://damneskjold.github.io/82-0-lega-a/). La 1.1 è tutta verifica,
+niente funzionalità nuove: i tre check che erano rimasti in sospeso alla
+1.0 (dati, colori, visivo) sono stati fatti e sono diventati script
+versionati e rilanciabili, non controlli una tantum. Hanno trovato e
+fatto correggere cose vere: i colori squadra ora sono quelli sociali
+storici verificati invece che scelti a occhio, Olimpia Milano è
+rientrata nella stessa pipeline delle altre 29 squadre (era l'unica
+generata a mano), 3 altezze impossibili nei dati grezzi di legabasket
+sono state corrette, e tre glitch grafici su schermi stretti sono spariti
+(nomi troncati, etichette che si toccavano, record che andava a capo).
+Dettaglio punto per punto qui sotto.
+
+**1.0 raggiunta** in precedenza. Tutte le 30 squadre della
 ricerca con carte-decade, motore di calcolo ritarato e verificato più
 volte (curva a due tratti, penalità multi-categoria, ruoli estesi per
 altezza), 3 modalità di gioco stile 82-0 (Classic/Scegli
@@ -559,12 +571,7 @@ il pannello), gestione errore sul caricamento dati. Storico completo
 dei retune e delle verifiche nelle sezioni sopra e nei messaggi di
 commit.
 
-**Backlog 1.1: tutti e tre i punti fatti.** I tre check (dati, colori,
-visivo) sono ora script versionati e rilanciabili, non verifiche una
-tantum: `scripts/check_data_coverage.py`,
-`scripts/check_data_consistency.py`, `scripts/check_data_sanity.py`,
-`tests/visual_check.js` (+ il suo selftest). Dettaglio di cosa fa
-ciascuno e cosa ha trovato qui sotto.
+**I tre punti della 1.1, nel dettaglio** (tutti fatti):
 
 1. ~~**Check dati**~~ **fatto**: audit di giocatori, ruoli e squadre nel
    dataset, in 3 parti.

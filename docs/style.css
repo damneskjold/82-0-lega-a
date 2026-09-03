@@ -676,14 +676,14 @@ body {
 
 .lineup-row .who-stats {
   display: flex;
-  gap: 14px;
   flex-shrink: 0;
 }
 .who-stats .stat-col {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   min-width: 26px;
+  padding: 0 7px;
 }
 .who-stats .stat-val {
   font-weight: 700;
@@ -694,6 +694,14 @@ body {
   font-size: 0.6rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+}
+
+/* stessi divisori sobri fra colonne gia' usati nella lista di pescaggio
+   (.player-stats): stesso --border, stesso schema padding-assorbe-il-
+   divisore invece di gap, cosi' la riga finale del quintetto e' coerente
+   con quella del draft */
+.who-stats .stat-col:not(:first-child) {
+  border-left: 1px solid var(--border);
 }
 
 /* mobile: schermata risultato, riga compatta (avatar+nome+stats sulla stessa riga) */
@@ -720,11 +728,9 @@ body {
     overflow-wrap: break-word;
     line-height: 1.25;
   }
-  .lineup-row .who-stats {
-    gap: 6px;
-  }
   .who-stats .stat-col {
     min-width: 22px;
+    padding: 0 3px;
   }
   .who-stats .stat-val {
     font-size: 0.82rem;

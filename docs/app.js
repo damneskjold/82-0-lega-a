@@ -100,6 +100,19 @@ function roleSiglaFor(player) {
   return ranks.map((r) => RANK_SHORT[r]).join("/");
 }
 
+// filtro ruolo nella lista di pescaggio: Ala Piccola e Ala Grande sono un
+// chip solo ("A"), non due - separarle isolava due gruppi che si
+// sovrappongono parecchio (il ruolo base "Ala" copre gia' entrambe di suo)
+// per un guadagno piccolo rispetto a un chip in piu' (misurato: vedi
+// README, sezione filtro ruolo). Un giocatore ibrido puo' comparire sotto
+// piu' di un chip, stessa logica di roleSiglaFor.
+const ROLE_FILTERS = ["Tutti", "PM", "G", "A", "C"];
+const FILTER_BUCKET_BY_RANK = { 1: "PM", 2: "G", 3: "A", 4: "A", 5: "C" };
+function matchesRoleFilter(player, filter) {
+  if (filter === "Tutti") return true;
+  return ranksFor(player, heightRulesEnabled).some((r) => FILTER_BUCKET_BY_RANK[r] === filter);
+}
+
 // colore identificativo per squadra: colore sociale storico REALE del club
 // (verificato via ricerca web - Wikipedia IT, siti ufficiali, stampa
 // sportiva - vedi README "Decisioni prese finora" per la metodologia e le
@@ -273,6 +286,7 @@ let currentDraw = []; // 5 team-season objects, in ordine di rivelazione
 let roundIndex = 0;
 let slots = []; // 5 slot: { id, type, rank, pick: null | {player, teamSeason} }
 let selected = null; // giocatore selezionato in attesa di uno slot: { player, teamSeason, legalIds }
+let roleFilter = "Tutti"; // filtro ruolo nella lista pescaggio, si azzera ad ogni nuova carta
 let blindMode = false; // modalita' "Blind": statistiche nascoste, giocatori in ordine alfabetico
 // SEMPRE true nel gioco spedito: le regole "as is" (false) restano
 // raggiungibili in codice (computeCeiling/recomputeCurve/ranksFor
@@ -388,6 +402,7 @@ function startDraft(mode, decades) {
   roundIndex = 0;
   slots = SLOT_DEFS.map((d) => ({ ...d, pick: null }));
   selected = null;
+  roleFilter = "Tutti";
   $("#screen-home").hidden = true;
   $("#screen-decades").hidden = true;
   $("#screen-result").hidden = true;
@@ -418,6 +433,7 @@ function assignSelectedTo(slotId) {
   slot.pick = { player: selected.player, teamSeason: selected.teamSeason };
   selected = null;
   roundIndex++;
+  roleFilter = "Tutti"; // ogni nuova carta riparte senza filtro attivo
   if (roundIndex >= 5) {
     showResult();
   } else {
@@ -481,6 +497,11 @@ function renderRound() {
         <div class="team-card-year">${ts.decadeLabel}</div>
       </div>
     </div>
+    <div class="role-filter">
+      ${ROLE_FILTERS.map(
+        (f) => `<button type="button" class="role-chip${f === roleFilter ? " active" : ""}" data-filter="${f}">${f}</button>`
+      ).join("")}
+    </div>
     ${
       blindMode
         ? ""
@@ -498,12 +519,24 @@ function renderRound() {
     <div class="player-list" id="round-player-list"></div>
   `;
 
+  card.querySelectorAll(".role-chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      roleFilter = btn.dataset.filter;
+      renderRound();
+    });
+  });
+
   // un giocatore puo' comparire nelle rose di squadre diverse (es. chi ha
   // cambiato squadra): una volta scelto non e' piu' selezionabile altrove
   const pickedIds = new Set(slots.filter((s) => s.pick).map((s) => s.pick.player.player_id));
 
   const list = $("#round-player-list");
-  sortedPlayers.forEach((p) => {
+  const visiblePlayers = sortedPlayers.filter((p) => matchesRoleFilter(p, roleFilter));
+  if (visiblePlayers.length === 0) {
+    list.innerHTML = `<div class="empty-role-note">Nessun giocatore per questo ruolo in questa carta.</div>`;
+    return;
+  }
+  visiblePlayers.forEach((p) => {
     const alreadyPicked = pickedIds.has(p.player_id);
     const legalIds = alreadyPicked ? [] : legalSlotIdsFor(p);
     const isSelected = !!(selected && selected.player === p);

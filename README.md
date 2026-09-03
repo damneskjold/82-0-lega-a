@@ -75,6 +75,47 @@ volta schierato, la sua riga diventa non selezionabile nelle carte
 successive, con l'etichetta "Già nel tuo quintetto" al posto del ruolo
 (controllo per `player_id`, in `renderRound()`).
 
+### Filtro ruolo nella lista di pescaggio
+
+Le carte-decade arrivano ad avere 79 giocatori (mediana 47): con un solo
+slot rimasto aperto, il primo giocatore utile poteva essere anche alla
+15ª riga (per il Centro, il caso peggiore, in 10 carte su 62), tutte da
+scorrere in mezzo a righe grigie. Sopra la lista, 4 chip — **PM · G · A ·
+C** — restringono la lista a chi copre quel ruolo (`ROLE_FILTERS`,
+`matchesRoleFilter()` in `app.js`). Facoltativo e reversibile: parte
+sempre su **"Tutti"** ad ogni nuova carta (`roleFilter` si azzera in
+`startDraft()` e in `assignSelectedTo()`, mai dentro `renderRound()` —
+altrimenti si azzererebbe anche selezionando una semplice riga), quindi
+la vista di sempre resta un tocco di distanza; selezionare una riga non
+tocca il filtro attivo.
+
+**Ala Piccola e Ala Grande sono un chip solo** ("A"), non due — scelta
+presa dopo aver misurato il costo della separazione, non a occhio: il
+ruolo base "Ala" copre già entrambe di suo, quindi separarle isolava due
+gruppi molto sovrapposti. Simulando 2000 partite (pick per rating più
+alto disponibile), un filtro "A" unico porta la lista media da 50 a 23
+giocatori; separarlo in AP/AG scenderebbe fino a 17 — 6 in meno, contro
+un pulsante in più e, nel 36.6% dei round (quelli con aperta *una sola*
+fra AP e AG), un ~25% di righe residue ancora illegali nella vista
+unificata. Compromesso accettato: il guadagno grosso (50→23) arriva già
+con 4 chip, il resto (23→17) costava più di quanto valesse.
+
+Niente numeri sui chip né conteggi sopra la lista — stessa scelta di
+82-0 (i suoi tab All/G/F/C non hanno numeri, il conteggio compare una
+volta sola *dopo* aver scelto il filtro, non su ogni pulsante prima):
+coi ruoli ibridi che contano in più chip un numero per pulsante avrebbe
+richiesto una nota a parte per spiegare perché "non torna".
+
+Le 5 colonne di statistiche (P R A S B) hanno **divisori verticali
+sobri** fra loro (stesso `--border` già usato per le righe, riusato in
+verticale) e i numeri sono **centrati** nella propria colonna invece che
+allineati a destra — CSS puro (`.player-stats .stat-col`), nessuna
+modifica alla struttura dati. Prototipato con mockup interattivi
+(dati reali della carta, non lorem) prima di scrivere il codice vero,
+comprese due correzioni trovate lì: le colonne erano troppo strette per
+il padding aggiunto e il divisore tagliava dentro le cifre, e il colore
+decorativo di uno slot si perdeva sullo sfondo scuro.
+
 ## Modalità di gioco
 
 Scelte in home con 3 tile (stile 82-0, che ha Classic/Hoop IQ/1v1 —

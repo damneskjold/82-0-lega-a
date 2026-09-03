@@ -357,16 +357,54 @@ body {
 }
 .player-stats-header {
   display: flex;
-  gap: 14px;
   flex-shrink: 0;
 }
 .player-stats-header .stat-col {
-  width: 32px;
-  text-align: right;
+  width: 46px;
+  padding: 0 7px;
+  text-align: center;
   color: var(--muted);
   font-size: 0.68rem;
   text-transform: uppercase;
   font-weight: 700;
+}
+
+/* filtro ruolo sopra la lista di pescaggio: Tutti/PM/G/A/C. Stesso
+   linguaggio visivo di .decade-tile.selected (bordo/sfondo/testo in
+   --accent quando attivo), in versione pillola compatta. Si azzera ad
+   ogni nuova carta (roleFilter in app.js), quindi parte sempre su
+   "Tutti" - la vista di sempre resta un tocco di distanza. */
+.role-filter {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.role-chip {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.role-chip:hover { border-color: var(--muted); }
+.role-chip.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.empty-role-note {
+  padding: 22px 18px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.88rem;
 }
 
 .player-list {
@@ -425,29 +463,43 @@ body {
 }
 .player-stats {
   display: flex;
-  gap: 14px;
   flex-shrink: 0;
 }
 .player-stats .stat-col {
-  width: 32px;
-  text-align: right;
+  width: 46px;
+  padding: 0 7px;
+  text-align: center;
   font-variant-numeric: tabular-nums;
   color: var(--muted);
   font-size: 0.85rem;
 }
 
+/* divisori sobri fra le 5 colonne di statistiche (P R A S B): solo
+   verticali, stesso --border gia' usato per le righe della lista - non
+   un colore nuovo, un secondo uso dello stesso. Corrono dall'intestazione
+   fino all'ultima riga perche' sono sullo stesso identico stat-col
+   (stessa larghezza, stesso padding) in ogni riga: si allineano da soli,
+   nessun calcolo di posizione assoluta. */
+.player-stats-header .stat-col:not(:first-child),
+.player-stats .stat-col:not(:first-child) {
+  border-left: 1px solid var(--border);
+}
+
 /* con 5 colonne (P R A S B, come in 82-0) invece delle 3 originali
-   serve piu' spazio: sui mobile si restringono colonne/gap e si
-   affida il resto al troncamento di nome/ruolo sopra */
+   serve piu' spazio: sui mobile si restringono colonne/padding e si
+   affida il resto al troncamento di nome/ruolo sopra. Larghezza =
+   contenuto (22px, invariato) + padding (3px per lato, invariato nel
+   totale rispetto al vecchio gap:6px) - il divisore va nel padding,
+   non tocca mai le cifre. */
 @media (max-width: 860px) {
-  .player-stats-header,
-  .player-stats {
-    gap: 6px;
-  }
   .player-stats-header .stat-col,
   .player-stats .stat-col {
-    width: 22px;
+    width: 28px;
+    padding: 0 3px;
     font-size: 0.72rem;
+  }
+  .role-filter {
+    padding: 8px 12px;
   }
 }
 

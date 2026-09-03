@@ -742,15 +742,30 @@ body {
 
 .result-breakdown {
   display: flex;
-  justify-content: space-between;
   padding: 4px 6px 0;
   margin-bottom: 20px;
 }
 
-.stat-box { text-align: center; }
+/* larghezza uguale per tutti i 5 box, non a misura del contenuto: con
+   "justify-content: space-between" un valore piu' largo (i rimbalzi dei
+   centri, es. "28.4") spostava tutta la riga, perche' lo spazio fra i
+   box dipendeva da quanto ognuno era largo. flex:1 tiene le 5 posizioni
+   fisse indipendentemente dai numeri che escono in quella partita. */
+.stat-box { flex: 1; min-width: 0; text-align: center; }
 .stat-box .val { font-size: 1.15rem; font-weight: 700; }
 .stat-box.weak .val { color: var(--bad); }
-.stat-box .label { color: var(--muted); font-size: 0.68rem; text-transform: uppercase; margin-top: 2px; }
+.stat-box .label {
+  color: var(--muted);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  margin-top: 2px;
+  /* con le 5 colonne a larghezza fissa (flex:1, non piu' a misura del
+     contenuto) un'etichetta lunga come "RECUPERATE" puo' non starci in
+     una riga sola sui telefoni piu' stretti: va a capo invece di uscire
+     dal box e toccare quello a fianco (stessa scelta gia' fatta per nomi
+     e ruoli, mai overflow visibile) */
+  overflow-wrap: break-word;
+}
 
 .result-note {
   color: var(--bad);
@@ -816,7 +831,7 @@ body {
     gap: 4px;
   }
   .stat-box .label {
-    font-size: 0.58rem;
+    font-size: 0.52rem;
     letter-spacing: 0;
   }
 }

@@ -528,6 +528,17 @@ Verificato di nuovo tutto (0 problemi, nessun overflow a 320px, bottoni
 43px/38px, desktop invariato) esplicitamente alla vera larghezza
 dell'iPhone 17 (402px), non solo alle larghezze indovinate di prima.
 
+**Undicesimo giro**: confermato che ora entra tutto senza scroll — a
+quel punto l'utente ha chiesto di riaprire un po' il respiro fra le
+sezioni, segno che si era stretto più del necessario inseguendo lo
+zero-scroll. C'era margine avanzato nel viewport (874px reali
+dell'iPhone 17, contenuto fermo a 600px): riportati `.result-layout`
+gap e margin da `4px` a `12px`, `.result-actions` gap da `4px` a `8px`,
+`.result-breakdown` padding-top da `2px` a `4px`. Risultato: **600px →
+630px**, ancora ben dentro il viewport con margine per la barra di
+Safari. Bottoni ancora 43px/38px, nessun overflow a 320px, desktop
+invariato, 0 problemi nella suite.
+
 ## Modalità di gioco
 
 Scelte in home con 3 tile (stile 82-0, che ha Classic/Hoop IQ/1v1 —

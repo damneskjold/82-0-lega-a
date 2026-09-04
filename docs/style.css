@@ -329,6 +329,15 @@ body {
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
+@media (max-width: 860px) {
+  /* "Squadra 1 di 5 · scegli dove giocherà..." giudicato superfluo su
+     mobile (richiesta esplicita) - display:none toglie anche il suo
+     margin-bottom dal flusso, niente spazio vuoto residuo. Solo
+     mobile: desktop ha piu' spazio e nessuno si e' lamentato li' */
+  .round-progress {
+    display: none;
+  }
+}
 
 /* card squadra corrente (grande) */
 .team-card {
@@ -1052,12 +1061,56 @@ body {
 }
 
 @media (max-width: 540px) {
+  /* richiesta esplicita: 3 colonne anche su mobile (non piu' impilate
+     una per riga) come nell'82-0 preso a riferimento, e meno spazio
+     vuoto intorno - stesso ".home-box" usato anche da altre schermate
+     (errore, decadi), quindi lo scoping resta sulla classe qui, non su
+     un id di schermata */
+  .home-box {
+    margin: 16px auto;
+    padding: 20px 16px;
+  }
+  /* ".home-intro" e' solo un hook, lo stile vero viene da ".home-box p"
+     (classe+tag, specificita' piu' alta di ".home-intro" da solo) -
+     serve lo stesso selettore per battere quella regola, non basta
+     stare dentro la media query */
+  .home-box p {
+    margin-bottom: 16px;
+  }
   .mode-tiles {
-    /* minmax(0, 1fr), stesso motivo del draft: vedi .draft-layout */
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .mode-tile {
+    padding: 10px 6px;
+    gap: 4px;
+  }
+  .mode-tile-icon {
+    font-size: 1.4rem;
+  }
+  .mode-tile-title {
+    font-size: 0.78rem;
+    line-height: 1.15;
   }
   .mode-tile-desc {
-    min-height: 0;
+    font-size: 0.6rem;
+    line-height: 1.25;
+    margin-bottom: 6px;
+  }
+  /* min-height 36px, non solo padding: e' la soglia di tocco comodo
+     gia' stabilita altre volte in questa sessione (chip filtro, bottoni
+     del risultato) - con solo "padding: 7px 4px" il bottone veniva 26px,
+     sotto soglia (trovato dal check visivo, e' informativo ma il
+     vincolo e' esplicito). display:flex per centrare il testo dentro
+     l'altezza piu' che il padding non basterebbe piu' a garantire da
+     solo - stesso pattern gia' usato per ".role-chip" mobile */
+  .mode-tile .btn-primary {
+    padding: 4px;
+    min-height: 36px;
+    font-size: 0.72rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 

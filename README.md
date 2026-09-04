@@ -539,6 +539,33 @@ gap e margin da `4px` a `12px`, `.result-actions` gap da `4px` a `8px`,
 Safari. Bottoni ancora 43px/38px, nessun overflow a 320px, desktop
 invariato, 0 problemi nella suite.
 
+### Schermata home e draft più compatte su mobile
+
+Una volta a posto la schermata risultato, richieste analoghe sulle
+altre due schermate mobile, viste dal vivo sull'iPhone 17:
+
+- **Home**: le 3 tile modalità (Classic/Scegli decade/Blind) erano
+  impilate una per riga sotto i 540px, con molto spazio vuoto intorno.
+  Richiesta esplicita di tornare a 3 colonne anche su mobile (come
+  nell'82-0 preso a riferimento) e meno spazio vuoto. Tile ridisegnate
+  più piccole (icona, titolo e descrizione a font ridotto) per stare in
+  3 colonne strette, `.home-box` con margini e padding ridotti.
+  Un'insidia trovata subito: i bottoni "Gioca" con solo padding ridotto
+  scendevano a 26px di altezza, sotto la soglia di tocco di 36px
+  stabilita più volte in questa sessione — corretto con `min-height:
+  36px` + centratura via flex (stesso pattern già usato per
+  `.role-chip`), invece di fidarsi del solo padding. Verificato: 36px
+  esatti su tutti e 3 i bottoni, nessun overflow a 320px, desktop
+  (dove le tile erano già a 3 colonne) invariato.
+- **Draft**: il testo "Squadra 1 di 5 · scegli dove giocherà..." sopra
+  la lista giudicato superfluo su mobile. Nascosto con `display: none`
+  solo sotto gli 860px (stessa soglia usata per il resto della
+  schermata compatta) — il desktop, dove nessuno l'ha segnalato, lo
+  mostra ancora esattamente come prima.
+
+Verificato con la suite automatica (0 problemi) e screenshot reali a
+320px/402px/desktop per entrambe le schermate.
+
 ## Modalità di gioco
 
 Scelte in home con 3 tile (stile 82-0, che ha Classic/Hoop IQ/1v1 —

@@ -451,6 +451,49 @@ a 320px, dopo aver allargato le colonne di 4px ciascuna.
 Risultato: **620px → 608px**. Dai 1180px di partenza a inizio sessione,
 **–48%**. Desktop pixel per pixel ancora identico.
 
+**Ottavo giro**: testato dal vivo, tre cose ancora segnalate — divisori
+ancora appiccicati (confermato esplicitamente dall'utente: il problema
+era proprio quello, non contrasto né allineamento), le etichette dei
+totali ("Recuperate") che continuavano ad andare a capo in modo brutto
+su iPhone reale anche dopo il font ridotto e `hyphens: auto` del quinto
+giro, e ancora un po' di spazio scrollabile di troppo sotto ai bottoni.
+
+- **Divisori**: area di contenuto delle colonne P/R/A/S/B da 30px a
+  31px, padding da 2px a 3px per lato (`width: 34px`→`37px`). Un primo
+  tentativo più aggressivo (40px totali) dava un ottimo margine dal
+  divisore ma aveva un effetto collaterale non visto subito: a 320px
+  (il telefono più stretto testato) spingeva la colonna del nome
+  (`.who`, `min-width: 0` per potersi restringere) fino a **0px di
+  larghezza** — il nome andava a capo lettera per lettera invece che a
+  parola, un bug di flexbox non catturato dal check automatico (non è
+  un overflow, solo un pessimo wrap) e trovato solo misurando a
+  schermo. Corretto scegliendo una larghezza più moderata **e**
+  aggiungendo `min-width: 44px` su `.who` come rete di sicurezza, così
+  anche in futuro quella colonna non può più collassare del tutto.
+  Margine dal divisore verificato: 6-8px a 320px, 7-11px a 393px, sui
+  numeri a due cifre (prima: 0-2px).
+- **Etichette totali**: invece di rincorrere ancora il wrapping,
+  eliminato il problema alla radice come suggerito dall'utente stesso —
+  sotto i 400px "Punti/Rimbalzi/Assist/Recuperate/Stoppate" diventano
+  sigle "Pti/Rim/Ast/Rec/Stp" (nuova mappa `CAT_LABELS_SHORT` in
+  `app.js`, resa con due `<span>` per etichetta e mostrata/nascosta via
+  CSS — stesso pattern già usato per le sigle P/R/A/S/B del quintetto).
+  `CAT_LABELS` intera resta invariata, serve ancora per la nota
+  "squadra sbilanciata". Font riportato da `0.46rem` a `0.6rem` (non
+  serve più tenerlo minuscolo per evitare il wrap).
+- **Spazio in fondo**: trovato che `#app` ha `padding-bottom: 60px`
+  globale (pensato per il respiro del sito, desktop incluso) — sulla
+  schermata risultato compatta ne restava quasi tutto invenduto.
+  Aggiunta una regola scoped `body.result-compact #app { padding-bottom:
+  16px }`, solo sotto gli 860px, solo sulla schermata risultato.
+
+Risultato: la pagina non scrolla più affatto dentro un viewport di
+852px (iPhone 17) — contenuto fino a **610px**, con margine reale sotto
+i bottoni invece di finire all'ultimo pelo. Bottoni verificati ancora
+43px/38px. Nessun overflow orizzontale a 320px. Desktop pixel per pixel
+identico (nessuna delle tre modifiche esce dalle media query
+`<860px`/`<400px` o dalla classe `.result-compact`).
+
 ## Modalità di gioco
 
 Scelte in home con 3 tile (stile 82-0, che ha Classic/Hoop IQ/1v1 —

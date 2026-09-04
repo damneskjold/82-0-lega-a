@@ -625,6 +625,10 @@ function evaluateLineup(chosen) {
 }
 
 const CAT_LABELS = { points: "Punti", rebounds: "Rimbalzi", assists: "Assist", steals: "Recuperate", blocks: "Stoppate" };
+// sigle per la riga totali sotto i 400px (vedi style.css, .label-short):
+// "Recuperate" andava a capo in modo brutto su iPhone reale nonostante
+// font ridotto e hyphens:auto - la sigla elimina il problema alla radice
+const CAT_LABELS_SHORT = { points: "Pti", rebounds: "Rim", assists: "Ast", steals: "Rec", blocks: "Stp" };
 
 // livello qualitativo della squadra, in stile "voto + nome tier" (vedi 82-0)
 const TIERS = [
@@ -761,7 +765,7 @@ function showResult() {
       const weak = result.weakCats.includes(k);
       return `<div class="stat-box ${weak ? "weak" : ""}">
         <div class="val">${result.cats[k].toFixed(1)}</div>
-        <div class="label">${CAT_LABELS[k]}</div>
+        <div class="label"><span class="label-full">${CAT_LABELS[k]}</span><span class="label-short">${CAT_LABELS_SHORT[k]}</span></div>
       </div>`;
     })
     .join("");

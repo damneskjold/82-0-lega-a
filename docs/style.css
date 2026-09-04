@@ -637,6 +637,14 @@ body {
   body.result-compact .subtitle {
     display: none;
   }
+  /* "#app" ha 60px di padding-bottom globale (pensato per il respiro
+     generale del sito, desktop incluso) - sulla schermata risultato
+     compatta restavano quasi tutti invenduti, l'ultimo pezzo di spazio
+     scrollabile di troppo sotto Rigioca/Cambia modalita' segnalato
+     dall'utente dopo il settimo giro */
+  body.result-compact #app {
+    padding-bottom: 16px;
+  }
   /* padding-top della riga totali: 4px va bene su desktop, qui sotto
      ogni px vale - ".result-layout" davanti, stesso motivo di sempre
      (la regola base e' scritta dopo questa media query nel file) */
@@ -865,6 +873,15 @@ body {
     overflow-wrap: break-word;
     line-height: 1.25;
   }
+  /* rete di sicurezza: la base ha "min-width: 0" (serve perche' il nome
+     possa restringersi), ma con le colonne statistiche a larghezza
+     fissa questo poteva far collassare ".who" fino a 0px sui telefoni
+     piu' stretti (320px) - il nome andava a capo lettera per lettera.
+     44px basta per un cognome breve su due righe corte invece che
+     esploso in verticale */
+  .lineup-row .who {
+    min-width: 44px;
+  }
   /* etichetta P/R/A/S/B non piu' ripetuta sotto ogni numero di ogni
      riga (era il motivo per cui, sotto i 400px, le statistiche
      dovevano andare a capo su una riga propria - numero+etichetta
@@ -877,16 +894,23 @@ body {
   /* "width" fissa, non "min-width": con min-width la colonna cresce col
      contenuto, e un numero a 4 cifre ("18.4") e' piu' largo di una
      sigla singola ("P") - stessa regola, due larghezze diverse, header
-     e riga che slittano uno rispetto all'altro. 30px di area di
-     contenuto misurati per non far andare a capo il caso piu' largo
-     ("18.4"/"29.7"/i rimbalzi a due cifre di un centro tipo "10.1") -
-     width totale 34px = 30px di contenuto + 2px di padding per lato,
-     cosi' il testo non tocca piu' la linea del divisore (con
-     padding:0 i numeri a due cifre ci arrivavano a ridosso) */
+     e riga che slittano uno rispetto all'altro. 31px di area di
+     contenuto (era 30px fino al settimo giro): un numero a due cifre
+     tipo "10.1"/"16.8" e' quasi largo quanto l'area di contenuto
+     stessa, quindi mangiava il padding pensato come margine ed era di
+     nuovo a ridosso del divisore (confermato dall'utente su iPhone
+     reale) - width totale 37px = 31px di contenuto + 3px di padding
+     per lato (era 2px). Non piu' larga di cosi': a 320px (il telefono
+     piu' stretto testato) una versione piu' larga (provata: 40px)
+     spingeva ".who" a 0px di larghezza - il nome andava a capo lettera
+     per lettera invece che a parola, un bug di flexbox trovato solo
+     misurando a schermo, non dal check automatico (non e' un overflow,
+     solo un pessimo wrap) - vedi anche il min-width messo su ".who"
+     qui sotto come rete di sicurezza in piu' */
   .who-stats .stat-col {
-    width: 34px;
+    width: 37px;
     flex-shrink: 0;
-    padding: 0 2px;
+    padding: 0 3px;
   }
   .who-stats .stat-val {
     font-size: 0.82rem;
@@ -961,8 +985,16 @@ body {
      contenuto) un'etichetta lunga come "RECUPERATE" puo' non starci in
      una riga sola sui telefoni piu' stretti: va a capo invece di uscire
      dal box e toccare quello a fianco (stessa scelta gia' fatta per nomi
-     e ruoli, mai overflow visibile) */
+     e ruoli, mai overflow visibile) - sotto i 400px pero' si passa alla
+     sigla (vedi ".label-short" sotto), quindi in pratica questo non
+     scatta piu' li' */
   overflow-wrap: break-word;
+}
+/* sigla (es. "REC") nascosta di default: entra in gioco solo sotto i
+   400px, vedi media query piu' sotto - stesso pattern di ".stat-lbl"
+   P/R/A/S/B del quintetto, gia' usato in questo file */
+.label-short {
+  display: none;
 }
 
 .result-note {
@@ -1029,17 +1061,20 @@ body {
     gap: 4px;
   }
   .stat-box .label {
-    font-size: 0.46rem;
-    letter-spacing: 0;
-    /* margine di sicurezza: il browser di test qui in sviluppo non usa
-       lo stesso font di iOS reale (San Francisco, dal font-stack
-       -apple-system) - "Recuperate" ci stava su una riga sola nei test
-       automatici ma si spezzava a meta' su un iPhone vero. Un font
-       piu' piccolo da' margine anche se il carattere vero rende un po'
-       piu' largo; hyphens:auto e' una rete in piu' per un'andata a capo
-       pulita ("Recupe-/rate") se dovesse comunque succedere, invece
-       della rottura brutta vista prima ("RECUPERAT"/"E") */
-    hyphens: auto;
+    font-size: 0.6rem;
+  }
+  /* sotto i 400px "Recuperate" andava a capo in modo brutto su iPhone
+     reale ("RECUPERAT"/"E") anche dopo un font piu' piccolo e
+     hyphens:auto (rete di sicurezza che non e' scattata, probabilmente
+     Safari non trova un punto di sillabazione valido senza "lang"
+     dichiarato sulla pagina) - eliminato il problema alla radice
+     passando alla sigla (gia' presente nel markup, vedi app.js
+     CAT_LABELS_SHORT), che non rischia mai di andare a capo */
+  .label-full {
+    display: none;
+  }
+  .label-short {
+    display: inline;
   }
 }
 

@@ -567,6 +567,17 @@ body {
     /* minmax(0, 1fr), stesso motivo del draft: vedi .draft-layout */
     grid-template-columns: minmax(0, 1fr);
     max-width: 520px;
+    /* 20px va bene su desktop (un solo gap, fra le due colonne), ma qui
+       sotto ci sono 5-6 blocchi impilati: 20px fra ognuno si accumula.
+       Piu' stretto solo qui, il desktop non lo vede */
+    gap: 12px;
+  }
+  /* quando non c'e' "squadra sbilanciata" l'elemento e' vuoto
+     (textContent="" in showResult()) ma teneva comunque la sua
+     min-height PIU' un gap prima e dopo per niente - display:none lo
+     toglie del tutto dal flusso della griglia, gap compreso */
+  .result-note:empty {
+    display: none;
   }
   /* su schermi stretti il quintetto finiva sotto ai bottoni
      (Condividi/Rigioca/Cambia modalita'), quindi fuori dallo schermo
@@ -620,6 +631,24 @@ body {
   }
   body.result-compact .subtitle {
     display: none;
+  }
+
+  /* box del record piu' compatto SOLO qui sotto gli 860px: e' il
+     secondo blocco piu' pesante dopo il quintetto (183px misurati),
+     padding e margini erano pensati per il desktop dove lo spazio
+     verticale non e' un problema. Selettore con ".result-layout"
+     davanti per battere in specificita' le regole base scritte dopo
+     questa media query nel file - stesso pattern, stesso motivo del
+     bug gia' preso due volte in questa sessione: a parita' di
+     specificita' vince l'ordine nel foglio, non la media query */
+  .result-layout .result-hero {
+    padding: 16px 16px 14px;
+  }
+  .result-layout .result-record {
+    margin-top: 2px;
+  }
+  .result-layout .result-tier {
+    margin-top: 6px;
   }
 }
 

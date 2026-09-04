@@ -303,6 +303,50 @@ problemi nuovi. Trovati e sistemati tutti e tre:
    succede più da 375px in su, quindi non tocca telefoni recenti come
    quello con cui è stato testato.
 
+**Terzo giro**: provato di nuovo dal vivo, confrontando anche con 82-0
+(che però è un'app nativa — nessuna barra indirizzi che mangia spazio,
+non è un confronto alla pari al 100%). Segnalato che il box del record
+restava comunque pesante. Misurato dove andava lo spazio, blocco per
+blocco (stessa pescata, stesso iPhone):
+
+| blocco | altezza |
+|---|---|
+| header | 49px |
+| box del record | 183px |
+| header colonne + 5 righe | 337px |
+| totali squadra | 38px |
+| nota (vuota) | 17px |
+| bottoni | 93px |
+| spaziatura fra i blocchi | 100px (20px × 5) |
+
+Tre correzioni, tutte solo sotto gli 860px:
+
+- **Nota vuota che sparisce del tutto**: quando non c'è "squadra
+  sbilanciata" (il caso più comune) l'elemento è vuoto ma teneva
+  comunque la sua altezza minima più un gap prima e dopo, per niente.
+  `.result-note:empty { display: none; }` — CSS puro, nessun cambio in
+  `app.js`: quando il testo c'è, l'elemento smette di essere `:empty` e
+  torna visibile da solo. Verificato entrambi gli stati direttamente
+  (`display: block` con testo, `none` senza).
+- **Spaziatura fra i blocchi ridotta** da 20px a 12px — 20px andava bene
+  per il desktop (un solo gap, fra le due colonne), qui sotto ci sono
+  5-6 blocchi impilati e si accumulava.
+- **Box del record più compatto**: padding da `26px 20px 20px` a
+  `16px 16px 14px`, margini di record e sottotitolo ridotti — è il
+  secondo blocco più pesante dopo il quintetto.
+
+Le tre regole condividono lo stesso rischio già preso due volte in
+questo file: a parità di specificità vince l'ordine nel foglio, non la
+media query, e le regole base per `.result-hero`/`.result-record`/
+`.result-tier` sono scritte *dopo* questa media query nel file — quindi
+tutte e tre le nuove regole hanno `.result-layout` davanti per battere
+in specificità, non solo per contare sull'ordine.
+
+Risultato (stessa pescata, stesso iPhone): **934px → 852px** — nel caso
+migliore (852px di viewport, zero barre Safari) il contenuto reale
+finisce a **745px**, con margine, contro i 1180px di partenza a inizio
+sessione. Desktop verificato pixel per pixel ancora identico.
+
 ## Modalità di gioco
 
 Scelte in home con 3 tile (stile 82-0, che ha Classic/Hoop IQ/1v1 —

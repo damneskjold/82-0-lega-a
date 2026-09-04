@@ -597,6 +597,41 @@ scelta modalità): **Rigioca** ripete subito la stessa modalità/decadi
 (`lastMode`/`lastDecades`, salvate da `startDraft()`), **Cambia
 modalità** torna alla home con le 3 tile.
 
+### "'87-'90": una partizione a parte, non una vera decade
+
+Esplorando l'estensione agli anni '80 (vedi conversazione) è emerso che
+legabasket.it ha statistiche di gioco strutturate solo a partire dalla
+stagione 1987-88 — 1986-87 e prima tornano sempre vuote, verificato a
+mano contro l'API. Applicando la stessa logica di ammissione delle
+decadi vere (qui "almeno 2 stagioni su 3", visto che sono solo 3 non ha
+senso la soglia 5/10) risultano **10 squadre** (Virtus Bologna, Cantù,
+Olimpia Milano, Pesaro, Roma, Treviso, Varese, Livorno, Caserta, Napoli
+— quest'ultima con un giudizio non oggettivo, vedi
+`scripts/scrape_87_90.py`) su un totale di 21 identità viste, contro le
+30 delle decadi vere.
+
+Le rose di quell'epoca hanno molti più ruoli mancanti dai dati grezzi
+del solito (quasi metà dei giocatori sopra soglia presenze) — risolti
+con **10 agenti di ricerca in parallelo** (uno per squadra), fonti
+citate per ognuno (Wikipedia IT/EN, virtuspedia.it, basketball-reference
+dove accessibile), mai indovinati dalle statistiche. Risultato: 76 su
+83 giocatori sopra soglia risolti, i 7 rimasti "non trovato" sono tutti
+giocatori marginali di fine rosa (nessuno sopra 4 punti/partita, quasi
+tutti ultimi o penultimi in squadra per media punti — verificato prima
+di accettare la lacuna, non solo assunto).
+
+Tenuta volutamente **separata dalle decadi vere**, non una scelta pari
+alle altre:
+- etichetta onesta `"'87-'90"`, non `"'80s"` — copre 3 stagioni, non un
+  decennio
+- **esclusa di default da Classic e Blind** (`startDraft()` filtra
+  esplicitamente `decadeLabel !== "'87-'90"` per quelle due modalità) —
+  selezionabile *solo* aprendo "Scegli decade" e scegliendola
+  esplicitamente, mai mescolata di soppiatto nel roster pieno
+- dati grezzi tenuti a parte in `data/dataset_87_90.json` prima della
+  fusione in `data/dataset.json`, script dedicato `scripts/
+  scrape_87_90.py` invece di un'aggiunta a `scrape_decade_sample.py`
+
 ## Fonte dati e vincoli
 
 - Fonte: API JSON pubbliche di legabasket.it (non documentate, scoperte

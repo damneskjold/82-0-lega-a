@@ -423,6 +423,34 @@ Bottoni verificati esplicitamente dopo il giro: 43px ("Condividi") e
 confermato anche a 320px. Dai 1180px di partenza a inizio sessione è un
 **–47%**. Desktop, ancora una volta, pixel per pixel identico.
 
+**Settimo giro**: quasi al traguardo, ma segnalati due difetti veri dallo
+screenshot dell'utente (bottoni ancora tagliati all'ultimo pelo dalla
+barra di Safari, e i divisori fra le colonne P/R/A/S/B di ogni
+giocatore troppo appiccicati ai numeri a due cifre — es. i rimbalzi di
+un centro, "10.1", "16.8").
+
+Il secondo era un vero difetto introdotto in un giro precedente: quando
+le colonne sono state rese a **larghezza fissa** (`width`, non
+`min-width`) per allineare l'header alle righe, il padding era stato
+tolto del tutto (`.who-stats .stat-col { width: 30px; padding: 0; }`) —
+il testo arrivava a toccare la linea del divisore, più visibile sui
+numeri a due cifre perché più larghi. Corretto senza toccare
+l'allineamento: `width: 34px; padding: 0 2px` — l'area di contenuto
+resta 30px (stessa di prima, nessun rischio di tornare ad andare a capo
+su "18.4"/"29.7"), ma ora c'è margine dal divisore. Un solo cambio,
+applicato automaticamente sia all'header sia alle righe perché usano la
+stessa regola.
+
+Per il resto, ultimo giro di gap: `.result-layout` e `.result-actions`
+da 6px a 4px, box del record da `14px 12px 12px` a `12px 10px 10px`.
+Bottoni verificati di nuovo dopo il giro: 43px e 38-54px (il secondo
+bottone va a due righe di testo sotto i 320px, ma resta ben sopra la
+soglia di 36px). Nessun overflow orizzontale verificato esplicitamente
+a 320px, dopo aver allargato le colonne di 4px ciascuna.
+
+Risultato: **620px → 608px**. Dai 1180px di partenza a inizio sessione,
+**–48%**. Desktop pixel per pixel ancora identico.
+
 ## Modalità di gioco
 
 Scelte in home con 3 tile (stile 82-0, che ha Classic/Hoop IQ/1v1 —

@@ -570,12 +570,12 @@ body {
     /* 20px va bene su desktop (un solo gap, fra le due colonne), ma qui
        sotto ci sono 5-6 blocchi impilati: 20px fra ognuno si accumula.
        Piu' stretto solo qui, il desktop non lo vede */
-    gap: 6px;
+    gap: 4px;
     /* il margine base (20px auto) collassa con quello dell'header sopra
        (body.result-compact .topbar ha margin-bottom:14px) al piu'
        grande dei due, cioe' 20px - stesso valore stretto anche qui,
        coerente col resto */
-    margin: 6px auto;
+    margin: 4px auto;
   }
   /* quando non c'e' "squadra sbilanciata" l'elemento e' vuoto
      (textContent="" in showResult()) ma teneva comunque la sua
@@ -648,7 +648,7 @@ body {
      per battere in specificita' la regola base scritta dopo nel file -
      stesso pattern preso altre volte in questa sessione */
   .result-layout .result-actions {
-    gap: 6px;
+    gap: 4px;
   }
 
   /* box del record piu' compatto SOLO qui sotto gli 860px: e' il
@@ -660,7 +660,7 @@ body {
      bug gia' preso due volte in questa sessione: a parita' di
      specificita' vince l'ordine nel foglio, non la media query */
   .result-layout .result-hero {
-    padding: 14px 12px 12px;
+    padding: 12px 10px 10px;
   }
   .result-layout .result-record {
     margin-top: 2px;
@@ -877,12 +877,16 @@ body {
   /* "width" fissa, non "min-width": con min-width la colonna cresce col
      contenuto, e un numero a 4 cifre ("18.4") e' piu' largo di una
      sigla singola ("P") - stessa regola, due larghezze diverse, header
-     e riga che slittano uno rispetto all'altro. 30px misurato per non
-     far andare a capo il caso piu' largo ("18.4"/"29.7") */
+     e riga che slittano uno rispetto all'altro. 30px di area di
+     contenuto misurati per non far andare a capo il caso piu' largo
+     ("18.4"/"29.7"/i rimbalzi a due cifre di un centro tipo "10.1") -
+     width totale 34px = 30px di contenuto + 2px di padding per lato,
+     cosi' il testo non tocca piu' la linea del divisore (con
+     padding:0 i numeri a due cifre ci arrivavano a ridosso) */
   .who-stats .stat-col {
-    width: 30px;
+    width: 34px;
     flex-shrink: 0;
-    padding: 0;
+    padding: 0 2px;
   }
   .who-stats .stat-val {
     font-size: 0.82rem;

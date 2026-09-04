@@ -276,7 +276,11 @@ let MID = 0;
 // piu' grande di quanto sembri a naso, vanno sempre misurati con
 // tests/difficulty_check.js prima di cambiarli (vedi README, sezione
 // "Curva a due tratti").
-const PERFECTION_BAND = 0.89;
+// PROVA LIVE (branch sperimentale, non ancora deciso): 0.87 invece di
+// 0.89, per farlo testare dal vivo dall'utente dopo il confronto dati
+// (vedi tests/difficulty_check.js) - 30-0 ~1 ogni 230-330 invece di
+// ~1 ogni 700+, tier S quasi raddoppiato (1/9 invece di 1/15)
+const PERFECTION_BAND = 0.87;
 let PERFECTION_THRESHOLD = 0;
 // K: calibrato (vedi computeK) perche' la sigmoide raggiunga circa 29.5
 // vittorie appena sotto PERFECTION_THRESHOLD, cosi' il passaggio alla

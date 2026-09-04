@@ -571,6 +571,11 @@ body {
        sotto ci sono 5-6 blocchi impilati: 20px fra ognuno si accumula.
        Piu' stretto solo qui, il desktop non lo vede */
     gap: 12px;
+    /* il margine base (20px auto) collassa con quello dell'header sopra
+       (body.result-compact .topbar ha margin-bottom:14px) al piu'
+       grande dei due, cioe' 20px - stesso valore stretto anche qui,
+       coerente col resto */
+    margin: 12px auto;
   }
   /* quando non c'e' "squadra sbilanciata" l'elemento e' vuoto
      (textContent="" in showResult()) ma teneva comunque la sua
@@ -820,11 +825,18 @@ body {
 @media (max-width: 860px) {
   .lineup-row {
     gap: 8px;
+    /* 10px 0 va bene su desktop; qui sotto la riga e' gia' compatta
+       (numero solo, niente etichetta), il padding verticale resta il
+       pezzo piu' grosso rimasto - stretto solo qui */
+    padding: 6px 0;
+  }
+  .lineup-row:nth-child(even) {
+    padding: 6px 16px;
   }
   .who-avatar {
-    width: 36px;
-    height: 36px;
-    font-size: 0.75rem;
+    width: 30px;
+    height: 30px;
+    font-size: 0.68rem;
   }
   .avatar-role {
     font-size: 0.5rem;

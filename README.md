@@ -347,6 +347,29 @@ migliore (852px di viewport, zero barre Safari) il contenuto reale
 finisce a **745px**, con margine, contro i 1180px di partenza a inizio
 sessione. Desktop verificato pixel per pixel ancora identico.
 
+**Quarto giro**: provato di nuovo in Safari (non nel browser interno
+dell'app di Claude, che ha una barra in più — controllato prima di
+insistere sul codice, per non inseguire un problema che non era nostro)
+e ancora mancava un pezzo, i bottoni finali non erano visibili. Ultimo
+giro di stretta, solo sotto gli 860px:
+
+- **Margine sopra il box del record**: collassava con quello
+  dell'header al più grande dei due (20px, il margine base di
+  `.result-layout`) invece che ai 12px già usati per gli altri gap —
+  allineato anche questo a 12px.
+- **Righe giocatore ancora più basse**: avatar da 36px a 30px (la stessa
+  misura già usata per i riquadri dello slot nel quintetto durante il
+  draft su mobile — non una taglia nuova) e padding verticale da 10px a
+  6px. **63px → 49px per riga**, i bottoni non si toccano (restano al
+  loro padding pieno, comodi da premere).
+
+Risultato (stessa pescata, stesso iPhone): il contenuto reale (dove
+finiscono i bottoni, non solo il caso migliore teorico) passa da
+**745px a 669px**. Verificato anche a 320px (iPhone SE 1ª gen, il più
+stretto testato): entra tutto pure lì, cosa che prima richiedeva
+comunque scroll. Dai 1180px di partenza a inizio sessione è un **–43%**.
+Desktop, ancora una volta, pixel per pixel identico.
+
 ## Modalità di gioco
 
 Scelte in home con 3 tile (stile 82-0, che ha Classic/Hoop IQ/1v1 —

@@ -370,6 +370,36 @@ stretto testato): entra tutto pure lì, cosa che prima richiedeva
 comunque scroll. Dai 1180px di partenza a inizio sessione è un **–43%**.
 Desktop, ancora una volta, pixel per pixel identico.
 
+**Quinto giro**: provato di nuovo, screenshot reale da Safari — mancava
+ancora la riga Rigioca/Cambia modalità, e "Recuperate" si spezzava a
+metà su iPhone vero (`RECUPERAT` / `E`) pur avendo passato i test
+automatici a schermo stretto. Causa: il browser di sviluppo qui non ha
+lo stesso font di iOS reale (San Francisco, dal font-stack
+`-apple-system`) — il fallback usato in test rendeva "Recuperate" più
+stretto della resa vera, quindi il fix esistente (font più piccolo)
+passava i test ma non bastava sul dispositivo reale. Non rilevabile da
+qui: serviva lo screenshot reale per scoprirlo.
+
+- **Font dell'etichetta ridotto ulteriormente** (0.52rem → 0.46rem) per
+  lasciare un margine anche se il font vero rende più largo, più
+  `hyphens: auto` come rete di sicurezza — se dovesse comunque andare a
+  capo, si spezza in modo pulito ("Recupe-/rate") invece che a caso
+  ("RECUPERAT"/"E").
+- **Ultimi gap stretti**: 12px → 8px sia fra i blocchi impilati sia fra
+  "Condividi" e la riga Rigioca/Cambia modalità — i bottoni stessi non
+  sono stati toccati (restano comodi da premere, sopra la soglia minima
+  di 36px già stabilita in questa stessa sezione per i chip del filtro).
+
+Anche qui lo stesso rischio di specificità preso più volte in questo
+file: `.result-actions` ha una regola base scritta dopo questa media
+query, serviva `.result-layout` davanti per battere in specificità.
+
+Risultato: **669px → 676px** su una pescata (rumore statistico fra
+partite diverse — nomi/squadre diversi cambiano leggermente l'altezza,
+non un peggioramento: verificato via CSS calcolato che i valori sono
+davvero applicati), ma con la riga dei bottoni finalmente tutta visibile
+e "Recuperate" su una riga sola, confermato anche a 320px.
+
 ## Modalità di gioco
 
 Scelte in home con 3 tile (stile 82-0, che ha Classic/Hoop IQ/1v1 —

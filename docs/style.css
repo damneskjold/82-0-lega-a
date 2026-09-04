@@ -570,12 +570,12 @@ body {
     /* 20px va bene su desktop (un solo gap, fra le due colonne), ma qui
        sotto ci sono 5-6 blocchi impilati: 20px fra ognuno si accumula.
        Piu' stretto solo qui, il desktop non lo vede */
-    gap: 12px;
+    gap: 8px;
     /* il margine base (20px auto) collassa con quello dell'header sopra
        (body.result-compact .topbar ha margin-bottom:14px) al piu'
        grande dei due, cioe' 20px - stesso valore stretto anche qui,
        coerente col resto */
-    margin: 12px auto;
+    margin: 8px auto;
   }
   /* quando non c'e' "squadra sbilanciata" l'elemento e' vuoto
      (textContent="" in showResult()) ma teneva comunque la sua
@@ -636,6 +636,13 @@ body {
   }
   body.result-compact .subtitle {
     display: none;
+  }
+  /* gap fra "Condividi" e la riga Rigioca/Cambia modalita' - 12px va
+     bene su desktop, qui sotto ogni px vale. ".result-layout" davanti
+     per battere in specificita' la regola base scritta dopo nel file -
+     stesso pattern preso altre volte in questa sessione */
+  .result-layout .result-actions {
+    gap: 8px;
   }
 
   /* box del record piu' compatto SOLO qui sotto gli 860px: e' il
@@ -1012,8 +1019,17 @@ body {
     gap: 4px;
   }
   .stat-box .label {
-    font-size: 0.52rem;
+    font-size: 0.46rem;
     letter-spacing: 0;
+    /* margine di sicurezza: il browser di test qui in sviluppo non usa
+       lo stesso font di iOS reale (San Francisco, dal font-stack
+       -apple-system) - "Recuperate" ci stava su una riga sola nei test
+       automatici ma si spezzava a meta' su un iPhone vero. Un font
+       piu' piccolo da' margine anche se il carattere vero rende un po'
+       piu' largo; hyphens:auto e' una rete in piu' per un'andata a capo
+       pulita ("Recupe-/rate") se dovesse comunque succedere, invece
+       della rottura brutta vista prima ("RECUPERAT"/"E") */
+    hyphens: auto;
   }
 }
 

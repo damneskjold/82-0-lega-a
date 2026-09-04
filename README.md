@@ -1308,23 +1308,23 @@ di default, va filtrato esplicitamente per `championship_name`.
   in `/tmp` e sparivano ad ogni sessione ora sono in `tests/` (smoke test
   di gioco, check visivo + il suo test negativo) e in `scripts/`
   (i tre check sui dati)
-- **`scripts/check_data_consistency.py` e `check_data_coverage.py` non
-  coprono "Late '80s"**: entrambi importano `TEAMS` solo da
-  `scrape_decade_sample.py` (`ALL_TEAMS_FOR_RECOMPUTE = dict(DECADE_TEAMS)`
-  in `check_data_consistency.py`), mai `TEAMS_87_90` da
-  `scripts/scrape_87_90.py` — conseguenza diretta della scelta di tenere
-  "Late '80s" in uno script a parte (vedi sopra). Il ricalcolo-e-confronto
-  con `data/dataset.json` (la parte più rigorosa dei due check) non gira
-  mai su quelle 10 squadre: se in futuro cambia la cache grezza o la
-  logica di `build_decade()`, una regressione lì non verrebbe presa. Non
-  è un buco totale: `check_data_sanity.py` gira su **tutte** le righe del
-  dataset qualunque sia lo script che le ha generate (bound di sanità,
-  duplicati, distribuzione `role_source`), quindi anomalie grossolane
-  sulle 10 squadre di "Late '80s" verrebbero comunque intercettate — solo
-  non il confronto puntuale "il dataset combacia esattamente con quello
-  che lo script rigenererebbe oggi". Verificato che i tre check restano
-  **PULITI** rilanciandoli dopo il merge di "Late '80s" e del riaudit
-  colori (nessuna violazione, nessun mismatch sulle 30 squadre coperte).
+- ~~**`check_data_consistency.py`/`check_data_coverage.py` non coprivano
+  "Late '80s"**~~ **risolto**: entrambi importavano `TEAMS` solo da
+  `scrape_decade_sample.py`, mai `TEAMS_87_90` da `scrape_87_90.py` —
+  conseguenza diretta della scelta di tenere "Late '80s" in uno script a
+  parte. Il ricalcolo-e-confronto con `data/dataset.json` (la parte più
+  rigorosa dei due check) non girava mai su quelle 10 squadre: una
+  regressione lì (cache grezza cambiata, logica di `build_decade()`
+  modificata) non sarebbe stata presa. Estesi entrambi:
+  `check_data_consistency.py` condivide ora la stessa funzione di
+  confronto campo-per-campo fra le 4 decadi vere e "Late '80s" (soglia
+  fissa 3 stagioni invece di `min_seasons_for()`, che darebbe 5 — sbagliato
+  per questa finestra corta); `check_data_coverage.py` ha 3 sezioni in
+  più (5-7) che ricalcolano la qualificazione delle 10 squadre dai dati
+  grezzi 1987-89 e cercano identità aggiuntive che qualificherebbero ma
+  non sono incluse. Tutti e tre i check **PULITI** dopo l'estensione:
+  nessun mismatch di ricalcolo su nessuna delle 10 squadre, nessuna
+  identità qualificante fuori dall'elenco.
 
 ## Struttura repo
 
@@ -1374,19 +1374,29 @@ cd scripts && python3 check_data_sanity.py       # check dati 1.1 parte C: bound
 
 ## Stato e backlog
 
-**Più recente**: aggiunta la partizione "Late '80s" (10 squadre, 1987-90,
-vedi "Late '80s: una decade 'corta' ma nel roster pieno" sopra) e, subito
-dopo, scoperta e corretta la falla di scala che rendeva quel pool
-piccolo troppo facile — sia `PERFECTION_THRESHOLD` che `MID` ora si
-ricalibrano dal vivo sul pool di ogni partita (due giri, il secondo dopo
-un'ulteriore segnalazione dell'utente in gioco reale) invece di essere
-frazioni fisse del tetto (vedi "Curva adattiva alla dimensione del pool"
-sotto "Curva a due tratti"). Nello stesso giro, riaudit dei colori a
-bassa confidenza (Varese e altre 7 squadre, vedi "Decisioni prese
-finora" sopra) - 6 corretti, 2 confermati invariati, tutti riverificati
-con la finestra di copertura reale del progetto (1987-2025) invece di
-epoche precedenti più celebri ma fuori copertura. Prima di questo:
-schermata risultato, home e draft compattate
+**Più recente**: audit del README dopo tutti i merge recenti, richiesto
+esplicitamente dall'utente ("è aggiornato? vedi altre criticità?") —
+diversi numeri diventati obsoleti corretti contro i dati reali
+(conteggio carte per squadra, distribuzione `role_source`, bias di
+`drawFive()`, conteggio famiglie di colore), e una lacuna reale trovata
+e **risolta**: `check_data_consistency.py`/`check_data_coverage.py` non
+coprivano affatto "Late '80s" (importavano le squadre solo dalle 4
+decadi vere) — estesi entrambi, tutti e tre i check dati **PULITI**
+dopo l'estensione (vedi "Debito noto" sopra per il dettaglio).
+
+Prima di questo: aggiunta la partizione "Late '80s" (10 squadre,
+1987-90, vedi "Late '80s: una decade 'corta' ma nel roster pieno"
+sopra) e, subito dopo, scoperta e corretta la falla di scala che
+rendeva quel pool piccolo troppo facile — sia `PERFECTION_THRESHOLD`
+che `MID` ora si ricalibrano dal vivo sul pool di ogni partita (due
+giri, il secondo dopo un'ulteriore segnalazione dell'utente in gioco
+reale) invece di essere frazioni fisse del tetto (vedi "Curva adattiva
+alla dimensione del pool" sotto "Curva a due tratti"). Nello stesso
+giro, riaudit dei colori a bassa confidenza (Varese e altre 7 squadre,
+vedi "Decisioni prese finora" sopra) - 6 corretti, 2 confermati
+invariati, tutti riverificati con la finestra di copertura reale del
+progetto (1987-2025) invece di epoche precedenti più celebri ma fuori
+copertura. Prima ancora: schermata risultato, home e draft compattate
 per mobile (undici giri misurati e testati dal vivo su iPhone 17, vedi
 "Il quintetto visibile senza scroll" sopra — altezza contenuto -49% dai
 1180px di partenza, quintetto finalmente visibile senza scroll). Tutto

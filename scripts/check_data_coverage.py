@@ -3,7 +3,7 @@
 Check dati - Parte A: verifica indipendente della copertura decadi/squadre.
 
 Ricalcola da zero, direttamente dai file grezzi in data/raw_cache/
-(teams_get-teams__items=50_year=<anno>.json, uno per anno 1990-2025),
+(teams_get-teams__items=50_year=<anno>.json, uno per anno 1987-2025),
 quali "identita'-citta'" qualificano per quale decade secondo la soglia
 gia' documentata (MIN_SEASONS_PER_DECADE / MIN_SEASONS_DECADE_IN_CORSO in
 scripts/scrape_decade_sample.py), poi confronta il risultato con:
@@ -16,6 +16,13 @@ per trovare discrepanze: squadre che qualificano ma non sono ne' incluse
 ne' scartate esplicitamente (gap), squadre scartate che in realta'
 qualificano (falso scarto), o differenze fra la tabella e il dataset
 reale (mismatch).
+
+Copre anche "Late '80s" (sezioni 5-7): stessa logica ma con le regole
+proprie di quella partizione (finestra 1987-89, soglia 3/3, club_ids
+propri per squadra) lette da TEAMS_87_90 in scripts/scrape_87_90.py -
+non c'e' una tabella scritta a mano equivalente a
+decade_coverage_research.md per questa partizione, il confronto e'
+diretto contro TEAMS_87_90 stesso.
 
 Uso:
     cd scripts && python3 check_data_coverage.py
@@ -38,6 +45,13 @@ from scrape_decade_sample import (  # noqa: E402
     DECADES,
 )
 from scrape_dataset import TEAMS as SAMPLE_TEAMS  # noqa: E402
+from scrape_87_90 import (  # noqa: E402
+    TEAMS_87_90,
+    LABEL as LABEL_8790,
+    YEAR_START as YEAR_START_8790,
+    YEAR_END as YEAR_END_8790,
+    MIN_SEASONS as MIN_SEASONS_8790,
+)
 
 DECADE_SHORT = {"anni '90": "90", "anni 2000": "00", "anni 2010": "10", "anni 2020": "20"}
 
@@ -137,7 +151,7 @@ for f in year_files:
         names_by_club[t["club_id"]].add(t["name"])
 
 print(f"Anni grezzi letti: {len(year_files)} file ({min(years_by_club_years := [y for s in years_by_club.values() for y in s])}-{max(years_by_club_years)})")
-print(f"Club_id distinti visti in Serie A1/A/LBA 1990-{max(years_by_club_years)}: {len(years_by_club)}")
+print(f"Club_id distinti visti in Serie A1/A/LBA {min(years_by_club_years)}-{max(years_by_club_years)}: {len(years_by_club)}")
 
 # --- 2. raggruppa in identita' (applicando le 3 fusioni note), poi calcola
 # le decadi qualificanti per ciascuna identita' ---
@@ -236,11 +250,69 @@ for team_key, expected in sorted(EXPECTED_COVERAGE.items()):
 if not dataset_mismatches:
     print("  OK: tutte le 30 squadre, decadi in dataset.json identiche alla tabella attesa")
 
+# --- 5/6/7: "Late '80s" (1987-90) - stessa logica di sopra ma con le sue
+# regole proprie (finestra di 3 stagioni, soglia 3/3, club_ids propri per
+# ogni squadra - Napoli usa [33, 42], un giudizio esplicito diverso dal
+# club_id 42 usato per le decadi vere, vedi scripts/scrape_87_90.py).
+# Aggiunto perche' questo script (e check_data_consistency.py) non
+# coprivano affatto questa partizione fino ad ora (vedi README, sezione
+# "Debito noto", voce ora segnata risolta).
+TEAM_CLUB_IDS_8790 = {key: set(cfg["club_ids"]) for key, cfg in TEAMS_87_90.items()}
+assert len(TEAM_CLUB_IDS_8790) == 10, f"attese 10 squadre in TEAMS_87_90, trovate {len(TEAM_CLUB_IDS_8790)}"
+YEARS_8790 = set(range(YEAR_START_8790, YEAR_END_8790 + 1))
+
+print(f"\n=== 5. \"{LABEL_8790}\": ricalcolo dai dati grezzi vs TEAMS_87_90 (10 squadre) ===")
+mismatches_8790 = []
+for team_key, club_ids in sorted(TEAM_CLUB_IDS_8790.items()):
+    years = set()
+    for cid in club_ids:
+        years |= years_by_club.get(cid, set())
+    count = len(years & YEARS_8790)
+    if count < MIN_SEASONS_8790:
+        mismatches_8790.append((team_key, count))
+        print(f"  MISMATCH {team_key}: incluso in TEAMS_87_90 ma solo {count}/{len(YEARS_8790)} stagioni presenti nei dati grezzi")
+if not mismatches_8790:
+    print(f"  OK: tutte le 10 squadre di TEAMS_87_90 hanno davvero {MIN_SEASONS_8790}/{len(YEARS_8790)} stagioni nei dati grezzi")
+
+print(f"\n=== 6. Identita' qualificanti per \"{LABEL_8790}\" non incluse fra le 10 (gap) ===")
+included_club_ids_8790 = set()
+for ids in TEAM_CLUB_IDS_8790.values():
+    included_club_ids_8790 |= ids
+gaps_8790 = []
+for club_id, years in years_by_club.items():
+    if club_id in included_club_ids_8790:
+        continue
+    count = len(years & YEARS_8790)
+    if count >= MIN_SEASONS_8790:
+        names_joined = " / ".join(sorted(names_by_club.get(club_id, set())))
+        gaps_8790.append((club_id, names_joined))
+        print(f"  GAP: {names_joined} (club_id {club_id}) ha {count}/{len(YEARS_8790)} stagioni 1987-89 ma non e' fra le 10 di TEAMS_87_90")
+if not gaps_8790:
+    print(f"  OK: nessuna identita' qualificante per \"{LABEL_8790}\" fuori dalle 10 incluse")
+
+print(f"\n=== 7. Confronto TEAMS_87_90 vs data/dataset.json reale (\"{LABEL_8790}\") ===")
+dataset_mismatches_8790 = []
+for team_key in sorted(TEAM_CLUB_IDS_8790):
+    team = teams_in_dataset.get(team_key)
+    has_card = False
+    if team:
+        for season in team.get("seasons", []):
+            if season.get("decade") == LABEL_8790 and season.get("lineup_complete"):
+                has_card = True
+    if not has_card:
+        dataset_mismatches_8790.append(team_key)
+        print(f"  MISMATCH {team_key}: atteso in dataset.json con decade={LABEL_8790!r} e lineup_complete=True, non trovato")
+if not dataset_mismatches_8790:
+    print(f"  OK: tutte le 10 squadre hanno una carta \"{LABEL_8790}\" lineup_complete in dataset.json")
+
 # --- verdetto finale ---
 print("\n=== Verdetto ===")
-problems = len(mismatches) + len(gaps) + len(false_discards) + len(dataset_mismatches)
+problems = (
+    len(mismatches) + len(gaps) + len(false_discards) + len(dataset_mismatches)
+    + len(mismatches_8790) + len(gaps_8790) + len(dataset_mismatches_8790)
+)
 if problems == 0:
-    print("PULITO: nessun gap, nessun mismatch, nessun falso scarto.")
+    print("PULITO: nessun gap, nessun mismatch, nessun falso scarto (decadi vere e \"Late '80s\").")
 else:
     print(f"TROVATI {problems} problemi da rivedere (vedi sopra).")
 sys.exit(1 if problems else 0)

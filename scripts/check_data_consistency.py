@@ -64,6 +64,13 @@ from scrape_decade_sample import (  # noqa: E402
     DECADES,
     min_seasons_for,
 )
+from scrape_87_90 import (  # noqa: E402
+    TEAMS_87_90,
+    LABEL as LABEL_8790,
+    YEAR_START as YEAR_START_8790,
+    YEAR_END as YEAR_END_8790,
+    MIN_SEASONS as MIN_SEASONS_8790,
+)
 
 MIN_PRESENCES = scrape_dataset.MIN_PRESENCES
 
@@ -72,6 +79,14 @@ MIN_PRESENCES = scrape_dataset.MIN_PRESENCES
 # perso - vedi data/decade_coverage_research.md e la nota di commit): ora
 # ricalcolabile 1:1 come le altre 29, nessuna gestione speciale necessaria.
 ALL_TEAMS_FOR_RECOMPUTE = dict(DECADE_TEAMS)
+
+# "Late '80s" (TEAMS_87_90 in scrape_87_90.py) non era coperta da questo
+# check fino ad ora (vedi README, sezione "Debito noto", voce ora segnata
+# risolta): e' un dict a parte, con la sua etichetta/finestra/soglia
+# proprie (non le 4 decadi vere sopra) e role_overrides_by_name sempre
+# vuoto (solo role_forced_by_name viene usato per quella partizione -
+# vedi scrape_87_90.py).
+DECADES_8790 = [(LABEL_8790, YEAR_START_8790, YEAR_END_8790)]
 
 FIELDS_TO_COMPARE = [
     "role", "role_source", "height", "games_total", "eligible",
@@ -89,48 +104,65 @@ print("=== 1. Ricalcolo indipendente (build_decade su cache) vs dataset.json ===
 recompute_mismatches = []          # (team_key, decade, player_id, field, atteso, ricalcolato)
 recompute_player_set_diffs = []    # (team_key, decade, solo_in_dataset, solo_in_ricalcolo)
 
-for team_key, cfg in sorted(ALL_TEAMS_FOR_RECOMPUTE.items()):
+
+def check_team_decade(team_key, cfg, label, y0, y1, min_seasons):
+    """Ricalcola una carta-decade con build_decade() e la confronta campo per
+    campo con quanto scritto in dataset.json, aggiungendo eventuali
+    discrepanze a recompute_mismatches/recompute_player_set_diffs.
+    Condivisa fra le decadi vere (TEAMS, soglia da min_seasons_for) e
+    "Late '80s" (TEAMS_87_90, soglia fissa 3 - vedi le due chiamate sotto)."""
     team = teams_in_dataset.get(team_key)
     if team is None:
         print(f"  [{team_key}] assente da dataset.json, salto (dovrebbe essere gia' stato segnalato dalla Parte A)")
-        continue
+        return
 
     club_ids = cfg["club_ids"] if "club_ids" in cfg else [cfg["club_id"]]
     seasons_by_decade = {s["decade"]: s for s in team["seasons"] if "decade" in s}
 
+    stored = seasons_by_decade.get(label)
+    recomputed = build_decade(club_ids, cfg["display_name"], cfg.get("role_overrides_by_name", {}), label, y0, y1,
+                              cfg.get("role_forced_by_name"))
+    qualifies = len(recomputed["seasons_included"]) >= min_seasons
+
+    if stored is None:
+        if qualifies:
+            recompute_mismatches.append((team_key, label, None, "carta_mancante", "presente", "assente da dataset.json"))
+        return
+    if not qualifies:
+        recompute_mismatches.append((team_key, label, None, "carta_in_eccesso", "assente", "presente in dataset.json ma sotto soglia stagioni"))
+        return
+
+    stored_players = {p["player_id"]: p for p in stored["players"]}
+    recomputed_players = {p["player_id"]: p for p in recomputed["players"]}
+
+    only_stored = set(stored_players) - set(recomputed_players)
+    only_recomputed = set(recomputed_players) - set(stored_players)
+    if only_stored or only_recomputed:
+        recompute_player_set_diffs.append((team_key, label, sorted(only_stored), sorted(only_recomputed)))
+
+    for pid in sorted(set(stored_players) & set(recomputed_players)):
+        sp, rp = stored_players[pid], recomputed_players[pid]
+        for field in FIELDS_TO_COMPARE:
+            sv, rv = sp.get(field), rp.get(field)
+            if sv != rv:
+                recompute_mismatches.append((team_key, label, pid, field, sv, rv))
+
+    if stored.get("lineup_complete") != recomputed.get("lineup_complete"):
+        recompute_mismatches.append((team_key, label, None, "lineup_complete", stored.get("lineup_complete"), recomputed.get("lineup_complete")))
+    if stored.get("seasons_included") != recomputed.get("seasons_included"):
+        recompute_mismatches.append((team_key, label, None, "seasons_included", stored.get("seasons_included"), recomputed.get("seasons_included")))
+
+
+for team_key, cfg in sorted(ALL_TEAMS_FOR_RECOMPUTE.items()):
     for label, y0, y1 in DECADES:
-        stored = seasons_by_decade.get(label)
-        recomputed = build_decade(club_ids, cfg["display_name"], cfg["role_overrides_by_name"], label, y0, y1,
-                                  cfg.get("role_forced_by_name"))
-        qualifies = len(recomputed["seasons_included"]) >= min_seasons_for(label)
+        check_team_decade(team_key, cfg, label, y0, y1, min_seasons_for(label))
 
-        if stored is None:
-            if qualifies:
-                recompute_mismatches.append((team_key, label, None, "carta_mancante", "presente", "assente da dataset.json"))
-            continue
-        if not qualifies:
-            recompute_mismatches.append((team_key, label, None, "carta_in_eccesso", "assente", "presente in dataset.json ma sotto soglia stagioni"))
-            continue
-
-        stored_players = {p["player_id"]: p for p in stored["players"]}
-        recomputed_players = {p["player_id"]: p for p in recomputed["players"]}
-
-        only_stored = set(stored_players) - set(recomputed_players)
-        only_recomputed = set(recomputed_players) - set(stored_players)
-        if only_stored or only_recomputed:
-            recompute_player_set_diffs.append((team_key, label, sorted(only_stored), sorted(only_recomputed)))
-
-        for pid in sorted(set(stored_players) & set(recomputed_players)):
-            sp, rp = stored_players[pid], recomputed_players[pid]
-            for field in FIELDS_TO_COMPARE:
-                sv, rv = sp.get(field), rp.get(field)
-                if sv != rv:
-                    recompute_mismatches.append((team_key, label, pid, field, sv, rv))
-
-        if stored.get("lineup_complete") != recomputed.get("lineup_complete"):
-            recompute_mismatches.append((team_key, label, None, "lineup_complete", stored.get("lineup_complete"), recomputed.get("lineup_complete")))
-        if stored.get("seasons_included") != recomputed.get("seasons_included"):
-            recompute_mismatches.append((team_key, label, None, "seasons_included", stored.get("seasons_included"), recomputed.get("seasons_included")))
+# "Late '80s": stessa funzione, soglia fissa (non min_seasons_for(), che
+# darebbe 5 - il default per una decade vera, sbagliato per questa
+# finestra di 3 stagioni - vedi scrape_87_90.py).
+for team_key, cfg in sorted(TEAMS_87_90.items()):
+    for label, y0, y1 in DECADES_8790:
+        check_team_decade(team_key, cfg, label, y0, y1, MIN_SEASONS_8790)
 
 if recompute_mismatches:
     print(f"  MISMATCH trovati: {len(recompute_mismatches)}")

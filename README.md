@@ -597,7 +597,7 @@ scelta modalità): **Rigioca** ripete subito la stessa modalità/decadi
 (`lastMode`/`lastDecades`, salvate da `startDraft()`), **Cambia
 modalità** torna alla home con le 3 tile.
 
-### "'87-'90": una partizione a parte, non una vera decade
+### "Late '80s": una decade "corta" ma nel roster pieno
 
 Esplorando l'estensione agli anni '80 (vedi conversazione) è emerso che
 legabasket.it ha statistiche di gioco strutturate solo a partire dalla
@@ -620,14 +620,15 @@ giocatori marginali di fine rosa (nessuno sopra 4 punti/partita, quasi
 tutti ultimi o penultimi in squadra per media punti — verificato prima
 di accettare la lacuna, non solo assunto).
 
-Tenuta volutamente **separata dalle decadi vere**, non una scelta pari
-alle altre:
-- etichetta onesta `"'87-'90"`, non `"'80s"` — copre 3 stagioni, non un
-  decennio
-- **esclusa di default da Classic e Blind** (`startDraft()` filtra
-  esplicitamente `decadeLabel !== "'87-'90"` per quelle due modalità) —
-  selezionabile *solo* aprendo "Scegli decade" e scegliendola
-  esplicitamente, mai mescolata di soppiatto nel roster pieno
+- etichetta onesta `"Late '80s"`, non `"'80s"` pieno — copre le
+  stagioni 1987-90, non tutto il decennio
+- **prima nell'ordine** delle caselle in "Scegli decade" (prima di
+  `'90s`), non in fondo — è la più vecchia
+- **nel roster pieno di Classic e Blind** come le altre decadi, nessun
+  filtro speciale in `startDraft()` — decisione esplicita: dopo aver
+  verificato che tutte e 10 le squadre sono `lineup_complete` con ruoli
+  verificati (non indovinati), non c'è motivo di trattarla diversamente
+  dalle altre 4 decadi una volta pronta
 - dati grezzi tenuti a parte in `data/dataset_87_90.json` prima della
   fusione in `data/dataset.json`, script dedicato `scripts/
   scrape_87_90.py` invece di un'aggiunta a `scrape_decade_sample.py`

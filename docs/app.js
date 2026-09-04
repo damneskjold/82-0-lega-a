@@ -222,15 +222,16 @@ const TEAM_ABBR = {
 // "anni '90"/"anni 2000" ecc. (season.decade cosi' come generato da
 // scrape_decade_sample.py)
 const DECADE_LABELS = {
+  // "anni '87-'90" non e' una vera decade (solo 3 stagioni, le uniche con
+  // statistiche di gioco prima del 1990 - vedi README), ma partecipa al
+  // roster pieno di Classic/Blind come le altre. "Late '80s" invece di
+  // "'80s" pieno per restare onesti sulla copertura reale (solo
+  // 1987-90, non tutto il decennio)
+  "anni '87-'90": "Late '80s",
   "anni '90": "'90s",
   "anni 2000": "'00s",
   "anni 2010": "'10s",
   "anni 2020": "'20s",
-  // "anni '87-'90" non e' una vera decade (solo 3 stagioni, le uniche con
-  // statistiche di gioco prima del 1990 - vedi tests/README): esclusa di
-  // proposito da Classic/Blind (vedi startDraft), selezionabile SOLO da
-  // "Scegli decade", etichetta onesta invece di spacciarla per "anni '80"
-  "anni '87-'90": "'87-'90",
 };
 
 // nome modalita' da mostrare nella riga metadati del risultato (stile
@@ -421,14 +422,7 @@ function startDraft(mode, decades) {
   lastMode = mode;
   lastDecades = decades;
   blindMode = mode === "blind";
-  // "'87-'90" esclusa dal pool di default (Classic/Blind): solo 10
-  // squadre su 30, con ruoli in parte trovati via ricerca web invece che
-  // dai dati ufficiali - una "partizione" a parte, selezionabile solo
-  // esplicitamente da "Scegli decade", non mescolata di soppiatto nelle
-  // modalita' che usano tutto il roster
-  currentPool = mode === "decade"
-    ? ALL_TEAM_SEASONS.filter((ts) => decades.has(ts.decadeLabel))
-    : ALL_TEAM_SEASONS.filter((ts) => ts.decadeLabel !== "'87-'90");
+  currentPool = mode === "decade" ? ALL_TEAM_SEASONS.filter((ts) => decades.has(ts.decadeLabel)) : ALL_TEAM_SEASONS;
   recomputeCurve(currentPool, heightRulesEnabled);
   currentDraw = drawFive();
   roundIndex = 0;

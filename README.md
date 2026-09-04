@@ -578,15 +578,14 @@ nostra), tutte sullo stesso motore (`startDraft(mode, decades)` in
 - **Scegli decade**: come Classic ma solo sulle decadi selezionate
   (minimo 2, schermata `#screen-decades` prima del draft, checkbox
   sempre pulite alla riapertura — non si accumulano scelte precedenti).
-  `CEILING`/`MID`/`K` si ricalcolano sul sottoinsieme
-  (`recomputeCurve(pool, ...)`, `pool` non è più sempre
-  `ALL_TEAM_SEASONS`) — essendo `MID_FRACTION`/`PERFECTION_BAND` frazioni
-  del tetto, la curva è proporzionalmente la stessa qualunque sia la
-  dimensione del pool. **Verificate dal vivo tutte le 11 combinazioni
-  possibili** (le 6 coppie, le 4 triple, tutte e 4 insieme — non solo
-  qualcuna a campione): squadre disponibili sempre fra 21 e 30 (mai
-  sotto le 5 minime per un draft), curva sempre valida, 0 errori su una
-  partita completa per ciascuna.
+  `CEILING`/`MID`/`K`/`PERFECTION_THRESHOLD` si ricalcolano sul
+  sottoinsieme (`recomputeCurve(pool, ...)`, `pool` non è più sempre
+  `ALL_TEAM_SEASONS`). `PERFECTION_THRESHOLD` in particolare **non** è
+  più una frazione fissa del tetto: si ricalibra dal vivo sul pool
+  scelto (vedi "Curva a due tratti" sotto) per tenere la rarità del
+  30-0 costante qualunque sia la dimensione del pool — un bug reale
+  scoperto dopo l'aggiunta di "Late '80s" (segnalato dall'utente: 30-0
+  al secondo tentativo su un pool piccolo), non solo un'ipotesi.
 - **Blind**: come Classic ma senza statistiche nel draft (`blindMode`) e
   giocatori ordinati per cognome invece che per PPG — l'unico indizio è
   nome e ruolo, la valutazione del quintetto a fine partita resta
@@ -877,7 +876,7 @@ il risultato è sempre 30-0, sotto è una sigmoide calibrata.
 CEILING              = miglior rating_lega per ciascuno dei 5 rank, sommato
                         (calcolato a runtime da computeCeiling() dopo il
                         caricamento del dataset — vedi sotto il perché)
-PERFECTION_THRESHOLD = CEILING * PERFECTION_BAND        (PERFECTION_BAND = 0.87)
+PERFECTION_THRESHOLD = estimatePerfectionThreshold(pool)   (percentile 99.65 di 20.000 pescate simulate sul pool corrente)
 wins_raw = 30                                            se team_rating >= PERFECTION_THRESHOLD
 wins_raw = 30 / (1 + e^(-K * (team_rating - MID)))       altrimenti
 ```
@@ -899,14 +898,17 @@ wins_raw = 30 / (1 + e^(-K * (team_rating - MID)))       altrimenti
   visibile": mediana 24, p10 19, **9 volte su 3000 in tier S** (raro ma
   non nullo, contro le 26+ vittorie quasi garantite di prima del primo
   retune)
-- `PERFECTION_BAND = 0.87`: sopra l'87% del tetto teorico, sempre 30-0 —
-  un pugno di quintetti vicinissimi al meglio possibile, non un plateau
-  che capita per caso vicino al tetto (comportamento naturale di
-  qualunque sigmoide, se non lo si rende esplicito). Quattro ritocchi, ognuno
-  misurato prima di essere spedito — mai a occhio, perché `K` dipende da
-  `PERFECTION_THRESHOLD` tramite `computeK()`: spostare la banda non
-  tocca solo la punta della curva, la ripiattisce tutta, e uno
-  spostamento piccolo ha un effetto più grande di quanto sembri a naso:
+- `PERFECTION_THRESHOLD`: sopra questa soglia, sempre 30-0 — un pugno di
+  quintetti vicinissimi al meglio possibile, non un plateau che capita
+  per caso vicino al tetto (comportamento naturale di qualunque
+  sigmoide, se non lo si rende esplicito). Storicamente era
+  `CEILING * PERFECTION_BAND`, una frazione fissa del tetto (`0.87`
+  l'ultimo valore); dal fix "curva adattiva alla dimensione del pool"
+  sotto, è calcolata dal vivo per il pool corrente invece che scritta a
+  mano — la storia dei quattro ritocchi della frazione fissa resta
+  sotto perché ha fissato il *livello* di rarità desiderato (quello che
+  la nuova soglia dinamica riproduce sul roster pieno), anche se il
+  meccanismo che la calcola oggi è un altro:
   - `0.97` (primo valore): troppo raro per essere divertente — tier S
     ~1 partita su 326 giocando bene, 30-0 esatto **mai** su 100.000
     pescate anche giocando da onniscente (il quintetto migliore in
@@ -930,7 +932,8 @@ wins_raw = 30 / (1 + e^(-K * (team_rating - MID)))       altrimenti
     dove il 30-0 usciva per davvero giocando in modo ottimo (5 su 3000,
     ~1 ogni 600), tenendo l'aumento del tier S il più piccolo possibile
     fra le opzioni che funzionavano: 1 su 31 → 1 su 14
-  - `0.87` (attuale): dopo settimane di gioco reale a `0.89`, il 30-0
+  - `0.87` (ultimo valore fisso, prima del fix adattivo sotto): dopo
+    settimane di gioco reale a `0.89`, il 30-0
     restava troppo raro anche su centinaia di partite — confermato
     rilanciando `tests/difficulty_check.js` su `0.89` e `0.87` **in
     parallelo** (due server locali, stessa scala di pescate: 3000 per
@@ -950,6 +953,71 @@ wins_raw = 30 / (1 + e^(-K * (team_rating - MID)))       altrimenti
 - `K`: calcolato da `computeK()` perché la sigmoide valga ~29.5 appena
   sotto `PERFECTION_THRESHOLD`, così il passaggio alla zona di perfezione
   resta morbido invece che un gradino
+
+**Curva adattiva alla dimensione del pool.** `PERFECTION_BAND` come
+frazione fissa del tetto sembrava scalare correttamente per costruzione
+(`CEILING` cambia, la banda resta proporzionale) ma è un bug: pescare 5
+carte da un pool piccolo è una fetta molto più grande di quel pool che
+pescarle da uno grande, quindi combinazioni vicine al tetto capitano per
+puro caso molto più spesso — non è un problema di "quanto è alto il
+tetto", è un problema di combinatoria della pescata, che la frazione
+fissa non catturava. Scoperto dall'utente in gioco reale (30-0 al
+secondo tentativo con "Late '80s" + `'90s` selezionate, 153.4 punti
+squadra) subito dopo l'aggiunta di "Late '80s" — la prima decade
+abbastanza piccola (10 squadre) da rendere il problema visibile a
+occhio. Misurato con una variante di `tests/difficulty_check.js` scoped
+al solo pool "Late '80s": 30-0 esatto nell'**85% delle pescate**
+giocando in modo ottimo, contro l'~1 ogni 230-330 atteso sul roster
+pieno — non un'anomalia di fortuna, un bug strutturale.
+
+Fix: `PERFECTION_THRESHOLD` non è più `CEILING * PERFECTION_BAND` ma il
+risultato di `estimatePerfectionThreshold(pool, extendByHeight)`,
+richiamata da `recomputeCurve()` per il pool esatto di ogni partita
+(tutto il roster in Classic/Blind, il sottoinsieme scelto in "Scegli
+decade"): simula `PERFECTION_SAMPLES` (20.000) pescate sul pool dato con
+lo stesso calcolo economico della "raggiungibilità" di
+`tests/difficulty_check.js` (il miglior candidato per rank per carta,
+120 permutazioni carta→rank — non la ricerca esaustiva "ottimo", troppo
+costosa per girare ad ogni partita), poi fissa la soglia al percentile
+`PERFECTION_PERCENTILE` (`0.9965`, scelto per riprodurre sul roster
+pieno lo stesso livello di rarità già validato con `0.87`) di quella
+distribuzione. Costo: 250-300ms nel caso peggiore (roster pieno, 72
+carte), sceso a <150ms sui pool piccoli — misurato con
+`perf_test_percentile.js` (script di verifica, non nel repo) prima di
+toccare il motore vero, su 4 dimensioni di pool × 4 dimensioni di
+campione.
+
+Validato **con la vera `evaluateLineup()`** (non una riscrittura a
+mano — vedi sopra il precedente in cui una riscrittura semplificata
+aveva dato numeri sballati) su tutte le combinazioni rilevanti, non solo
+il caso segnalato, 3000 pescate ciascuna:
+
+| Pool | Squadre | 30-0 giocando ottimo | Tier S |
+|---|---|---|---|
+| Classic (tutte e 5) | 72 | 1 ogni 300 | 12.0% |
+| Late '80s+'90s+'00s+'10s+'20s | 72 | 1 ogni 231 | 11.2% |
+| '90s+'00s+'10s+'20s | 62 | 1 ogni 214 | 10.1% |
+| Late '80s+'00s+'10s+'20s | 58 | 1 ogni 429 | 9.2% |
+| Late '80s+'90s+'10s+'20s | 55 | 1 ogni 333 | 12.2% |
+| Late '80s+'90s+'00s+'20s | 57 | 1 ogni 500 | 13.8% |
+| Late '80s+'90s+'00s+'10s | 56 | 1 ogni 429 | 17.0% |
+| Late '80s+'90s (coppia più piccola) | 24 | 1 ogni 273 | 68.3% |
+| Late '80s da sola (pool minimo) | 10 | 1 ogni 200 | 89.0% |
+| '20s da sola | 16 | 1 ogni 176 | 88.7% |
+
+Il 30-0 resta in una banda stretta (~1/176-1/500) su **qualunque**
+combinazione, pool minimo di 10 squadre incluso — contro l'85% di prima
+del fix sullo stesso pool. Il tier S sale molto sui pool piccolissimi
+(fino all'89%): atteso e accettato, con solo 10-16 squadre il "quasi
+perfetto" (29 vittorie) è strutturalmente più comune anche quando il
+30-0 esatto resta raro — sono due soglie diverse (`PERFECTION_THRESHOLD`
+per il 30-0, la sigmoide per il tier S) e solo la prima aveva il
+problema di scala segnalato.
+
+`MID_FRACTION` resta invece una frazione fissa del tetto — non ha
+mostrato lo stesso problema (è un fenomeno di coda della distribuzione,
+il 30-0 esatto richiede una combinazione quasi ottima; il punto medio
+della sigmoide no) e non è stato toccato.
 
 **`CEILING` e `MID` sono calcolati a runtime dal dataset caricato, non
 scritti a mano.** `CEILING` prima era una costante fissa (127.5, poi
@@ -1167,13 +1235,17 @@ cd scripts && python3 check_data_sanity.py       # check dati 1.1 parte C: bound
 
 ## Stato e backlog
 
-**Più recente**: schermata risultato, home e draft compattate per
-mobile (undici giri misurati e testati dal vivo su iPhone 17, vedi "Il
-quintetto visibile senza scroll" sopra — altezza contenuto -49% dai
-1180px di partenza, quintetto finalmente visibile senza scroll) e
-`PERFECTION_BAND` ritarato `0.89` → `0.87` dopo settimane di gioco
-reale (30-0 troppo raro anche su centinaia di partite, vedi "Curva a
-due tratti"). Tutto già su `main`.
+**Più recente**: aggiunta la partizione "Late '80s" (10 squadre, 1987-90,
+vedi "Late '80s: una decade 'corta' ma nel roster pieno" sopra) e, subito
+dopo, scoperta e corretta la falla di scala che rendeva quel pool
+piccolo troppo facile — `PERFECTION_THRESHOLD` ora si ricalibra dal vivo
+sul pool di ogni partita invece di essere una frazione fissa del tetto
+(vedi "Curva adattiva alla dimensione del pool" sotto "Curva a due
+tratti"). Prima di questo: schermata risultato, home e draft compattate
+per mobile (undici giri misurati e testati dal vivo su iPhone 17, vedi
+"Il quintetto visibile senza scroll" sopra — altezza contenuto -49% dai
+1180px di partenza, quintetto finalmente visibile senza scroll). Tutto
+già su `main`.
 
 **Dopo la 1.1** è arrivato un giro di correzioni e rifiniture, anch'esse
 già su `main` (dettaglio nelle sezioni sopra, qui solo l'elenco):

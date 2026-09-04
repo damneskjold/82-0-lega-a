@@ -260,36 +260,41 @@ let CEILING = 0;
 // reali giocate col roster completo.)
 const MID_FRACTION = 0.55;
 let MID = 0;
-// PERFECTION_BAND: sopra questa frazione del tetto, il risultato e'
-// sempre 30-0 - la "zona di perfezione" di un pugno di quintetti vicini
-// al meglio possibile, invece di un plateau che capita per caso vicino
-// al tetto (comportamento naturale di qualunque sigmoide, altrimenti).
-// A 0.97 il tier S (29-30) era troppo raro per essere divertente (~1
-// partita su 326 giocando bene): abbassato a 0.93, poi a 0.89 dopo aver
-// misurato che a 0.93 il 30-0 esatto non usciva mai nemmeno giocando in
-// modo ottimale (0 su 3000 pescate) - non era un problema di bravura, la
-// soglia stava sopra il 99.9-esimo percentile di quello che le pescate
-// permettono. Confrontate 7 bande (0.93->0.87) sulle STESSE pescate,
-// chiamando la vera evaluateLineup() (non una riscrittura a mano - un
-// primo giro senza arrotondamento/penalita' aveva dato numeri sballati,
-// vedi README): 0.90 e sotto restava a 0/3000; 0.89 e' il primo valore
-// dove il 30-0 esce davvero (5 su 3000, ~1 ogni 600 giocando in modo
-// ottimale) con l'aumento di tier S piu' contenuto fra le opzioni che
-// funzionano (1/31 -> 1/14, contro 1/9 a 0.87 - quasi il triplo).
-// Ritoccato ancora da 0.89 a 0.87 dopo settimane di gioco reale: a 0.89
-// il 30-0 restava troppo raro anche per chi gioca centinaia di partite
-// (~1 ogni 700+ giocando in modo ottimale). Confrontati i due valori
-// in parallelo con tests/difficulty_check.js (stessa scala di pescate)
-// e poi testato dal vivo: a 0.87 il 30-0 sale a ~1 ogni 230-330, il
-// tier S quasi raddoppia (1/9 contro 1/15) - accettato come prezzo
-// giusto per un traguardo raggiungibile in un tempo di gioco reale.
-// ATTENZIONE: K dipende da PERFECTION_THRESHOLD (vedi computeK sotto),
-// quindi cambiare questa costante non sposta solo la punta della curva
-// ma la ripiattisce tutta - anche piccoli spostamenti hanno un effetto
-// piu' grande di quanto sembri a naso, vanno sempre misurati con
-// tests/difficulty_check.js prima di cambiarli (vedi README, sezione
-// "Curva a due tratti").
-const PERFECTION_BAND = 0.87;
+// PERFECTION_THRESHOLD: sopra questa soglia il risultato e' sempre 30-0
+// - la "zona di perfezione" di un pugno di quintetti vicini al meglio
+// possibile, invece di un plateau che capita per caso vicino al tetto
+// (comportamento naturale di qualunque sigmoide, altrimenti).
+//
+// Storia (quando era una frazione FISSA del tetto, PERFECTION_BAND):
+// 0.97 -> tier S troppo raro (~1/326); 0.93 -> il 30-0 non usciva mai
+// nemmeno giocando in modo ottimale (0/3000, soglia sopra il
+// 99.9-esimo percentile pescabile); 0.89 -> primo valore dove il 30-0
+// usciva davvero (~1/600); 0.87 (confermato dal vivo) -> 30-0 a
+// ~1/230-330, accettato come traguardo raggiungibile in un tempo di
+// gioco reale. Vedi README, sezione "Curva a due tratti", per il
+// dettaglio di ogni ritocco.
+//
+// Perche' non e' piu' una frazione fissa: con "Scegli decade" su un
+// pool piccolo (es. una sola decade, 10 squadre) pescare 5 carte e'
+// una fetta enorme del pool - trovare per puro caso una combinazione
+// vicina al tetto diventa comune, non un colpo di fortuna raro.
+// Misurato dal vivo: su "Late '80s" da sola, l'87% del tetto usciva
+// vero 30-0 nell'85% delle pescate giocando in modo ottimale (contro
+// l'~1/230-330 atteso). PERFECTION_THRESHOLD ora si ricalcola per il
+// pool corrente ad ogni partita (estimatePerfectionThreshold, sotto):
+// simula PERFECTION_SAMPLES pescate su quel pool esatto (stesso calcolo
+// economico della "raggiungibilita'" in tests/difficulty_check.js -
+// solo il miglior candidato per rank per carta, non la ricerca
+// esaustiva "ottimo") e fissa la soglia al percentile
+// PERFECTION_PERCENTILE di quella distribuzione. Sul roster intero
+// (72 carte) il percentile risultante e' praticamente identico alla
+// vecchia soglia fissa (137.1-137.6 contro 137.49) - il metodo scala
+// verso l'alto SOLO quando il pool si restringe, come deve.
+// ATTENZIONE: cambiare PERFECTION_PERCENTILE o PERFECTION_SAMPLES
+// sposta la curva su OGNI pool, non solo uno - va sempre rimisurato
+// con tests/difficulty_check.js prima di cambiarli.
+const PERFECTION_PERCENTILE = 0.9965;
+const PERFECTION_SAMPLES = 20000;
 let PERFECTION_THRESHOLD = 0;
 // K: calibrato (vedi computeK) perche' la sigmoide raggiunga circa 29.5
 // vittorie appena sotto PERFECTION_THRESHOLD, cosi' il passaggio alla
@@ -344,23 +349,76 @@ function computeCeiling(pool, extendByHeight) {
   return Object.values(bestByRank).reduce((a, b) => a + b, 0);
 }
 
+// le 120 permutazioni di [0,1,2,3,4] (carta i-esima pescata -> rank
+// assegnato), calcolate una volta sola e riusate ad ogni pescata
+// campione di estimatePerfectionThreshold - stesso identico algoritmo
+// di "maxRatingOf" in tests/difficulty_check.js.
+function permutationsOf5() {
+  const base = [0, 1, 2, 3, 4];
+  const out = [];
+  const permute = (arr, acc) => {
+    if (arr.length === 0) { out.push(acc); return; }
+    for (let i = 0; i < arr.length; i++) {
+      permute([...arr.slice(0, i), ...arr.slice(i + 1)], [...acc, arr[i]]);
+    }
+  };
+  permute(base, []);
+  return out;
+}
+const PERMS5 = permutationsOf5();
+
+// soglia di perfezione tarata sul pool dato: simula PERFECTION_SAMPLES
+// pescate (drawFive(pool), senza toccare currentPool), per ognuna
+// calcola il rating massimo ottenibile assegnando a ogni carta il suo
+// miglior candidato per rank (le 120 permutazioni carta->rank sopra),
+// poi restituisce il percentile PERFECTION_PERCENTILE di quella
+// distribuzione - vedi il commento su PERFECTION_THRESHOLD per il perche'.
+function estimatePerfectionThreshold(pool, extendByHeight) {
+  const bestByCard = pool.map((ts) => {
+    const best = [0, 0, 0, 0, 0];
+    for (const p of ts.players) {
+      const rl = Number(p.rating_lega || 0);
+      for (const r of ranksFor(p, extendByHeight)) if (rl > best[r - 1]) best[r - 1] = rl;
+    }
+    return best;
+  });
+  const indexByCard = new Map(pool.map((ts, i) => [ts, i]));
+
+  const ratings = new Array(PERFECTION_SAMPLES);
+  for (let i = 0; i < PERFECTION_SAMPLES; i++) {
+    const draw = drawFive(pool);
+    let best = 0;
+    for (const perm of PERMS5) {
+      let sum = 0;
+      for (let k = 0; k < 5; k++) sum += bestByCard[indexByCard.get(draw[k])][perm[k]];
+      if (sum > best) best = sum;
+    }
+    ratings[i] = best;
+  }
+  ratings.sort((a, b) => a - b);
+  const idx = Math.min(ratings.length - 1, Math.floor(ratings.length * PERFECTION_PERCENTILE));
+  return ratings[idx];
+}
+
 // ricalcola CEILING/PERFECTION_THRESHOLD/MID/K sul pool dato - chiamata
 // dopo il caricamento dati (pool = tutte le squadre) e di nuovo ad ogni
 // "Genera sfida" (pool = tutte le squadre, o solo le decadi scelte in
-// modalita' "Scegli decade"): MID_FRACTION/PERFECTION_BAND sono frazioni
-// del tetto, quindi la curva resta proporzionalmente la stessa qualunque
-// sia la dimensione del pool - verificato che non degenera su sottoinsiemi
-// piccoli (una singola decade, 14-17 squadre, da' comunque una K sensata).
+// modalita' "Scegli decade"). MID_FRACTION resta una frazione fissa del
+// tetto (il punto medio non ha mostrato lo stesso problema di scala del
+// 30-0, che e' un fenomeno di coda - vedi README); PERFECTION_THRESHOLD
+// invece si ricalibra dal vivo sul pool corrente (estimatePerfectionThreshold,
+// sopra), cosi' la rarita' del 30-0 resta la stessa qualunque sia la
+// dimensione del pool, invece di crollare sui pool piccoli.
 function recomputeCurve(pool, extendByHeight) {
   CEILING = computeCeiling(pool, extendByHeight);
-  PERFECTION_THRESHOLD = CEILING * PERFECTION_BAND;
+  PERFECTION_THRESHOLD = estimatePerfectionThreshold(pool, extendByHeight);
   MID = CEILING * MID_FRACTION;
   K = computeK(PERFECTION_THRESHOLD, MID, 29.5);
 }
 
 // K tale per cui, appena sotto la soglia della zona di perfezione, la
 // sigmoide valga circa targetWins (29) invece di saltare direttamente a
-// 30 - vedi la spiegazione a PERFECTION_BAND sopra.
+// 30 - vedi la spiegazione a PERFECTION_THRESHOLD sopra.
 function computeK(threshold, mid, targetWins) {
   return -Math.log(30 / targetWins - 1) / (threshold - mid);
 }
@@ -387,11 +445,14 @@ async function loadData() {
   recomputeCurve(currentPool, heightRulesEnabled);
 }
 
-function drawFive() {
-  // pesca 5 squadre-stagione distinte dal pool della partita in corso
-  // (tutte le squadre, o solo le decadi scelte in "Scegli decade"),
-  // evitando (quando possibile) di ripetere la stessa squadra due volte
-  const shuffled = [...currentPool].sort(() => Math.random() - 0.5);
+function drawFive(pool = currentPool) {
+  // pesca 5 squadre-stagione distinte dal pool dato (default: quello
+  // della partita in corso - tutte le squadre, o solo le decadi scelte
+  // in "Scegli decade"), evitando (quando possibile) di ripetere la
+  // stessa squadra due volte. Il parametro esplicito serve al
+  // calibratore della soglia di perfezione (vedi estimatePerfectionThreshold),
+  // che deve poter campionare un pool SENZA toccare currentPool.
+  const shuffled = [...pool].sort(() => Math.random() - 0.5);
   const five = [];
   const usedKeys = new Set();
 
@@ -609,7 +670,7 @@ function evaluateLineup(chosen) {
   const teamRating = chosen.reduce((sum, p) => sum + Number(p.rating_lega || 0), 0);
   // curva a due tratti: sopra la soglia di perfezione sempre 30-0 (un
   // pugno di quintetti vicinissimi al tetto teorico), sotto la sigmoide
-  // di sempre - vedi PERFECTION_BAND
+  // di sempre - vedi PERFECTION_THRESHOLD
   const winsRaw = teamRating >= PERFECTION_THRESHOLD ? 30 : 30 / (1 + Math.exp(-K * (teamRating - MID)));
 
   const cats = {

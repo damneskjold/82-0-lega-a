@@ -586,6 +586,24 @@ body {
   .result-breakdown { order: 3; }
   .result-note { order: 4; }
   .result-actions { order: 5; }
+  /* con display:contents questi 5 blocchi sono ora fratelli diretti
+     nella griglia: il "gap: 20px" di .result-layout si applica gia' fra
+     ognuno di loro. Il loro margin-bottom (pensato per lo stacking
+     normale dentro .result-left/.result-right, prima di questo
+     riordino) si sommava al gap invece di sostituirlo - 40px invece di
+     20px ad ogni passaggio, ed era esattamente lo spazio vuoto di troppo
+     visto prima del bottone Condividi. Uno dei due basta.
+     Selettore con ".result-layout" davanti (non serve altro, il DOM
+     resta invariato con display:contents) solo per battere in
+     specificita' le regole base piu' avanti nel file - a parita' di
+     specificita' avrebbe vinto l'ordine nel foglio, non questa media
+     query */
+  .result-layout .result-hero,
+  .result-layout .result-lineup,
+  .result-layout .result-breakdown,
+  .result-layout .result-note {
+    margin-bottom: 0;
+  }
 
   /* header compatto SOLO qui sotto gli 860px (classe .result-compact su
      body, vedi showResult() in app.js) - non e' .header-compact: quella
@@ -678,6 +696,13 @@ body {
   border-radius: 10px;
   padding: 6px 16px;
   margin-bottom: 20px;
+}
+
+/* invisibile su desktop (dove ogni riga ha gia' la propria etichetta
+   P/R/A/S/B sotto il numero, come sempre) - diventa display:flex solo
+   sotto gli 860px, vedi CSS piu' sotto */
+.lineup-stats-header {
+  display: none;
 }
 
 .lineup-row {
@@ -786,15 +811,72 @@ body {
     overflow-wrap: break-word;
     line-height: 1.25;
   }
+  /* etichetta P/R/A/S/B non piu' ripetuta sotto ogni numero di ogni
+     riga (era il motivo per cui, sotto i 400px, le statistiche
+     dovevano andare a capo su una riga propria - numero+etichetta
+     impilati erano troppo alti per stare a fianco del nome): ora vive
+     una volta sola in ".lineup-stats-header" sopra la lista, come gia'
+     fa ".player-stats-header" nella lista di pescaggio */
+  .lineup-row .who-stats .stat-lbl {
+    display: none;
+  }
+  /* "width" fissa, non "min-width": con min-width la colonna cresce col
+     contenuto, e un numero a 4 cifre ("18.4") e' piu' largo di una
+     sigla singola ("P") - stessa regola, due larghezze diverse, header
+     e riga che slittano uno rispetto all'altro. 30px misurato per non
+     far andare a capo il caso piu' largo ("18.4"/"29.7") */
   .who-stats .stat-col {
-    min-width: 22px;
-    padding: 0 3px;
+    width: 30px;
+    flex-shrink: 0;
+    padding: 0;
   }
   .who-stats .stat-val {
     font-size: 0.82rem;
   }
-  .who-stats .stat-lbl {
-    font-size: 0.54rem;
+
+  .lineup-stats-header {
+    display: flex;
+    align-items: center;
+    padding: 4px 0 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .lineup-stats-header-spacer {
+    flex: 1;
+    min-width: 0;
+  }
+  /* ".who-stats{display:flex}" nel CSS base e' dichiarato come
+     ".lineup-row .who-stats": l'header sta fuori da ".lineup-row",
+     quella regola non lo tocca - senza questa le 5 sigle si impilano
+     verticalmente invece di stare in riga (trovato nel mockup) */
+  .lineup-stats-header .who-stats {
+    display: flex;
+  }
+  .lineup-stats-header .stat-col {
+    color: var(--muted);
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    text-align: center;
+  }
+}
+
+@media (max-width: 400px) {
+  /* la regola qui sopra (righe di soli numeri, header con le etichette)
+     rende superfluo il vecchio "vai a capo su una riga propria" sotto
+     i 400px (ora un numero solo, senza etichetta sotto, ci sta gia' a
+     fianco del nome) - va annullato esplicitamente, non basta che le
+     etichette siano sparite: la regola originale resta scritta piu'
+     sotto in questo file e a parita' di specificita' vincerebbe lei per
+     ordine sorgente (gia' capitato altrove in questa sessione) - un
+     selettore piu' specifico qui evita il problema alla radice */
+  .result-lineup .lineup-row {
+    flex-wrap: nowrap;
+    row-gap: 0;
+  }
+  .result-lineup .lineup-row .who-stats {
+    flex: 0 0 auto;
+    justify-content: flex-end;
+    padding-left: 0;
   }
 }
 

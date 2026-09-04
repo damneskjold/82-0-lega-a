@@ -248,6 +248,61 @@ Restano fuori dallo schermo solo il 5° giocatore (parzialmente) e i
 totali — comprimere ogni riga giocatore su una riga sola (come fa 82-0)
 resta un secondo passo possibile, più invasivo, non fatto qui.
 
+**Secondo giro, dopo il test dal vivo sul telefono vero**: l'utente ha
+confermato che si vedevano i 5 giocatori ma non tutto lo schermo, più due
+problemi nuovi. Trovati e sistemati tutti e tre:
+
+1. **Spazio vuoto di troppo prima di "Condividi"** — bug reale, non
+   sensazione: `display: contents` (introdotto sopra) rende
+   `.result-hero`/`.result-lineup`/`.result-breakdown`/`.result-note`
+   fratelli diretti nella griglia, quindi il `gap: 20px` di
+   `.result-layout` si applica ora fra ognuno di loro — ma ognuno porta
+   ANCHE il proprio `margin-bottom: 20px` di prima (pensato per lo
+   stacking dentro `.result-left`/`.result-right`): 40px invece di 20px
+   ad ogni passaggio. Corretto azzerando quei margin-bottom solo dentro
+   la media query (`1123px → 1043px` di contenuto).
+2. **"Recuperate" andava a capo a metà** ("RECUPERAT" / "E") nello
+   screenshot dell'utente. Verificato che il fix esistente (font più
+   piccolo sotto i 400px) funziona in un test pulito identico — quasi
+   certamente cache di Safari sulla versione precedente della pagina,
+   non un bug vivo (GitHub Pages + cache aggressiva su iOS).
+3. **Righe giocatore ancora troppo alte**: trovato che sotto i 400px
+   (iPhone compreso) esisteva già una regola — non introdotta in questo
+   giro — che manda le statistiche di ogni riga a capo su una riga
+   propria, perché numero+etichetta impilati (`.stat-val` sopra
+   `.stat-lbl`) sono troppo alti per stare a fianco del nome: ogni riga
+   era quindi già **due righe fisiche** (94px misurati, contro i ~56px
+   attesi da una riga sola). Causa strutturale: l'etichetta P/R/A/S/B si
+   ripeteva sotto ogni numero di ogni riga, invece di comparire una
+   volta sola — l'opposto di come fa già la lista di pescaggio (header
+   con le sigle una volta, righe di soli numeri). Riusato lo stesso
+   schema, ma **solo sotto gli 860px** (`.lineup-stats-header`, con
+   `display: none` di base — invisibile su desktop, dove ogni riga tiene
+   la propria etichetta come sempre).
+
+   Tre bug trovati costruendo il mockup prima di scrivere il codice
+   vero, utili a chi tocca ancora questa zona:
+   - `.who-stats { display: flex }` nel CSS base è specificamente
+     `.lineup-row .who-stats` (con l'antenato `.lineup-row`) — un header
+     fuori da `.lineup-row` non lo eredita, va ridichiarato o le 5 sigle
+     si impilano verticalmente invece che in riga.
+   - Header e riga slittavano (colonne non allineate) perché la vecchia
+     regola usava `min-width` (cresce col contenuto: "18.4" più largo di
+     "P") — serve `width` fissa uguale per entrambi (30px, misurato per
+     non far andare a capo il caso più largo).
+   - Annullare il vecchio "vai a capo sotto i 400px" richiede un
+     selettore più specifico (`.result-lineup .lineup-row`, non
+     `.lineup-row`), altrimenti la regola originale — scritta più avanti
+     nel file — vince per ordine sorgente: stesso identico pattern del
+     bug del punto 1, capitato due volte nello stesso giro di lavoro.
+
+   Risultato (stessa pescata, stesso iPhone): **1006px → 934px**,
+   bottone "Condividi" da y=926 a y=830. Effetto collaterale minore: a
+   320px (iPhone SE 1ª gen, il più stretto testato) i cognomi più lunghi
+   ora vanno a capo a metà parola invece che restare su una riga — non
+   succede più da 375px in su, quindi non tocca telefoni recenti come
+   quello con cui è stato testato.
+
 ## Modalità di gioco
 
 Scelte in home con 3 tile (stile 82-0, che ha Classic/Hoop IQ/1v1 —

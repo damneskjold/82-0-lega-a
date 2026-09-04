@@ -684,7 +684,23 @@ function showResult() {
     `<span style="color:${tier.color}">${tier.label}</span> · Rating ${result.teamRating.toFixed(1)}`;
 
   const lineupEl = $("#result-lineup");
-  lineupEl.innerHTML = orderedSlots
+  // header colonne (P R A S B) una volta sola, visibile solo sotto gli
+  // 860px (.lineup-stats-header e' display:none altrove, vedi CSS):
+  // sotto le sue etichette, ogni riga sotto mostra solo il numero,
+  // niente piu' .stat-lbl ripetuta 5 volte - stesso schema gia' usato
+  // nella lista di pescaggio (.player-stats-header + righe di soli
+  // numeri), che qui mancava
+  const lineupHeader = `<div class="lineup-stats-header">
+    <div class="lineup-stats-header-spacer"></div>
+    <div class="who-stats">
+      <div class="stat-col">P</div>
+      <div class="stat-col">R</div>
+      <div class="stat-col">A</div>
+      <div class="stat-col">S</div>
+      <div class="stat-col">B</div>
+    </div>
+  </div>`;
+  const lineupRows = orderedSlots
     .map((s) => {
       const pk = s.pick;
       const p = pk.player;
@@ -708,6 +724,7 @@ function showResult() {
       </div>`;
     })
     .join("");
+  lineupEl.innerHTML = lineupHeader + lineupRows;
 
   lastShareText =
     `LBA 30-0 — ${wins}-${losses} (${tier.letter}, ${tier.label})\n` +

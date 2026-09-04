@@ -738,6 +738,18 @@ insieme all'utente) e la decade in formato compatto (`DECADE_LABELS`:
 Bologna (VBO Virtus / FBO Fortitudo), Reggio (REG Emilia / RCA
 Calabria), il gruppo Treviso/Trieste/Trento (TVS/TRI/TNT).
 
+Cinque sigle riviste dopo un secondo giro di revisione insieme
+all'utente (più leggibili/riconoscibili delle prime): Derthona
+`TOR`→`DER`, Scafati `SCA`→`SCF`, Cantù `CAN`→`CTÙ`, Pistoia
+`PIS`→`PST`, Pesaro `PES`→`PSR`. `CTÙ` (con l'accento, invece della
+resa senza diacritico `CTU`) verificato dal vivo con
+`tests/visual_check.js` — il documento dichiara `<meta charset="UTF-8">`
+in `index.html`, il `text-transform: uppercase` via CSS applicato alle
+sigle in più punti dell'interfaccia gestisce correttamente la
+maiuscola accentata (`ù`→`Ù`, mappatura Unicode standard, supportata
+da tutti i browser moderni), nessun errore console o glitch visivo
+nello screenshot su 6 viewport.
+
 ## Ruoli
 
 legabasket classifica i giocatori in 4 categorie core (Playmaker, Guardia,
@@ -917,7 +929,7 @@ wins_raw = 30 / (1 + e^(-K * (team_rating - MID)))       altrimenti
   - `0.97` (primo valore): troppo raro per essere divertente — tier S
     ~1 partita su 326 giocando bene, 30-0 esatto **mai** su 100.000
     pescate anche giocando da onniscente (il quintetto migliore in
-    assoluto — Del Negro/TVS, Young/RCA, Komazec/VAR, Daye/PES, Gay/PIS,
+    assoluto — Del Negro/TVS, Young/RCA, Komazec/VAR, Daye/PSR, Gay/PST,
     tutti anni '90 — è al 99.3% del tetto ma sotto quella soglia)
   - `0.93`: tier S ~1 su 78 giocando bene, voluto così. Ma con le
     correzioni ai ruoli successive (vedi "Ruoli estesi per altezza",
@@ -1085,7 +1097,7 @@ tutto il pool — non è garantito che una combinazione reale di 5 carte
 distinte possa prenderli tutti insieme.** Verificato che è comunque
 quasi raggiungibile per davvero, non un fantasma: la miglior
 combinazione reale di 5 carte esistenti (Del Negro/TVS, Young/RCA,
-Komazec/VAR, Daye/PES, Gay/PIS, tutte anni '90) arriva al **99.3% del
+Komazec/VAR, Daye/PSR, Gay/PST, tutte anni '90) arriva al **99.3% del
 tetto** (150.6 su 151.6, trovato due volte in sessioni diverse con lo
 stesso risultato) — i giocatori più forti per ruolo si concentrano quasi
 tutti sulle stesse squadre/anni '90. Non lo si ri-ancora al valore

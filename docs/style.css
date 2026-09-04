@@ -570,12 +570,12 @@ body {
     /* 20px va bene su desktop (un solo gap, fra le due colonne), ma qui
        sotto ci sono 5-6 blocchi impilati: 20px fra ognuno si accumula.
        Piu' stretto solo qui, il desktop non lo vede */
-    gap: 8px;
+    gap: 6px;
     /* il margine base (20px auto) collassa con quello dell'header sopra
        (body.result-compact .topbar ha margin-bottom:14px) al piu'
        grande dei due, cioe' 20px - stesso valore stretto anche qui,
        coerente col resto */
-    margin: 8px auto;
+    margin: 6px auto;
   }
   /* quando non c'e' "squadra sbilanciata" l'elemento e' vuoto
      (textContent="" in showResult()) ma teneva comunque la sua
@@ -637,12 +637,18 @@ body {
   body.result-compact .subtitle {
     display: none;
   }
+  /* padding-top della riga totali: 4px va bene su desktop, qui sotto
+     ogni px vale - ".result-layout" davanti, stesso motivo di sempre
+     (la regola base e' scritta dopo questa media query nel file) */
+  .result-layout .result-breakdown {
+    padding-top: 2px;
+  }
   /* gap fra "Condividi" e la riga Rigioca/Cambia modalita' - 12px va
      bene su desktop, qui sotto ogni px vale. ".result-layout" davanti
      per battere in specificita' la regola base scritta dopo nel file -
      stesso pattern preso altre volte in questa sessione */
   .result-layout .result-actions {
-    gap: 8px;
+    gap: 6px;
   }
 
   /* box del record piu' compatto SOLO qui sotto gli 860px: e' il
@@ -654,7 +660,7 @@ body {
      bug gia' preso due volte in questa sessione: a parita' di
      specificita' vince l'ordine nel foglio, non la media query */
   .result-layout .result-hero {
-    padding: 16px 16px 14px;
+    padding: 14px 12px 12px;
   }
   .result-layout .result-record {
     margin-top: 2px;
@@ -835,10 +841,10 @@ body {
     /* 10px 0 va bene su desktop; qui sotto la riga e' gia' compatta
        (numero solo, niente etichetta), il padding verticale resta il
        pezzo piu' grosso rimasto - stretto solo qui */
-    padding: 6px 0;
+    padding: 5px 0;
   }
   .lineup-row:nth-child(even) {
-    padding: 6px 16px;
+    padding: 5px 16px;
   }
   .who-avatar {
     width: 30px;
@@ -999,7 +1005,7 @@ body {
 @media (max-width: 400px) {
   /* il record piu' largo possibile e' "30—30": a 4.5rem non ci sta */
   .result-record {
-    font-size: 3.4rem;
+    font-size: 3rem;
   }
   .lineup-row {
     flex-wrap: wrap;

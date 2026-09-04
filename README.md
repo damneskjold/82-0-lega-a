@@ -400,6 +400,29 @@ non un peggioramento: verificato via CSS calcolato che i valori sono
 davvero applicati), ma con la riga dei bottoni finalmente tutta visibile
 e "Recuperate" su una riga sola, confermato anche a 320px.
 
+**Sesto giro**: ancora uno screenshot reale a mostrare che mancava
+l'ultima riga di bottoni, coperta dalla barra di Safari. Segnalato che
+Safari nasconde da solo la barra scrollando (avrebbe forse già bastato
+nella pratica), ma l'utente ha scelto di stringere ancora via codice
+piuttosto che fare affidamento su quello. Un limite dichiarato esplicito
+prima di partire: i bottoni non scendono sotto i 36px di tocco comodo,
+la stessa soglia già stabilita per i chip del filtro — rispettata anche
+stringendo tutto il resto.
+
+- **Box del record**: font del punteggio da `3.4rem` a `3rem` sotto i
+  400px, padding da `16px 16px 14px` a `14px 12px 12px`
+- **Righe giocatore**: padding verticale da 6px a 5px (ultimo mezzo
+  passo, sotto rischia l'illeggibilità)
+- **Totali di squadra**: padding-top da 4px a 2px
+- **Gap residui**: 8px → 6px ovunque erano rimasti (blocchi impilati,
+  margine sopra il record, fra "Condividi" e la riga sotto)
+
+Bottoni verificati esplicitamente dopo il giro: 43px ("Condividi") e
+38px (Rigioca/Cambia modalità), entrambi sopra soglia. Risultato:
+**676px → 620px**, bottoni tutti visibili con un po' di margine sotto,
+confermato anche a 320px. Dai 1180px di partenza a inizio sessione è un
+**–47%**. Desktop, ancora una volta, pixel per pixel identico.
+
 ## Modalità di gioco
 
 Scelte in home con 3 tile (stile 82-0, che ha Classic/Hoop IQ/1v1 —

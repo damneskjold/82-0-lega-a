@@ -246,19 +246,37 @@ const MODE_LABELS = { classic: "Classic", decade: "Scegli decade", blind: "Blind
 // frattempo) - calcolandolo dal dataset invece che scrivendolo a mano
 // il problema non si ripresenta piu' da solo quando il roster cresce.
 let CEILING = 0;
-// MID = rating che vale 15/30 vittorie (record da 0.500). NON e' piu'
+// MID = rating che vale 15/30 vittorie (record da 0.500). NON e'
 // ancorato al "giocatore a caso per ruolo" (rating mediano, ~43): a
 // quel livello la sigmoide risultava gia' quasi satura per una
 // selezione semplicemente attenta (non ottimale) ai rating visibili,
 // che raggiunge da sola ~104 di rating (~68% del tetto) e quindi quasi
-// sempre 26+ vittorie. MID_FRACTION sposta l'ancoraggio a "una buona
-// selezione ma non ottimale", cosi' il .500 rappresenta uno sforzo
-// onesto e non il minimo sindacale.
-// (0.65 era troppo severo: quintetti onesti da 80-100 di rating, con
-// giocatori sui 15-24 punti a partita, finivano comunque in zona
-// retrocessione - ritarato a 0.55 dopo il feedback sulle prime partite
-// reali giocate col roster completo.)
-const MID_FRACTION = 0.55;
+// sempre 26+ vittorie.
+//
+// Storia (quando era MID_FRACTION, una frazione FISSA del tetto): 0.65
+// era troppo severo (quintetti onesti da 80-100 di rating, giocatori sui
+// 15-24 punti a partita, finivano comunque in zona retrocessione) -
+// ritarato a 0.55 dopo il feedback sulle prime partite reali giocate col
+// roster completo, cosi' che una selezione "avida" (rating piu' alto
+// disponibile round per round, senza pianificare - vedi
+// tests/difficulty_check.js) desse in media ~24-25 vittorie, non 26+.
+//
+// Perche' non e' piu' una frazione fissa: stesso identico bug di
+// PERFECTION_THRESHOLD sotto, ma sulla PARTE CENTRALE della curva
+// invece che sulla punta. Segnalato dall'utente in gioco reale su
+// "Late '80s"+"'90s" (24 carte): punteggi 27-28-29 quasi ad ogni
+// partita. Misurato: strategia avida su quel pool, media 27.99, p10=26,
+// mediana=28 (contro media 24.58, p10=20, mediana=25 sul roster pieno,
+// con la STESSA MID_FRACTION=0.55) - non e' un problema di bravura del
+// giocatore, e' che su un pool piccolo anche una scelta "avida" pesca
+// quasi sempre carte forti (5 carte su 24 e' una fetta enorme del pool),
+// quindi il rating tipico raggiunto si avvicina al tetto molto piu' in
+// fretta che sul roster pieno. MID ora si ricalibra dal vivo sul pool
+// corrente (estimateMid, sotto) con lo stesso approccio Monte Carlo di
+// PERFECTION_THRESHOLD, ma sulla distribuzione della strategia avida
+// (non quella "raggiungibile" ottimistica) e a un percentile basso
+// (MID_PERCENTILE) invece che alto.
+const MID_PERCENTILE = 0.01;
 let MID = 0;
 // PERFECTION_THRESHOLD: sopra questa soglia il risultato e' sempre 30-0
 // - la "zona di perfezione" di un pugno di quintetti vicini al meglio
@@ -400,19 +418,58 @@ function estimatePerfectionThreshold(pool, extendByHeight) {
   return ratings[idx];
 }
 
+// MID tarato sul pool dato: simula PERFECTION_SAMPLES pescate
+// (drawFive(pool)), per ognuna gioca la strategia "avida" (stesso
+// algoritmo di tests/difficulty_check.js - il rating piu' alto
+// disponibile round per round, senza pianificare: scorre le carte
+// pescate in ordine, sceglie il giocatore col rating migliore ancora
+// libero che copra almeno un rank ancora aperto, gli assegna il rank
+// aperto piu' basso fra quelli che gli competono), poi restituisce il
+// percentile MID_PERCENTILE della distribuzione dei rating cosi'
+// ottenuti - vedi il commento su MID sopra per il perche'.
+function estimateMid(pool, extendByHeight) {
+  const RANKS = [1, 2, 3, 4, 5];
+  const byRating = (a, b) => Number(b.rating_lega || 0) - Number(a.rating_lega || 0);
+  const playAvido = (draw) => {
+    const open = new Set(RANKS);
+    const usedIds = new Set();
+    let teamRating = 0;
+    for (const card of draw) {
+      const sorted = [...card.players].sort(byRating);
+      const pick = sorted.find(
+        (p) => !usedIds.has(p.player_id) && ranksFor(p, extendByHeight).some((r) => open.has(r))
+      );
+      if (!pick) return null; // softlock, pescata scartata
+      const slot = ranksFor(pick, extendByHeight).filter((r) => open.has(r)).sort()[0];
+      open.delete(slot);
+      usedIds.add(pick.player_id);
+      teamRating += Number(pick.rating_lega || 0);
+    }
+    return teamRating;
+  };
+
+  const ratings = [];
+  for (let i = 0; i < PERFECTION_SAMPLES; i++) {
+    const draw = drawFive(pool);
+    const r = playAvido(draw);
+    if (r !== null) ratings.push(r);
+  }
+  ratings.sort((a, b) => a - b);
+  const idx = Math.min(ratings.length - 1, Math.max(0, Math.floor(ratings.length * MID_PERCENTILE)));
+  return ratings[idx];
+}
+
 // ricalcola CEILING/PERFECTION_THRESHOLD/MID/K sul pool dato - chiamata
 // dopo il caricamento dati (pool = tutte le squadre) e di nuovo ad ogni
 // "Genera sfida" (pool = tutte le squadre, o solo le decadi scelte in
-// modalita' "Scegli decade"). MID_FRACTION resta una frazione fissa del
-// tetto (il punto medio non ha mostrato lo stesso problema di scala del
-// 30-0, che e' un fenomeno di coda - vedi README); PERFECTION_THRESHOLD
-// invece si ricalibra dal vivo sul pool corrente (estimatePerfectionThreshold,
-// sopra), cosi' la rarita' del 30-0 resta la stessa qualunque sia la
+// modalita' "Scegli decade"). MID e PERFECTION_THRESHOLD si ricalibrano
+// entrambi dal vivo sul pool corrente (estimateMid/estimatePerfectionThreshold,
+// sopra), cosi' la difficolta' resta la stessa qualunque sia la
 // dimensione del pool, invece di crollare sui pool piccoli.
 function recomputeCurve(pool, extendByHeight) {
   CEILING = computeCeiling(pool, extendByHeight);
   PERFECTION_THRESHOLD = estimatePerfectionThreshold(pool, extendByHeight);
-  MID = CEILING * MID_FRACTION;
+  MID = estimateMid(pool, extendByHeight);
   K = computeK(PERFECTION_THRESHOLD, MID, 29.5);
 }
 

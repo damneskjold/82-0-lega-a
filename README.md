@@ -881,7 +881,12 @@ wins_raw = 30                                            se team_rating >= PERFE
 wins_raw = 30 / (1 + e^(-K * (team_rating - MID)))       altrimenti
 ```
 
-- `MID = CEILING * MID_FRACTION` (`MID_FRACTION = 0.55`): rating che vale
+- `MID = estimateMid(pool)` (percentile 1 di 20.000 pescate simulate con
+  strategia "avida" sul pool corrente - storia e dettaglio nella sezione
+  "Curva adattiva alla dimensione del pool" più sotto; era
+  `CEILING * MID_FRACTION`, una frazione fissa, finché non si è scoperto
+  che soffriva lo stesso bug di scala di `PERFECTION_THRESHOLD`): rating
+  che vale
   15/30 vittorie. **Non** è più ancorato al "giocatore a caso per ruolo"
   (rating mediano, ~43 sul dataset attuale): a quel livello la sigmoide
   risultava già quasi satura per una selezione semplicemente attenta ai
@@ -1007,17 +1012,63 @@ il caso segnalato, 3000 pescate ciascuna:
 
 Il 30-0 resta in una banda stretta (~1/176-1/500) su **qualunque**
 combinazione, pool minimo di 10 squadre incluso — contro l'85% di prima
-del fix sullo stesso pool. Il tier S sale molto sui pool piccolissimi
-(fino all'89%): atteso e accettato, con solo 10-16 squadre il "quasi
-perfetto" (29 vittorie) è strutturalmente più comune anche quando il
-30-0 esatto resta raro — sono due soglie diverse (`PERFECTION_THRESHOLD`
-per il 30-0, la sigmoide per il tier S) e solo la prima aveva il
-problema di scala segnalato.
+del fix sullo stesso pool.
 
-`MID_FRACTION` resta invece una frazione fissa del tetto — non ha
-mostrato lo stesso problema (è un fenomeno di coda della distribuzione,
-il 30-0 esatto richiede una combinazione quasi ottima; il punto medio
-della sigmoide no) e non è stato toccato.
+**Secondo giro: lo stesso bug era anche su `MID`, non solo sulla punta
+della curva.** Prima versione di questo fix: solo `PERFECTION_THRESHOLD`
+ricalibrato, `MID` lasciato come frazione fissa del tetto
+(`MID_FRACTION = 0.55`) - motivato all'epoca con "è un fenomeno di coda,
+il punto medio della sigmoide non ha mostrato lo stesso problema". Non
+era vero, solo non ancora misurato sul caso giusto: l'utente ha
+segnalato in gioco reale, su "Late '80s"+"'90s" (24 carte), risultati
+di 27-28-29 quasi ad ogni partita. Misurato con la strategia "avida"
+(rating più alto disponibile round per round, senza pianificare - la
+stessa di `tests/difficulty_check.js`) sulle stesse 24 carte: media
+27.99, p10 26 (cioè il 90% delle partite finiva 26+) - contro media
+24.58, p10 20 sul roster pieno con la STESSA `MID_FRACTION`. Causa
+identica al bug di `PERFECTION_THRESHOLD`: su un pool piccolo anche una
+scelta "avida" (non ottimale) pesca quasi sempre carte forti, quindi il
+rating tipico si avvicina al tetto molto più in fretta che sul roster
+pieno - non un fenomeno di coda, lo stesso fenomeno di scala, solo sulla
+parte centrale della curva invece che sulla punta.
+
+Fix: `MID` non è più `CEILING * MID_FRACTION` ma il risultato di
+`estimateMid(pool, extendByHeight)`, stesso approccio Monte Carlo di
+`estimatePerfectionThreshold` ma sulla distribuzione della strategia
+avida (non quella "raggiungibile" ottimistica) e al percentile
+`MID_PERCENTILE` (`0.01`, il primo percentile - scelto perché riproduce
+sul roster pieno via avido lo stesso comportamento già validato con
+`MID_FRACTION = 0.55`: media 24.6, p10 20, tier S ~7%) invece che alto.
+Testato su 5 percentili candidati (0.5%-5%) prima di scegliere: quelli
+troppo alti (3-5%) rendevano il roster pieno più punitivo di prima
+(media scesa a 23-23.7); l'1% è il punto dove il roster pieno resta
+sostanzialmente invariato mentre i pool piccoli migliorano nettamente.
+
+Validato con la vera `evaluateLineup()` su tutte le combinazioni
+rilevanti (4000 pescate ciascuna, strategia avida):
+
+| Pool | Squadre | avido: media / p10 / mediana | avido: tier S |
+|---|---|---|---|
+| Classic (tutte e 5) | 72 | 24.65 / 20 / 25 | 7.7% |
+| Late '80s+'90s (segnalato dall'utente) | 24 | 26.29 / 22 / 27 | 17.5% |
+| Late '80s da sola (pool minimo) | 10 | 25.98 / 22 / 27 | 20.0% |
+| '20s da sola | 16 | 25.12 / 21 / 26 | 8.5% |
+
+(tier S "avido" pre-fix sugli stessi pool: 41.2% su Late'80s+'90s, 43.8%
+su Late'80s da sola, 65.0% su '20s da sola — quest'ultimo praticamente
+azzerato, torna vicino all'8-9% del roster pieno)
+
+Miglioramento netto (dal 41-65% di tier S "avido" pre-fix ai valori
+sopra) ma non un pareggio perfetto con il roster pieno sui pool più
+piccoli (24 e 10 carte): un residuo intrinseco della stessa natura del
+limite già accettato per `PERFECTION_THRESHOLD` - con solo 10-24 carte
+anche il percentile più basso della distribuzione avida non può scendere
+sotto un certo livello, perché quel livello stesso dipende dal tetto
+del pool, che si comprime insieme a tutto il resto. Non eliminabile del
+tutto con una sigmoide a parametri fissi per pescata; il costo aggiuntivo
+di calibrazione (`estimateMid` in più a `estimatePerfectionThreshold`,
+entrambi ad ogni "Genera sfida") resta comunque sotto ~1.1s nel caso
+peggiore (roster pieno, misurato dal vivo), accettabile per un click.
 
 **`CEILING` e `MID` sono calcolati a runtime dal dataset caricato, non
 scritti a mano.** `CEILING` prima era una costante fissa (127.5, poi
@@ -1238,10 +1289,12 @@ cd scripts && python3 check_data_sanity.py       # check dati 1.1 parte C: bound
 **Più recente**: aggiunta la partizione "Late '80s" (10 squadre, 1987-90,
 vedi "Late '80s: una decade 'corta' ma nel roster pieno" sopra) e, subito
 dopo, scoperta e corretta la falla di scala che rendeva quel pool
-piccolo troppo facile — `PERFECTION_THRESHOLD` ora si ricalibra dal vivo
-sul pool di ogni partita invece di essere una frazione fissa del tetto
-(vedi "Curva adattiva alla dimensione del pool" sotto "Curva a due
-tratti"). Prima di questo: schermata risultato, home e draft compattate
+piccolo troppo facile — sia `PERFECTION_THRESHOLD` che `MID` ora si
+ricalibrano dal vivo sul pool di ogni partita (due giri, il secondo dopo
+un'ulteriore segnalazione dell'utente in gioco reale) invece di essere
+frazioni fisse del tetto (vedi "Curva adattiva alla dimensione del pool"
+sotto "Curva a due tratti"). Prima di questo: schermata risultato, home
+e draft compattate
 per mobile (undici giri misurati e testati dal vivo su iPhone 17, vedi
 "Il quintetto visibile senza scroll" sopra — altezza contenuto -49% dai
 1180px di partenza, quintetto finalmente visibile senza scroll). Tutto

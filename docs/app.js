@@ -270,16 +270,19 @@ let MID = 0;
 // dove il 30-0 esce davvero (5 su 3000, ~1 ogni 600 giocando in modo
 // ottimale) con l'aumento di tier S piu' contenuto fra le opzioni che
 // funzionano (1/31 -> 1/14, contro 1/9 a 0.87 - quasi il triplo).
+// Ritoccato ancora da 0.89 a 0.87 dopo settimane di gioco reale: a 0.89
+// il 30-0 restava troppo raro anche per chi gioca centinaia di partite
+// (~1 ogni 700+ giocando in modo ottimale). Confrontati i due valori
+// in parallelo con tests/difficulty_check.js (stessa scala di pescate)
+// e poi testato dal vivo: a 0.87 il 30-0 sale a ~1 ogni 230-330, il
+// tier S quasi raddoppia (1/9 contro 1/15) - accettato come prezzo
+// giusto per un traguardo raggiungibile in un tempo di gioco reale.
 // ATTENZIONE: K dipende da PERFECTION_THRESHOLD (vedi computeK sotto),
 // quindi cambiare questa costante non sposta solo la punta della curva
 // ma la ripiattisce tutta - anche piccoli spostamenti hanno un effetto
 // piu' grande di quanto sembri a naso, vanno sempre misurati con
 // tests/difficulty_check.js prima di cambiarli (vedi README, sezione
 // "Curva a due tratti").
-// PROVA LIVE (branch sperimentale, non ancora deciso): 0.87 invece di
-// 0.89, per farlo testare dal vivo dall'utente dopo il confronto dati
-// (vedi tests/difficulty_check.js) - 30-0 ~1 ogni 230-330 invece di
-// ~1 ogni 700+, tier S quasi raddoppiato (1/9 invece di 1/15)
 const PERFECTION_BAND = 0.87;
 let PERFECTION_THRESHOLD = 0;
 // K: calibrato (vedi computeK) perche' la sigmoide raggiunga circa 29.5
@@ -641,7 +644,7 @@ const TIERS = [
   { min: 18, letter: "B", label: "Squadra da playoff", color: "#60a5fa" },
   { min: 11, letter: "C", label: "Salvezza tranquilla", color: "#a78bfa" },
   { min: 5, letter: "D", label: "Zona playout", color: "#fb923c" },
-  { min: 0, letter: "E", label: "Ultima in classifica", color: "#f87171" },
+  { min: 0, letter: "F", label: "Ultima in classifica", color: "#f87171" },
 ];
 function tierFor(wins) {
   return TIERS.find((t) => wins >= t.min) || TIERS[TIERS.length - 1];

@@ -23,7 +23,7 @@ base italiano:
 | Centro      | C  | 5 |
 
 Il motore calcola un record proiettato su **30 partite** (girone di andata e
-ritorno a 16 squadre, non 82 come in NBA), con un tier finale (da E "ultima
+ritorno a 16 squadre, non 82 come in NBA), con un tier finale (da F "ultima
 in classifica" a S "corazzata") e il dettaglio statistico dei 5 scelti.
 Il risultato è condivisibile come **immagine PNG** generata su canvas
 (Web Share API con file, fallback su download e su condivisione testuale).
@@ -841,7 +841,7 @@ il risultato è sempre 30-0, sotto è una sigmoide calibrata.
 CEILING              = miglior rating_lega per ciascuno dei 5 rank, sommato
                         (calcolato a runtime da computeCeiling() dopo il
                         caricamento del dataset — vedi sotto il perché)
-PERFECTION_THRESHOLD = CEILING * PERFECTION_BAND        (PERFECTION_BAND = 0.89)
+PERFECTION_THRESHOLD = CEILING * PERFECTION_BAND        (PERFECTION_BAND = 0.87)
 wins_raw = 30                                            se team_rating >= PERFECTION_THRESHOLD
 wins_raw = 30 / (1 + e^(-K * (team_rating - MID)))       altrimenti
 ```
@@ -863,10 +863,10 @@ wins_raw = 30 / (1 + e^(-K * (team_rating - MID)))       altrimenti
   visibile": mediana 24, p10 19, **9 volte su 3000 in tier S** (raro ma
   non nullo, contro le 26+ vittorie quasi garantite di prima del primo
   retune)
-- `PERFECTION_BAND = 0.89`: sopra l'89% del tetto teorico, sempre 30-0 —
+- `PERFECTION_BAND = 0.87`: sopra l'87% del tetto teorico, sempre 30-0 —
   un pugno di quintetti vicinissimi al meglio possibile, non un plateau
   che capita per caso vicino al tetto (comportamento naturale di
-  qualunque sigmoide, se non lo si rende esplicito). Tre ritocchi, ognuno
+  qualunque sigmoide, se non lo si rende esplicito). Quattro ritocchi, ognuno
   misurato prima di essere spedito — mai a occhio, perché `K` dipende da
   `PERFECTION_THRESHOLD` tramite `computeK()`: spostare la banda non
   tocca solo la punta della curva, la ripiattisce tutta, e uno
@@ -885,17 +885,32 @@ wins_raw = 30 / (1 + e^(-K * (team_rating - MID)))       altrimenti
     nemmeno giocando nel modo assolutamente migliore (0 su 3000 pescate):
     la soglia stava sopra il 99.9-esimo percentile di quello che le
     pescate permettono, non un problema di bravura
-  - `0.89` (attuale): confrontate 7 bande (`0.93`→`0.87`) sulle
-    **stesse identiche pescate**, chiamando la vera `evaluateLineup()` —
-    un primo giro con una riscrittura a mano della formula (senza
-    l'arrotondamento e la penalità che la vera funzione applica) aveva
-    dato un tier S 3 volte più basso del reale, un errore scoperto solo
-    confrontandolo col numero prodotto dalla funzione vera. `0.89` è il
-    primo valore dove il 30-0 esce per davvero giocando in modo ottimo
-    (5 su 3000, ~1 ogni 600 — anche confermato su un giro più ampio,
-    5 su 4000), tenendo l'aumento del tier S il più piccolo possibile
-    fra le opzioni che funzionano: 1 su 31 → 1 su 14, contro 1 su 9 a
-    `0.87` (quasi il triplo, per lo stesso identico guadagno sul 30-0)
+  - `0.89`: confrontate 7 bande (`0.93`→`0.87`) sulle **stesse identiche
+    pescate**, chiamando la vera `evaluateLineup()` — un primo giro con
+    una riscrittura a mano della formula (senza l'arrotondamento e la
+    penalità che la vera funzione applica) aveva dato un tier S 3 volte
+    più basso del reale, un errore scoperto solo confrontandolo col
+    numero prodotto dalla funzione vera. `0.89` era il primo valore
+    dove il 30-0 usciva per davvero giocando in modo ottimo (5 su 3000,
+    ~1 ogni 600), tenendo l'aumento del tier S il più piccolo possibile
+    fra le opzioni che funzionavano: 1 su 31 → 1 su 14
+  - `0.87` (attuale): dopo settimane di gioco reale a `0.89`, il 30-0
+    restava troppo raro anche su centinaia di partite — confermato
+    rilanciando `tests/difficulty_check.js` su `0.89` e `0.87` **in
+    parallelo** (due server locali, stessa scala di pescate: 3000 per
+    le strategie, 200.000 per la raggiungibilità), poi testato dal vivo
+    su un branch dedicato prima di decidere:
+
+    | | `0.89` | `0.87` |
+    |---|---|---|
+    | 30-0 giocando ottimo | 0/3000 | 13/3000 (~1 ogni 231) |
+    | 30-0 giocando "avido" (umano bravo) | 0/3000 | 9/3000 (~1 ogni 333) |
+    | Raggiungibilità (limite superiore, 200k pescate) | 1 ogni 766 | 1 ogni 288 |
+    | Tier S giocando ottimo | 1 ogni 15 | 1 ogni 9 |
+
+    Prezzo accettato: tier S quasi raddoppiato, in cambio di un 30-0
+    che si può realisticamente vedere in qualche centinaio di partite
+    invece che restare una rarità quasi mai raggiunta
 - `K`: calcolato da `computeK()` perché la sigmoide valga ~29.5 appena
   sotto `PERFECTION_THRESHOLD`, così il passaggio alla zona di perfezione
   resta morbido invece che un gradino

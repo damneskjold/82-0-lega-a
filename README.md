@@ -1131,6 +1131,14 @@ cd scripts && python3 check_data_sanity.py       # check dati 1.1 parte C: bound
 
 ## Stato e backlog
 
+**Più recente**: schermata risultato, home e draft compattate per
+mobile (undici giri misurati e testati dal vivo su iPhone 17, vedi "Il
+quintetto visibile senza scroll" sopra — altezza contenuto -49% dai
+1180px di partenza, quintetto finalmente visibile senza scroll) e
+`PERFECTION_BAND` ritarato `0.89` → `0.87` dopo settimane di gioco
+reale (30-0 troppo raro anche su centinaia di partite, vedi "Curva a
+due tratti"). Tutto già su `main`.
+
 **Dopo la 1.1** è arrivato un giro di correzioni e rifiniture, anch'esse
 già su `main` (dettaglio nelle sezioni sopra, qui solo l'elenco):
 

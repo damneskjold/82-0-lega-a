@@ -494,6 +494,14 @@ i bottoni invece di finire all'ultimo pelo. Bottoni verificati ancora
 identico (nessuna delle tre modifiche esce dalle media query
 `<860px`/`<400px` o dalla classe `.result-compact`).
 
+**Nono giro**: richiesta esplicita di stringere ancora lo scoreboard
+(box "Record proiettato") per azzerare del tutto lo spazio scrollabile
+residuo — un ritocco piccolo e mirato, solo font e padding del box, non
+altro. Sotto i 400px `.result-record` da `3rem` a `2.7rem`; nel blocco
+mobile `.result-hero` padding da `12px 10px 10px` a `10px 8px 8px`.
+Risultato: **610px → 600px**. Bottoni verificati ancora 43px/38px,
+nessun overflow, desktop invariato.
+
 ## Modalità di gioco
 
 Scelte in home con 3 tile (stile 82-0, che ha Classic/Hoop IQ/1v1 —

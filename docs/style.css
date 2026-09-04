@@ -940,10 +940,41 @@ body {
     text-transform: uppercase;
     text-align: center;
   }
+
+  /* "Recuperate" andava a capo in modo brutto su iPhone reale
+     ("RECUPERAT"/"E") anche dopo un font piu' piccolo e hyphens:auto
+     (rete di sicurezza che non e' scattata). Sigla al posto della
+     parola intera (gia' presente nel markup, vedi app.js
+     CAT_LABELS_SHORT) su tutto il mobile, non solo sotto i 400px: il
+     primo giro era scoped li' sull'ipotesi che gli iPhone recenti
+     fossero sempre sotto quella soglia, ma un iPhone 17 reale ha
+     riportato una larghezza CSS maggiore di 400px e mostrava ancora la
+     parola intera - eliminato il problema alla radice su tutta la
+     media query, non su una soglia di larghezza indovinata.
+     Selettore ".stat-box" davanti per battere in specificita' le
+     regole base ".label-full"/".label-short" scritte dopo questa media
+     query nel file - stesso bug di specificita' preso altre volte in
+     questa sessione: a parita' di specificita' vince l'ordine nel
+     foglio, non la media query (qui aveva vinto in silenzio: nessun
+     overflow da segnalare, solo la parola intera mai sostituita) */
+  .stat-box .label-full {
+    display: none;
+  }
+  .stat-box .label-short {
+    display: inline;
+  }
 }
 
-@media (max-width: 400px) {
-  /* la regola qui sopra (righe di soli numeri, header con le etichette)
+@media (max-width: 440px) {
+  /* soglia alzata da 400px a 440px: un iPhone 17 reale (base, non Pro)
+     ha risoluzione 1206x2622px a 3x = 402px CSS di larghezza logica -
+     2px sopra i 400px, bastava a saltare queste regole del tutto
+     (sigla "REC" invece di "Recuperate", font del record ridotto,
+     righe del quintetto) senza che nessun check automatico se ne
+     accorgesse (non e' un overflow). 440px da' margine anche per i
+     prossimi modelli con schermo leggermente piu' grande.
+
+     la regola qui sopra (righe di soli numeri, header con le etichette)
      rende superfluo il vecchio "vai a capo su una riga propria" sotto
      i 400px (ora un numero solo, senza etichetta sotto, ci sta gia' a
      fianco del nome) - va annullato esplicitamente, non basta che le
@@ -985,13 +1016,13 @@ body {
      contenuto) un'etichetta lunga come "RECUPERATE" puo' non starci in
      una riga sola sui telefoni piu' stretti: va a capo invece di uscire
      dal box e toccare quello a fianco (stessa scelta gia' fatta per nomi
-     e ruoli, mai overflow visibile) - sotto i 400px pero' si passa alla
-     sigla (vedi ".label-short" sotto), quindi in pratica questo non
-     scatta piu' li' */
+     e ruoli, mai overflow visibile) - su tutto il mobile (sotto gli
+     860px) pero' si passa alla sigla (vedi ".label-short" sotto),
+     quindi in pratica questo non scatta piu' li' */
   overflow-wrap: break-word;
 }
-/* sigla (es. "REC") nascosta di default: entra in gioco solo sotto i
-   400px, vedi media query piu' sotto - stesso pattern di ".stat-lbl"
+/* sigla (es. "REC") nascosta di default: entra in gioco solo sotto gli
+   860px, vedi media query piu' sotto - stesso pattern di ".stat-lbl"
    P/R/A/S/B del quintetto, gia' usato in questo file */
 .label-short {
   display: none;
@@ -1033,12 +1064,13 @@ body {
   }
 }
 
-/* telefoni stretti (320-400px): nella riga del quintetto finale le 5
+/* telefoni stretti (320-440px, vedi commento sulla soglia nella media
+   query gemella qui sopra): nella riga del quintetto finale le 5
    colonne di statistiche mangiano quasi tutta la larghezza e al nome
    restano ~56px, troppo pochi anche per un nome gia' abbreviato. Le
    statistiche vanno quindi a capo su una riga propria, cosi' il nome ha
    tutto lo spazio. Trovato dal check visivo (tests/visual_check.js). */
-@media (max-width: 400px) {
+@media (max-width: 440px) {
   /* il record piu' largo possibile e' "30—30": a 4.5rem non ci sta */
   .result-record {
     font-size: 2.7rem;
@@ -1062,19 +1094,6 @@ body {
   }
   .stat-box .label {
     font-size: 0.6rem;
-  }
-  /* sotto i 400px "Recuperate" andava a capo in modo brutto su iPhone
-     reale ("RECUPERAT"/"E") anche dopo un font piu' piccolo e
-     hyphens:auto (rete di sicurezza che non e' scattata, probabilmente
-     Safari non trova un punto di sillabazione valido senza "lang"
-     dichiarato sulla pagina) - eliminato il problema alla radice
-     passando alla sigla (gia' presente nel markup, vedi app.js
-     CAT_LABELS_SHORT), che non rischia mai di andare a capo */
-  .label-full {
-    display: none;
-  }
-  .label-short {
-    display: inline;
   }
 }
 

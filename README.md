@@ -502,6 +502,32 @@ mobile `.result-hero` padding da `12px 10px 10px` a `10px 8px 8px`.
 Risultato: **610px → 600px**. Bottoni verificati ancora 43px/38px,
 nessun overflow, desktop invariato.
 
+**Decimo giro**: due nuovi screenshot dal vivo mostravano ancora
+"RECUPERATE" per intero (non le sigle del quinto/ottavo giro) e il
+record ancora grande — nessuna delle correzioni scoped `<400px>` degli
+ultimi giri sembrava attiva. Causa trovata misurando la risoluzione
+dello screenshot: un iPhone 17 reale (modello base, non Pro) è
+1206×2622px a 3x, cioè **402px CSS di larghezza logica** — 2px sopra la
+soglia dei 400px usata finora, bastava a saltare quelle regole per
+intero senza che nessun check automatico se ne accorgesse (non è un
+overflow, solo una regola che non scatta). Corretto alzando la soglia
+da `400px` a `440px` (margine anche per i prossimi modelli) in
+entrambe le media query che la usavano.
+
+Sistemando questo si è scoperto un secondo bug, stesso tipo già preso
+altre volte in questa sessione: lo scambio parola-intera/sigla
+(`.label-full`/`.label-short`, introdotto all'ottavo giro) era stato
+scritto dentro la media query mobile, ma la regola di default
+`.label-short { display: none }` (fuori da qualsiasi media query) sta
+*dopo* nel foglio — stessa specificità, vince l'ordine nel file, non la
+media query. Le sigle restavano quindi nascoste su ogni larghezza.
+Corretto con selettori più specifici (`.stat-box .label-full`/
+`.stat-box .label-short`), stesso rimedio già usato altre volte.
+
+Verificato di nuovo tutto (0 problemi, nessun overflow a 320px, bottoni
+43px/38px, desktop invariato) esplicitamente alla vera larghezza
+dell'iPhone 17 (402px), non solo alle larghezze indovinate di prima.
+
 ## Modalità di gioco
 
 Scelte in home con 3 tile (stile 82-0, che ha Classic/Hoop IQ/1v1 —

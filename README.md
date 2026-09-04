@@ -1194,21 +1194,63 @@ di default, va filtrato esplicitamente per `championship_name`.
   ricercato via web il vero colore sociale storico del club (Wikipedia
   IT, siti ufficiali, stampa sportiva — vedi `TEAM_COLORS` in `app.js`
   per il colore e la fonte/confidenza di ciascuna). Il vincolo reale
-  è che molti club condividono lo stesso colore sociale (5 bianconero,
-  7 biancorosso, 9 biancoblu...), quindi dentro ogni famiglia di
-  colore la tonalità esatta (chiarezza/saturazione) è stata scelta
-  per restare distinguibile dalle altre squadre della stessa famiglia,
-  verificato con uno script di distanza percettiva (spazio LAB) su
-  tutte le 435 coppie possibili: 430/435 hanno distanza confortevole
-  (>16), le uniche 5 coppie più vicine (12-13, comunque distinguibili)
-  sono tutte dentro il cluster dei 5 bianconero (Virtus Bologna, Trento,
-  Udine, Caserta, Tortona), un limite intrinseco quando 5 squadre reali
-  condividono lo stesso colore sociale e non si vuole "inventare" un
-  colore diverso da quello vero. Confidenza media/bassa (fonti meno
-  solide o colori sociali cambiati nel tempo) per: Varese (doppia
-  identità: biancorosso originario vs gialloblù dell'era Ignis, scelto
-  il secondo), Trieste, Brescia, Pistoia, Avellino, Cremona, Livorno,
-  Roseto.
+  è che molti club condividono lo stesso colore sociale (8 biancorosso,
+  5 bianconero, 3 biancoblu chiaro, 2 blu scuro...), quindi dentro ogni
+  famiglia di colore la tonalità esatta (chiarezza/saturazione) è stata
+  scelta per restare distinguibile dalle altre squadre della stessa
+  famiglia, verificato con uno script di distanza percettiva (spazio
+  LAB, CIE76) su tutte le 435 coppie possibili.
+
+  **Riaudit colori a bassa confidenza** (segnalato dall'utente: "ho
+  trovato un varese giallo???"): le 8 squadre a confidenza media/bassa
+  del giro precedente sono state riverificate con **8 agenti di ricerca
+  in parallelo**, uno per squadra, con un vincolo esplicito che nel giro
+  precedente non era stato applicato con rigore — ancorare la scelta a
+  cosa la squadra ha **davvero indossato nella finestra di copertura del
+  progetto (1987-2025)**, non a un'epoca precedente per quanto più
+  celebre. Il caso che ha innescato il riaudit: Varese era gialloblù
+  perché quello è il colore associato all'era "Ignis" del club — ma
+  quell'era è **1961-1974**, prima dell'inizio dei dati (1987) e fuori
+  da qualunque stagione giocabile nel gioco. Verificato che il vero
+  colore sociale di Varese, sia prima che dopo l'era Ignis (quindi per
+  *tutta* la finestra 1987-2025), è biancorosso — confermato anche dal
+  sito ufficiale del club ("Biancorosso è il colore del cuore").
+
+  Risultato per le 8 squadre riaudit (fonti citate per ognuna nel
+  commit): **6 corrette** (colore o tonalità sbagliati), **2 confermate
+  invariate**:
+  - **Varese**: gialloblù (epoca Ignis, fuori finestra) → **biancorosso**
+  - **Trieste**: il rosso era troppo scuro/spento — schiarito, campionato
+    dallo stemma ufficiale
+  - **Pistoia**: era un rosso-salmone — in realtà un rosso vero saturo
+    (fonte: CSS del sito ufficiale del club)
+  - **Brescia**: il blu era troppo violaceo — corretto verso un blu
+    reale/cobalto, campionato dal logo ufficiale (colori invariati
+    nonostante la rifondazione 2009)
+  - **Avellino**: il verde era troppo chiaro/mentolato — corretto verso
+    uno smeraldo più saturo (fonte: infobox Wikipedia)
+  - **Cremona**: il blu era troppo violaceo — corretto verso un
+    ciano/blu acciaio (fonte: infobox Wikipedia)
+  - **Livorno**: famiglia amaranto confermata corretta; il tono esatto
+    sourced dalla ricerca si accavallava troppo con Venezia (altro
+    orogranata) — tenuto il tono esistente
+  - **Roseto**: confermato corretto senza modifiche (nessun hex ufficiale
+    pubblicato da nessuna fonte, ma la famiglia "biancazzurro chiaro" è
+    ben documentata su tutte le denominazioni del club dal 1987 a oggi)
+
+  Con 8 squadre ora nella famiglia biancorosso (contro le 7 del giro
+  precedente + Varese), lo spazio percettivo disponibile per tonalità
+  di rosso distinguibili si è ristretto: **425/435 coppie hanno
+  distanza confortevole (>16)**, le 10 più vicine (12.4-15.5) sono
+  quasi tutte già note dal giro precedente (il cluster dei 5 bianconero,
+  12.4-13.5) più un nuovo gruppetto di 4 nel cluster biancorosso ora più
+  affollato (Varese/Pistoia/Trieste/Reggio Emilia/Teramo/Biella/Pesaro,
+  8 squadre in tutto) — stesso tipo di limite intrinseco già presente
+  nel bianconero, non un errore di scelta: 8 club realmente biancorosso
+  significa una tavolozza di rossi realisticamente distinguibili ma non
+  perfettamente separati, verificato con una ricerca automatica
+  (ottimizzazione congiunta in spazio LAB, non a occhio) prima di
+  scegliere i tre toni contesi.
 - Giocatori ordinati per PPG (punti a partita), non per rating, nelle
   liste di scelta
 - Draft sequenziale con validazione live: la UI blocca a monte le scelte
@@ -1293,8 +1335,12 @@ piccolo troppo facile — sia `PERFECTION_THRESHOLD` che `MID` ora si
 ricalibrano dal vivo sul pool di ogni partita (due giri, il secondo dopo
 un'ulteriore segnalazione dell'utente in gioco reale) invece di essere
 frazioni fisse del tetto (vedi "Curva adattiva alla dimensione del pool"
-sotto "Curva a due tratti"). Prima di questo: schermata risultato, home
-e draft compattate
+sotto "Curva a due tratti"). Nello stesso giro, riaudit dei colori a
+bassa confidenza (Varese e altre 7 squadre, vedi "Decisioni prese
+finora" sopra) - 6 corretti, 2 confermati invariati, tutti riverificati
+con la finestra di copertura reale del progetto (1987-2025) invece di
+epoche precedenti più celebri ma fuori copertura. Prima di questo:
+schermata risultato, home e draft compattate
 per mobile (undici giri misurati e testati dal vivo su iPhone 17, vedi
 "Il quintetto visibile senza scroll" sopra — altezza contenuto -49% dai
 1180px di partenza, quintetto finalmente visibile senza scroll). Tutto

@@ -127,40 +127,42 @@ const TEAM_COLORS = {
   olimpia_milano: "#953C2A", // biancorosso (alta)
   canturina: "#0A1EAA", // biancoblu (alta)
   treviso: "#27621F", // verde e bianco (alta)
-  varese: "#FEEB13", // gialloblù, epoca Ignis (media - doppia identità, vedi README)
+  varese: "#BB3631", // biancorosso, tutto il periodo 1987-2025 (alta - vedi README, riaudit colori bassa confidenza)
   siena: "#3ABE22", // bianco, verde e nero (alta)
   venezia: "#6D2027", // orogranata (alta)
-  trieste: "#A31416", // biancorosso (media)
-  brescia: "#4B6DF2", // biancazzurro (media - club rifondato nel 2009)
+  trieste: "#F9203B", // biancorosso, piu' vivido di quanto documentato prima (alta famiglia / media tono esatto)
+  brescia: "#0477C5", // biancoblu, invariato dal 2009 (alta - campionato dal logo ufficiale)
   pesaro: "#B22F45", // biancorosso (alta)
   roma: "#411B1E", // giallorosso e blu - componente rosso (alta)
   reggio_emilia: "#E14A2F", // biancorosso (alta)
   fortitudo_bologna: "#0E1440", // biancoblu (alta)
   napoli: "#196A94", // azzurro e bianco (alta)
-  pistoia: "#D05D47", // bianco e rosso (media)
+  pistoia: "#B50E13", // bianco e rosso vero saturo, non salmone (alta - fonte: CSS sito ufficiale)
   sassari: "#124995", // biancoblu (alta)
   trento: "#555A51", // bianconero (alta)
-  avellino: "#25C07E", // bianco, verde e arancione (media)
+  avellino: "#01BA7B", // biancoverde, smeraldo non menta (media/alta)
   reggio_calabria: "#F78002", // nero e arancione - non viola (alta)
-  cremona: "#4B97F5", // bianco e blu (media)
+  cremona: "#638DC3", // bianco e blu acciaio/ciano, non violaceo (media)
   brindisi: "#050E65", // biancoazzurro (alta)
-  livorno: "#6A3149", // bianco e amaranto (media)
+  livorno: "#6A3149", // bianco e amaranto, confermato 1987-2025 (media - il tono amaranto sourced esatto si accavallava con venezia)
   udine: "#252529", // bianconero (alta)
   caserta: "#373E39", // bianconero (alta)
   biella: "#E62B48", // rosso e blu - componente rosso (alta)
   verona: "#1225F0", // gialloblù - componente blu (alta)
   teramo: "#EB1717", // biancorosso (alta)
-  roseto: "#5AB9ED", // biancazzurro (media)
+  roseto: "#5AB9ED", // biancazzurro, confermato 1987-2025 (media - nessun hex ufficiale pubblicato, famiglia ben documentata)
   tortona: "#534D56", // bianconero (alta)
   scafati: "#F2BA40", // gialloblù (alta)
 };
 
 // Il colore squadra fa da sfondo alle iniziali del giocatore (avatar del
 // quintetto finale e card PNG condivisa). Con i colori sociali veri
-// introdotti nella 1.1 alcune squadre sono chiarissime - Varese e'
-// giallo #FEEB13 - e le iniziali bianche fisse ci sparivano sopra
-// (contrasto 1.23, sotto qualunque soglia leggibile). L'inchiostro si
-// sceglie quindi in base al contrasto WCAG, mai fisso.
+// introdotti nella 1.1 alcune squadre sono chiarissime (es. scafati,
+// giallo #F2BA40) e le iniziali bianche fisse ci sparivano sopra
+// (contrasto sotto qualunque soglia leggibile per i casi piu' chiari -
+// Varese era l'esempio originale, prima del riaudit colori che l'ha
+// portato al rosso). L'inchiostro si sceglie quindi in base al
+// contrasto WCAG, mai fisso.
 const INK_LIGHT = "#ffffff";
 const INK_DARK = "#0f141b"; // stesso valore di --bg
 function relLuminance(hex) {

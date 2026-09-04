@@ -674,16 +674,21 @@ ma non è più usato per popolare il gioco. Il frontend gestisce ancora
 genericamente `season.year ?? season.decade` (codice invariato, solo
 vestigiale ora che `year` non compare più nei dati).
 
-Situazione oggi: **completato**. Tutte le 30 squadre identificate dalla
-ricerca di copertura hanno almeno una carta-decade (Bologna, Milano,
-Varese, Pesaro a 4/4; Cantù, Roma, Treviso, Reggio Emilia a 3/4; le
-altre 22 a 1/4 o 2/4, a seconda di quante stagioni hanno effettivamente
-giocato in Serie A in ciascuna decade). Le squadre nuove (senza storia
-di carte-stagione, la maggioranza) sono state aggiunte come stub vuoto
-in `data/dataset.json` prima di lanciare lo script decade.
+Situazione oggi: **completato**, poi cresciuto ancora con l'aggiunta di
+"Late '80s" (vedi sopra). Tutte le 30 squadre identificate dalla ricerca
+di copertura hanno almeno una carta-decade; contando anche "Late '80s"
+(72 carte totali su 30 squadre): Virtus Bologna, Olimpia Milano, Varese
+e Pesaro a **5 carte** ciascuna (le 4 decadi vere più "Late '80s"),
+Cantù/Roma/Treviso a **4** (3 decadi vere + "Late '80s"), Reggio Emilia
+e Napoli a **3**, 13 squadre a **2**, le restanti 8 a **1 sola carta**.
+Le squadre nuove (senza storia di carte-stagione, la maggioranza) sono
+state aggiunte come stub vuoto in `data/dataset.json` prima di lanciare
+lo script decade.
 
 Stato dettagliato, copertura per decade di ogni squadra e cronologia
-dei batch: `data/decade_coverage_research.md`.
+dei batch: `data/decade_coverage_research.md` (non copre "Late '80s",
+aggiunta dopo con un criterio di ammissione diverso — vedi
+`scripts/scrape_87_90.py`).
 
 Le 2 forzature TEMP in `drawFive()` (Milano+Bologna sempre nel draw,
 usate per le prove utente mentre il roster si popolava) sono state
@@ -691,11 +696,12 @@ rimosse.
 
 **Debito noto legato al pool**: `drawFive()` pesca da un unico elenco
 piatto di tutte le carte (`ALL_TEAM_SEASONS`), senza pesare per
-squadra. Bologna/Milano/Varese/Pesaro (4 carte-decade ciascuna) hanno
-quindi 4 volte più probabilità di uscire rispetto a una squadra con 1
-sola carta (la maggioranza, ora che il roster è completo). Non
-risolto: andrebbe cambiato a pesca a due passaggi (prima la squadra,
-poi la carta al suo interno) per dare a ogni squadra pari probabilità.
+squadra. Virtus Bologna/Olimpia Milano/Varese/Pesaro (5 carte-decade
+ciascuna, contando anche "Late '80s") hanno quindi 5 volte più
+probabilità di uscire rispetto a una squadra con 1 sola carta (8
+squadre, ora che il roster è completo). Non risolto: andrebbe cambiato
+a pesca a due passaggi (prima la squadra, poi la carta al suo interno)
+per dare a ogni squadra pari probabilità.
 
 ### Aggregazione per decade
 
@@ -723,6 +729,11 @@ per gli anni 2020** (soglia ridotta perché la decade è ancora a metà —
 `MIN_SEASONS_PER_DECADE` / `MIN_SEASONS_DECADE_IN_CORSO` in
 `scrape_decade_sample.py`). Sotto soglia la carta viene scartata invece
 di essere generata comunque sottile.
+
+Una quinta partizione, "Late '80s" (1987-90, criterio di ammissione
+diverso perché copre solo 3 stagioni), è stata aggiunta in seguito —
+vedi "'Late '80s': una decade 'corta' ma nel roster pieno" più sotto per
+i dettagli.
 
 Convenzione sui nomi: le squadre si chiamano **col solo nome della città**,
 tranne dove la città ha avuto due club distinti in Serie A — Milano (Olimpia
@@ -757,22 +768,27 @@ Ala, Centro) più i tag ibridi Play/Guardia, Guardia/Ala, Ala/Centro. Non
 esiste una 5a categoria pulita tipo "power forward": è il sistema a rank
 sopra a coprire i 5 slot, dando ad "Ala" i rank 3 e 4.
 
-Ordine di risoluzione del ruolo:
-1. ruolo nella rosa di quella stagione (`roster`) — 840 su 865 eleggibili
-2. ruolo "di carriera" del giocatore (`fallback_career`)
-3. override manuale trovato via ricerca web (`wikipedia_lookup`) —
+Ordine di risoluzione del ruolo (`role_source`, un campo per giocatore
+che dice quale livello è stato usato):
+1. **correzione forzata verificata** (`ricerca_verificata`,
+   `role_forced_by_name`) — *vince anche su un ruolo già assegnato* dagli
+   altri livelli, per i casi in cui la fonte è proprio sbagliata (vedi
+   "Correzioni verificate al ruolo" più sotto)
+2. ruolo nella rosa di quella stagione (`roster`) — 3022 su 3276
+   eleggibili nel dataset attuale (92.2%)
+3. ruolo "di carriera" del giocatore (`fallback_career`)
+4. override manuale trovato via ricerca web (`wikipedia_lookup`) —
    `role_overrides_by_name` in `scrape_decade_sample.py`, con la fonte
-   annotata in un commento accanto a ogni nome
-4. stima grezza da altezza (`estimated_height`)
+   annotata in un commento accanto a ogni nome, solo per riempire un
+   buco (a differenza di `ricerca_verificata`, non vince su un ruolo già
+   presente)
+5. stima grezza da altezza (`estimated_height`)
 
 **Regola ferma: il ruolo non si inventa mai.** Se non c'è nessuna fonte e
 manca anche l'altezza, il giocatore viene marcato `eligible: false` — meglio
 un giocatore in meno che uno mostrato come selezionabile con un ruolo
 sbagliato. Lo script stampa a fine run l'elenco "SENZA RUOLO" da risolvere
 a mano.
-
-Ogni giocatore porta un campo `role_source` che dice quale livello è stato
-usato.
 
 ### Ruoli estesi per altezza
 
@@ -1250,19 +1266,20 @@ di default, va filtrato esplicitamente per `championship_name`.
     pubblicato da nessuna fonte, ma la famiglia "biancazzurro chiaro" è
     ben documentata su tutte le denominazioni del club dal 1987 a oggi)
 
-  Con 8 squadre ora nella famiglia biancorosso (contro le 7 del giro
-  precedente + Varese), lo spazio percettivo disponibile per tonalità
-  di rosso distinguibili si è ristretto: **425/435 coppie hanno
+  Con 8 squadre ora nella famiglia biancorosso (Olimpia Milano, Varese,
+  Trieste, Pesaro, Reggio Emilia, Pistoia, Biella, Teramo — contro le 7
+  del giro precedente + Varese), lo spazio percettivo disponibile per
+  tonalità di rosso distinguibili si è ristretto: **425/435 coppie hanno
   distanza confortevole (>16)**, le 10 più vicine (12.4-15.5) sono
   quasi tutte già note dal giro precedente (il cluster dei 5 bianconero,
-  12.4-13.5) più un nuovo gruppetto di 4 nel cluster biancorosso ora più
-  affollato (Varese/Pistoia/Trieste/Reggio Emilia/Teramo/Biella/Pesaro,
-  8 squadre in tutto) — stesso tipo di limite intrinseco già presente
-  nel bianconero, non un errore di scelta: 8 club realmente biancorosso
-  significa una tavolozza di rossi realisticamente distinguibili ma non
-  perfettamente separati, verificato con una ricerca automatica
-  (ottimizzazione congiunta in spazio LAB, non a occhio) prima di
-  scegliere i tre toni contesi.
+  12.4-13.5) più un nuovo gruppetto di 5 nel cluster biancorosso ora più
+  affollato (Trieste/Biella, Varese/Pistoia, Trieste/Teramo,
+  Varese/Pesaro, Reggio Emilia/Pistoia) — stesso tipo di limite
+  intrinseco già presente nel bianconero, non un errore di scelta: 8
+  club realmente biancorosso significa una tavolozza di rossi
+  realisticamente distinguibili ma non perfettamente separati,
+  verificato con una ricerca automatica (ottimizzazione congiunta in
+  spazio LAB, non a occhio) prima di scegliere i tre toni contesi.
 - Giocatori ordinati per PPG (punti a partita), non per rating, nelle
   liste di scelta
 - Draft sequenziale con validazione live: la UI blocca a monte le scelte
@@ -1280,7 +1297,7 @@ di default, va filtrato esplicitamente per `championship_name`.
 
 - `check_lineup_complete()` in `scrape_dataset.py` usa ancora il vecchio
   `ROLE_ALIASES` ("1 PM + 1 C + 3 mobili"), non i rank del frontend: oggi
-  nessuna carta è incoerente (tutte e 62 coprono i 5 rank), ma è un
+  nessuna carta è incoerente (tutte e 72 coprono i 5 rank), ma è un
   controllo che non controlla più la cosa giusta
 - `http_get_json()` cattura gli `HTTPError` e **cacha `{}`**: una chiamata
   fallita diventa silenziosamente "giocatore senza statistiche". È successo
@@ -1291,6 +1308,23 @@ di default, va filtrato esplicitamente per `championship_name`.
   in `/tmp` e sparivano ad ogni sessione ora sono in `tests/` (smoke test
   di gioco, check visivo + il suo test negativo) e in `scripts/`
   (i tre check sui dati)
+- **`scripts/check_data_consistency.py` e `check_data_coverage.py` non
+  coprono "Late '80s"**: entrambi importano `TEAMS` solo da
+  `scrape_decade_sample.py` (`ALL_TEAMS_FOR_RECOMPUTE = dict(DECADE_TEAMS)`
+  in `check_data_consistency.py`), mai `TEAMS_87_90` da
+  `scripts/scrape_87_90.py` — conseguenza diretta della scelta di tenere
+  "Late '80s" in uno script a parte (vedi sopra). Il ricalcolo-e-confronto
+  con `data/dataset.json` (la parte più rigorosa dei due check) non gira
+  mai su quelle 10 squadre: se in futuro cambia la cache grezza o la
+  logica di `build_decade()`, una regressione lì non verrebbe presa. Non
+  è un buco totale: `check_data_sanity.py` gira su **tutte** le righe del
+  dataset qualunque sia lo script che le ha generate (bound di sanità,
+  duplicati, distribuzione `role_source`), quindi anomalie grossolane
+  sulle 10 squadre di "Late '80s" verrebbero comunque intercettate — solo
+  non il confronto puntuale "il dataset combacia esattamente con quello
+  che lo script rigenererebbe oggi". Verificato che i tre check restano
+  **PULITI** rilanciandoli dopo il merge di "Late '80s" e del riaudit
+  colori (nessuna violazione, nessun mismatch sulle 30 squadre coperte).
 
 ## Struttura repo
 
@@ -1439,14 +1473,20 @@ commit.
    D'Ambrosio), poi rigenerata con `scrape_decade_sample.py` come le
    altre 29. Nessuna carta Olimpia ha perso `lineup_complete`. Parte C
    (bound di sanità) **fatta**: `scripts/check_data_sanity.py` controlla
-   su tutte le 4110 righe giocatore-decade percentuali di tiro in
-   [0,100], nessun valore negativo, minuti/partita ≤42, altezza in un
-   range umano plausibile, `eligible` sempre con un ruolo — più la
-   distribuzione di `role_source` (91,2% direttamente da roster
-   legabasket, 3,7% + 0,1% da ricerca web/stima altezza, quindi a
-   rischio più alto) e la top 20 per `rating_lega` come base per lo
-   spot-check mirato (i giocatori più forti hanno l'impatto maggiore su
-   un eventuale errore). Trovate e corrette 3 altezze chiaramente
+   su tutte le righe giocatore-decade (4110 al momento di questo check,
+   cresciute a 4290 dopo l'aggiunta di "Late '80s" — il numero cresce ad
+   ogni nuova partizione, rilanciare lo script per il conteggio
+   aggiornato) percentuali di tiro in [0,100], nessun valore negativo,
+   minuti/partita ≤42, altezza in un range umano plausibile, `eligible`
+   sempre con un ruolo — più la distribuzione di `role_source` (91,2%
+   direttamente da roster legabasket all'epoca di questo check, 88,8%
+   oggi dopo "Late '80s" — quota scesa perché quell'epoca ha molti più
+   ruoli mancanti dai dati grezzi del solito, vedi "'Late '80s'" sopra;
+   3,7% + 0,1% da ricerca web/stima altezza all'epoca, 3,5% + 0,1% oggi,
+   quindi a rischio più alto) e la top 20 per `rating_lega`
+   come base per lo spot-check mirato (i giocatori più forti hanno
+   l'impatto maggiore su un eventuale errore). Trovate e corrette 3
+   altezze chiaramente
    sbagliate nei dati grezzi di legabasket.it stessi (es. 85cm, 108cm,
    102cm — impossibili per un giocatore): 2 corrette con un valore
    plausibile già presente altrove nella cache dello stesso giocatore
@@ -1505,10 +1545,20 @@ commit.
 
 **In standby** (scelta esplicita dell'utente, non un fix da fare
 comunque): pesca a due passaggi in `drawFive()` — verificato che il
-problema è reale (simulato 200.000 draw, Virtus Bologna/4 carte
-compare nel 47.5% delle partite contro il 16.67% atteso se equo,
-Udine/1 carta solo nel 7.3%), potrebbe diventare una personalizzazione
-facoltativa in futuro.
+problema è reale, misurato sia sul pool intermedio dell'epoca (durante
+il popolamento del roster, quando Virtus Bologna aveva già le sue 4
+carte ma molte altre squadre erano ancora stub vuoti: 200.000 pescate,
+47.5% delle partite contro il 16.67% atteso se equo) sia, per
+riferimento, ricalcolato esattamente (formula ipergeometrica, non
+simulazione) **sul pool finale di oggi** (72 carte, 30 squadre, Virtus
+Bologna/Olimpia Milano/Varese/Pesaro salite a 5 carte ciascuna dopo
+"Late '80s"): **31.0%** per una squadra a 5 carte, **6.9%** per una a 1
+sola carta (8 squadre), contro il 16.67% atteso se equo (5 carte
+distinte su 30 squadre) — il problema si è ammorbidito in percentuale
+assoluta man mano che il pool è cresciuto, ma il rapporto relativo fra
+squadra più frequente e meno frequente resta di circa 4.5 a 1, non
+azzerato. Potrebbe diventare una personalizzazione facoltativa in
+futuro.
 
 **In standby anche**: un giudizio separato dal record, che confronti il
 rating ottenuto col massimo ottenibile da quella specifica pescata

@@ -118,7 +118,7 @@ function matchesRoleFilter(player, filter) {
 // sportiva - vedi README "Decisioni prese finora" per la metodologia e le
 // fonti), con tonalità variata dentro la stessa famiglia di colore per
 // restare distinguibile quando più club condividono lo stesso colore
-// sociale (5 bianconero, 7 biancorosso, 9 biancoblu, ecc: un vincolo reale
+// sociale (5 bianconero, 8 biancorosso, 9 biancoblu, ecc: un vincolo reale
 // del basket italiano, non un errore di scelta). Confidenza bassa/media
 // segnalata dove le fonti erano meno solide o il club ha cambiato colori
 // nel tempo.
